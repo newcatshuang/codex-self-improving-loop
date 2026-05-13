@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime
 import html
 import os
 import platform
@@ -40,74 +39,29 @@ def shell_quote(parts: list[str]) -> str:
     return " ".join(shlex.quote(part) for part in parts)
 
 
+def windows_task_quote(part: str) -> str:
+    escaped = part.replace('"', r'\"')
+    if not part or any(ch.isspace() for ch in part) or "\\" in part or "/" in part:
+        return f'"{escaped}"'
+    return escaped
+
+
 def install_windows(args: argparse.Namespace) -> None:
-    command = command_parts(args)
-    arguments = " ".join(f'"{part}"' if " " in part or "\\" in part else part for part in command[1:])
-    start_date = datetime.now().date().isoformat()
-    tmp_dir = Path(os.environ.get("TEMP", str(Path.home())))
-    ensure_dir(tmp_dir)
-    xml_path = tmp_dir / f"{TASK_NAME}.xml"
-    xml_path.write_text(
-        f"""<?xml version="1.0" encoding="UTF-16"?>
-<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-  <RegistrationInfo>
-    <Description>Runs Codex Self-Improving Loop watcher once per hour.</Description>
-  </RegistrationInfo>
-  <Triggers>
-    <CalendarTrigger>
-      <StartBoundary>{start_date}T00:{int(args.minute):02d}:00</StartBoundary>
-      <Enabled>true</Enabled>
-      <ScheduleByDay>
-        <DaysInterval>1</DaysInterval>
-      </ScheduleByDay>
-      <Repetition>
-        <Interval>PT1H</Interval>
-        <StopAtDurationEnd>false</StopAtDurationEnd>
-      </Repetition>
-    </CalendarTrigger>
-  </Triggers>
-  <Principals>
-    <Principal id="Author">
-      <LogonType>InteractiveToken</LogonType>
-      <RunLevel>LeastPrivilege</RunLevel>
-    </Principal>
-  </Principals>
-  <Settings>
-    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
-    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
-    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
-    <AllowHardTerminate>true</AllowHardTerminate>
-    <StartWhenAvailable>true</StartWhenAvailable>
-    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
-    <IdleSettings>
-      <StopOnIdleEnd>false</StopOnIdleEnd>
-      <RestartOnIdle>false</RestartOnIdle>
-    </IdleSettings>
-    <Enabled>true</Enabled>
-    <Hidden>false</Hidden>
-    <RunOnlyIfIdle>false</RunOnlyIfIdle>
-    <WakeToRun>false</WakeToRun>
-    <ExecutionTimeLimit>PT2H</ExecutionTimeLimit>
-    <Priority>7</Priority>
-  </Settings>
-  <Actions Context="Author">
-    <Exec>
-      <Command>{html.escape(command[0])}</Command>
-      <Arguments>{html.escape(arguments)}</Arguments>
-    </Exec>
-  </Actions>
-</Task>
-""",
-        encoding="utf-16",
-    )
+    task_run = " ".join(windows_task_quote(part) for part in command_parts(args))
     subprocess.run(
         [
             "schtasks.exe",
             "/Create",
             "/TN",
             TASK_NAME,
-            "/XML",
-            str(xml_path),
+            "/SC",
+            "HOURLY",
+            "/MO",
+            "1",
+            "/ST",
+            f"00:{int(args.minute):02d}",
+            "/TR",
+            task_run,
             "/F",
         ],
         check=True,

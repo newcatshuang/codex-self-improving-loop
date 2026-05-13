@@ -301,7 +301,7 @@ Schedule installer backends:
 
 | Platform | Backend                           |
 | -------- | --------------------------------- |
-| Windows  | Task Scheduler via `schtasks.exe` |
+| Windows  | Task Scheduler via `schtasks.exe /SC HOURLY /MO 1` |
 | Linux    | systemd user timer                |
 | macOS    | `launchd` LaunchAgent             |
 

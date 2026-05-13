@@ -4,11 +4,21 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import py_compile
 import subprocess
 import sys
 from pathlib import Path
+
+
+def load_schedule_module(repo: Path):
+    spec = importlib.util.spec_from_file_location("install_watcher_schedule_for_test", repo / "install_watcher_schedule.py")
+    if spec is None or spec.loader is None:
+        raise AssertionError("could not load install_watcher_schedule.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def main() -> int:
@@ -65,6 +75,41 @@ def main() -> int:
     )
     if "codex_session_watcher.py" not in schedule_dry_run.stdout or str(agents) not in schedule_dry_run.stdout:
         raise AssertionError("schedule installer should target the installed watcher under agents root")
+    schedule = load_schedule_module(repo)
+    schtasks_calls = []
+
+    def fake_run(command, check=True, **_kwargs):
+        schtasks_calls.append(command)
+
+    original_argv = sys.argv
+    original_system = schedule.platform.system
+    original_run = schedule.subprocess.run
+    try:
+        sys.argv = [
+            "install_watcher_schedule.py",
+            "--agents-root",
+            str(agents),
+            "--minute",
+            "0",
+        ]
+        schedule.platform.system = lambda: "Windows"
+        schedule.subprocess.run = fake_run
+        schedule.main()
+    finally:
+        sys.argv = original_argv
+        schedule.platform.system = original_system
+        schedule.subprocess.run = original_run
+    if not schtasks_calls:
+        raise AssertionError("Windows schedule installer should call schtasks.exe")
+    windows_create = schtasks_calls[0]
+    if "/XML" in windows_create:
+        raise AssertionError("Windows schedule installer should not use XML Daily+Repetition")
+    expected_flags = ["/SC", "HOURLY", "/MO", "1", "/ST", "00:00"]
+    for flag in expected_flags:
+        if flag not in windows_create:
+            raise AssertionError(f"Windows hourly schedule missing {flag}: {windows_create}")
+    if "/TR" not in windows_create or "codex_session_watcher.py" not in " ".join(windows_create):
+        raise AssertionError("Windows schedule should run the installed watcher command")
     watcher_state = codex / "watcher-test-state.json"
     dry_run = subprocess.run(
         [

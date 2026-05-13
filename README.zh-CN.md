@@ -301,7 +301,7 @@ python install_watcher_schedule.py
 
 | 平台    | 后端                                |
 | ------- | ----------------------------------- |
-| Windows | Task Scheduler，通过 `schtasks.exe` |
+| Windows | Task Scheduler，通过 `schtasks.exe /SC HOURLY /MO 1` |
 | Linux   | systemd user timer                  |
 | macOS   | `launchd` LaunchAgent               |
 
