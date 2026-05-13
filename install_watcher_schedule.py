@@ -13,18 +13,20 @@ import subprocess
 import sys
 from pathlib import Path
 
-from learning_loop_common import ensure_dir
-
 
 TASK_NAME = "CodexSelfImprovingLoopWatcher"
 
 
-def installed_watcher() -> Path:
-    return Path.home() / ".agents" / "skills" / "memory-capture" / "scripts" / "codex_session_watcher.py"
+def ensure_dir(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def installed_watcher(agents_root: Path) -> Path:
+    return agents_root.expanduser() / "skills" / "memory-capture" / "scripts" / "codex_session_watcher.py"
 
 
 def command_parts(args: argparse.Namespace) -> list[str]:
-    command = [sys.executable, str(installed_watcher()), "--once"]
+    command = [sys.executable, str(installed_watcher(args.agents_root)), "--once"]
     if args.since_date:
         command.extend(["--since-date", args.since_date])
     if args.max_sessions_per_run is not None:
@@ -199,6 +201,7 @@ def install_macos(args: argparse.Namespace) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--agents-root", type=Path, default=Path.home() / ".agents", help="Installed agents root; defaults to $HOME/.agents")
     parser.add_argument("--minute", type=int, default=0, help="Minute within each hour to run; 0 means on the hour")
     parser.add_argument("--since-date", help="Pass through to codex_session_watcher.py")
     parser.add_argument("--max-sessions-per-run", type=int, default=None, help="Pass through to codex_session_watcher.py; omit for watcher default")
@@ -207,7 +210,7 @@ def main() -> int:
 
     if args.minute < 0 or args.minute > 59:
         raise SystemExit("--minute must be between 0 and 59")
-    watcher = installed_watcher()
+    watcher = installed_watcher(args.agents_root)
     if not watcher.exists():
         raise SystemExit(f"Installed watcher not found: {watcher}. Run install.py first.")
 

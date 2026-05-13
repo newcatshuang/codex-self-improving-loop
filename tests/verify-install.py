@@ -31,7 +31,7 @@ def main() -> int:
         agents / "skills" / "memory-capture" / "SKILL.md",
         agents / "skills" / "memory-capture" / "scripts" / "codex_memory_nudge.py",
         agents / "skills" / "memory-capture" / "scripts" / "codex_session_watcher.py",
-        agents / "skills" / "memory-capture" / "scripts" / "install_watcher_schedule.py",
+        repo / "install_watcher_schedule.py",
     ]
     for path in expected:
         if not path.exists():
@@ -39,6 +39,7 @@ def main() -> int:
 
     for script in (agents / "skills").rglob("*.py"):
         py_compile.compile(str(script), doraise=True)
+    py_compile.compile(str(repo / "install_watcher_schedule.py"), doraise=True)
 
     scripts = agents / "skills" / "memory-capture" / "scripts"
     session_dir = codex / "sessions"
@@ -50,6 +51,20 @@ def main() -> int:
     subprocess.run([sys.executable, str(scripts / "generate_skills_index.py"), "--root", str(codex), "--skills-root", str(agents / "skills")], check=True)
     subprocess.run([sys.executable, str(scripts / "summarize_learning_inbox.py"), "--root", str(codex)], check=True)
     subprocess.run([sys.executable, str(scripts / "codex_memory_nudge.py"), "--root", str(codex), "--session-file", str(session_file), "--skip-skills-index", "--skip-learning-summary"], check=True)
+    schedule_dry_run = subprocess.run(
+        [
+            sys.executable,
+            str(repo / "install_watcher_schedule.py"),
+            "--agents-root",
+            str(agents),
+            "--dry-run",
+        ],
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    if "codex_session_watcher.py" not in schedule_dry_run.stdout or str(agents) not in schedule_dry_run.stdout:
+        raise AssertionError("schedule installer should target the installed watcher under agents root")
     watcher_state = codex / "watcher-test-state.json"
     dry_run = subprocess.run(
         [

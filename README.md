@@ -10,19 +10,19 @@ It is designed for developers who want their coding agent to improve over time w
 
 ## What You Get
 
-| Capability             | What it does                                                                                    | Default output                          |
-| ---------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------- |
-| Session recall         | Searches previous Codex sessions and returns short redacted snippets                            | terminal output                         |
-| Memory candidates      | Extracts stable preferences, safety corrections, and durable lessons                            | `$HOME/.codex/memories/inbox`           |
-| Memory promotion       | Promotes one reviewed memory into global `USER.md`                                              | `$HOME/.codex/memories/USER.md`         |
-| Candidate scoring      | Finds repeated, short, safe memory candidates                                                   | terminal or JSON report                 |
-| Skill candidates       | Captures reusable workflows that may become future skills                                       | `$HOME/.codex/skill-candidates/inbox`   |
-| Skill patch candidates | Captures evidence that an existing skill should be upgraded                                     | `$HOME/.codex/skill-candidates/patches` |
-| Safety scan            | Flags secrets, private URLs, redacted values, prompt injection text, and raw transcript markers | terminal or Markdown report             |
-| End-of-task nudge      | Runs the learning loop in review mode near handoff                                              | `$HOME/.codex/nudge-reports`            |
+| Capability             | What it does                                                                                    | Default output                           |
+| ---------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Session recall         | Searches previous Codex sessions and returns short redacted snippets                            | terminal output                          |
+| Memory candidates      | Extracts stable preferences, safety corrections, and durable lessons                            | `$HOME/.codex/memories/inbox`            |
+| Memory promotion       | Promotes one reviewed memory into global `USER.md`                                              | `$HOME/.codex/memories/USER.md`          |
+| Candidate scoring      | Finds repeated, short, safe memory candidates                                                   | terminal or JSON report                  |
+| Skill candidates       | Captures reusable workflows that may become future skills                                       | `$HOME/.codex/skill-candidates/inbox`    |
+| Skill patch candidates | Captures evidence that an existing skill should be upgraded                                     | `$HOME/.codex/skill-candidates/patches`  |
+| Safety scan            | Flags secrets, private URLs, redacted values, prompt injection text, and raw transcript markers | terminal or Markdown report              |
+| End-of-task nudge      | Runs the learning loop in review mode near handoff                                              | `$HOME/.codex/nudge-reports`             |
 | Session watcher        | Polls Codex session files and runs the nudge after idle periods                                 | `$HOME/.codex/memory-watcher-state.json` |
-| Usage metadata         | Tracks skill `use_count`, `last_used`, and failures                                             | `$HOME/.codex/skill-usage.json`         |
-| Learning reports       | Generates skill index and learning inbox summaries                                              | `$HOME/.codex/*.md`                     |
+| Usage metadata         | Tracks skill `use_count`, `last_used`, and failures                                             | `$HOME/.codex/skill-usage.json`          |
+| Learning reports       | Generates skill index and learning inbox summaries                                              | `$HOME/.codex/*.md`                      |
 
 ## Why This Exists
 
@@ -157,7 +157,7 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 For OS schedulers such as cron, launchd, systemd timers, or Windows Task Scheduler, schedule one real cycle hourly:
 
 ```bash
-python "$HOME/.agents/skills/memory-capture/scripts/install_watcher_schedule.py"
+python install_watcher_schedule.py
 ```
 
 Generate maintenance reports:
@@ -196,6 +196,7 @@ codex-self-improving-loop/
 ├─ README.zh-CN.md
 ├─ LICENSE
 ├─ install.py
+├─ install_watcher_schedule.py
 ├─ tests/
 │  └─ verify-install.py
 ├─ codex/
@@ -218,7 +219,6 @@ codex-self-improving-loop/
             ├─ extract_skill_candidate.py
             ├─ extract_skill_patch_candidate.py
             ├─ generate_skills_index.py
-            ├─ install_watcher_schedule.py
             ├─ learning_loop_common.py
             ├─ promote_candidates.py
             ├─ promote_memory.py
@@ -264,11 +264,11 @@ poll $HOME/.codex/sessions
 
 Defaults:
 
-| Option | Default |
-| --- | ---: |
-| `--interval-seconds` | `3600` |
-| `--idle-seconds` | `600` |
-| `--max-sessions-per-run` | `0` |
+| Option                   | Default |
+| ------------------------ | ------: |
+| `--interval-seconds`     |  `3600` |
+| `--idle-seconds`         |   `600` |
+| `--max-sessions-per-run` |     `0` |
 
 `--max-sessions-per-run 0` means all ready sessions in the current cycle. This is the default because the watcher is I/O-light and uses a lock plus processed-session state to avoid duplicate work.
 
@@ -292,18 +292,18 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --since-date 2026-05-01
 
 # Install an hourly OS schedule at minute 0, using the installed watcher under $HOME/.agents
-python "$HOME/.agents/skills/memory-capture/scripts/install_watcher_schedule.py"
+python install_watcher_schedule.py
 ```
 
 For workstation setups, an hourly OS scheduler that runs the `--once` command on the hour is usually more reliable than keeping a terminal process open. Long-running mode remains available when a persistent process manager is already in use.
 
 Schedule installer backends:
 
-| Platform | Backend |
-| --- | --- |
-| Windows | Task Scheduler via `schtasks.exe` |
-| Linux | systemd user timer |
-| macOS | `launchd` LaunchAgent |
+| Platform | Backend                           |
+| -------- | --------------------------------- |
+| Windows  | Task Scheduler via `schtasks.exe` |
+| Linux    | systemd user timer                |
+| macOS    | `launchd` LaunchAgent             |
 
 ## Safety Model
 

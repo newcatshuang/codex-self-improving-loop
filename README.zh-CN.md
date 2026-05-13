@@ -10,19 +10,19 @@ Codex Self-Improving Loop 可以帮助 Codex 跨会话回忆、沉淀稳定偏�
 
 ## 你会得到什么
 
-| 能力         | 作用                                                            | 默认输出                                |
-| ------------ | --------------------------------------------------------------- | --------------------------------------- |
-| 跨会话检索   | 搜索历史 Codex 会话，返回短片段并脱敏                           | 终端输出                                |
-| 记忆候选     | 提取稳定偏好、安全修正和长期经验                                | `$HOME/.codex/memories/inbox`           |
-| 记忆晋升     | 将一条已审查记忆写入全局 `USER.md`                              | `$HOME/.codex/memories/USER.md`         |
-| 候选评分     | 找出重复、短小、安全的记忆候选                                  | 终端或 JSON 报告                        |
-| 技能候选     | 捕获未来可能变成 skill 的复用流程                               | `$HOME/.codex/skill-candidates/inbox`   |
-| 技能补丁候选 | 捕获已有 skill 需要升级的证据                                   | `$HOME/.codex/skill-candidates/patches` |
-| 安全扫描     | 标记密钥、私有 URL、脱敏值、prompt injection 文本和原始转录痕迹 | 终端或 Markdown 报告                    |
-| 任务结束提醒 | 在任务交付前运行 review-mode 学习闭环                           | `$HOME/.codex/nudge-reports`            |
+| 能力         | 作用                                                            | 默认输出                                 |
+| ------------ | --------------------------------------------------------------- | ---------------------------------------- |
+| 跨会话检索   | 搜索历史 Codex 会话，返回短片段并脱敏                           | 终端输出                                 |
+| 记忆候选     | 提取稳定偏好、安全修正和长期经验                                | `$HOME/.codex/memories/inbox`            |
+| 记忆晋升     | 将一条已审查记忆写入全局 `USER.md`                              | `$HOME/.codex/memories/USER.md`          |
+| 候选评分     | 找出重复、短小、安全的记忆候选                                  | 终端或 JSON 报告                         |
+| 技能候选     | 捕获未来可能变成 skill 的复用流程                               | `$HOME/.codex/skill-candidates/inbox`    |
+| 技能补丁候选 | 捕获已有 skill 需要升级的证据                                   | `$HOME/.codex/skill-candidates/patches`  |
+| 安全扫描     | 标记密钥、私有 URL、脱敏值、prompt injection 文本和原始转录痕迹 | 终端或 Markdown 报告                     |
+| 任务结束提醒 | 在任务交付前运行 review-mode 学习闭环                           | `$HOME/.codex/nudge-reports`             |
 | 会话监听器   | 轮询 Codex 会话文件，并在空闲后自动运行 nudge                   | `$HOME/.codex/memory-watcher-state.json` |
-| 使用元数据   | 记录 skill 的 `use_count`、`last_used` 和失败次数               | `$HOME/.codex/skill-usage.json`         |
-| 学习报告     | 生成技能索引和学习 inbox 汇总                                   | `$HOME/.codex/*.md`                     |
+| 使用元数据   | 记录 skill 的 `use_count`、`last_used` 和失败次数               | `$HOME/.codex/skill-usage.json`          |
+| 学习报告     | 生成技能索引和学习 inbox 汇总                                   | `$HOME/.codex/*.md`                      |
 
 ## 为什么需要它
 
@@ -157,7 +157,7 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 如果使用 cron、launchd、systemd timer 或 Windows Task Scheduler 等系统调度器，建议每小时调度一次真实扫描：
 
 ```bash
-python "$HOME/.agents/skills/memory-capture/scripts/install_watcher_schedule.py"
+python install_watcher_schedule.py
 ```
 
 生成维护报告：
@@ -185,7 +185,7 @@ python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
 | `generate_skills_index.py`         | 根据已安装 `SKILL.md` 生成技能索引      |
 | `summarize_learning_inbox.py`      | 汇总记忆、技能、补丁、扫描和 usage 信号 |
 | `codex_memory_nudge.py`            | 运行完整 review-mode 学习闭环           |
-| `codex_session_watcher.py`         | 监听会话文件，并在空闲后自动运行 nudge |
+| `codex_session_watcher.py`         | 监听会话文件，并在空闲后自动运行 nudge  |
 | `install_watcher_schedule.py`      | 为已安装 watcher 配置每小时系统调度     |
 
 ## 仓库结构
@@ -196,6 +196,7 @@ codex-self-improving-loop/
 ├─ README.zh-CN.md
 ├─ LICENSE
 ├─ install.py
+├─ install_watcher_schedule.py
 ├─ tests/
 │  └─ verify-install.py
 ├─ codex/
@@ -218,7 +219,6 @@ codex-self-improving-loop/
             ├─ extract_skill_candidate.py
             ├─ extract_skill_patch_candidate.py
             ├─ generate_skills_index.py
-            ├─ install_watcher_schedule.py
             ├─ learning_loop_common.py
             ├─ promote_candidates.py
             ├─ promote_memory.py
@@ -264,11 +264,11 @@ codex-self-improving-loop/
 
 默认参数：
 
-| 参数 | 默认值 |
-| --- | ---: |
-| `--interval-seconds` | `3600` |
-| `--idle-seconds` | `600` |
-| `--max-sessions-per-run` | `0` |
+| 参数                     | 默认值 |
+| ------------------------ | -----: |
+| `--interval-seconds`     | `3600` |
+| `--idle-seconds`         |  `600` |
+| `--max-sessions-per-run` |    `0` |
 
 `--max-sessions-per-run 0` 表示当前轮次处理全部 ready session。它是默认值，因为 watcher 主要是本地 I/O 操作，并且通过锁文件和 processed-session state 避免重复处理。
 
@@ -292,18 +292,18 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --since-date 2026-05-01
 
 # 安装整点每小时执行的系统调度，实际运行 $HOME/.agents 下已安装的 watcher
-python "$HOME/.agents/skills/memory-capture/scripts/install_watcher_schedule.py"
+python install_watcher_schedule.py
 ```
 
 对个人工作站来说，用系统调度器在每小时整点运行一次 `--once` 通常比长期占用一个终端进程更可靠。已有进程管理器时，也可以直接使用长期运行模式。
 
 调度安装脚本后端：
 
-| 平台 | 后端 |
-| --- | --- |
+| 平台    | 后端                                |
+| ------- | ----------------------------------- |
 | Windows | Task Scheduler，通过 `schtasks.exe` |
-| Linux | systemd user timer |
-| macOS | `launchd` LaunchAgent |
+| Linux   | systemd user timer                  |
+| macOS   | `launchd` LaunchAgent               |
 
 ## 安全模型
 
