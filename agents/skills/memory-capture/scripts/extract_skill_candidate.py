@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 
 from learning_loop_common import clean_candidate_text, default_codex_root, is_noisy_learning_line, latest_session_file, read_session_messages, write_candidate_report
@@ -47,7 +48,8 @@ def main() -> int:
     output_dir = args.output_dir.expanduser() if args.output_dir else root / "skill-candidates" / "inbox"
     messages = read_session_messages(session, args.max_messages) if session else []
     candidates = suggest_skill_candidates(messages)
-    path = write_candidate_report(output_dir, "Skill Candidates", candidates, str(session or "no session found"), "skill-candidates")
+    suffix = "-" + hashlib.sha1(str(session.expanduser().resolve()).encode("utf-8")).hexdigest()[:8] if session else ""
+    path = write_candidate_report(output_dir, "Skill Candidates", candidates, str(session or "no session found"), "skill-candidates", suffix=suffix)
     print(path if args.pass_thru else f"Skill candidate report written: {path}")
     print(f"Candidates: {len(candidates)}")
     return 0

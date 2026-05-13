@@ -35,11 +35,17 @@ def copy_file_if_missing(src: Path, dst: Path, force: bool = False) -> None:
     print(f"COPY: {src} -> {dst}")
 
 
-def append_learning_block(src: Path, dst: Path) -> None:
+def append_learning_block(src: Path, dst: Path, force: bool) -> None:
     block = src.read_text(encoding="utf-8").strip() + "\n"
     existing = dst.read_text(encoding="utf-8") if dst.exists() else "# AGENTS.md\n\n"
     if START in existing and END in existing:
-        print(f"SKIP existing learning block: {dst}")
+        if not force:
+            print(f"SKIP existing learning block: {dst}")
+            return
+        before, rest = existing.split(START, 1)
+        _, after = rest.split(END, 1)
+        dst.write_text(before.rstrip() + "\n\n" + block + after.lstrip(), encoding="utf-8")
+        print(f"REPLACE learning block: {dst}")
         return
     ensure_dir(dst.parent)
     dst.write_text(existing.rstrip() + "\n\n" + block, encoding="utf-8")
@@ -72,7 +78,7 @@ def main() -> int:
     copy_tree(repo / "agents" / "skills" / "session-recall", agents_root / "skills" / "session-recall", args.force)
     copy_tree(repo / "agents" / "skills" / "memory-capture", agents_root / "skills" / "memory-capture", args.force)
     copy_file_if_missing(repo / "codex" / "memories" / "USER.template.md", codex_root / "memories" / "USER.md", force=False)
-    append_learning_block(repo / "codex" / "AGENTS.learning-block.md", codex_root / "AGENTS.md")
+    append_learning_block(repo / "codex" / "AGENTS.learning-block.md", codex_root / "AGENTS.md", args.force)
 
     print()
     print("Installed Codex Self-Improving Loop.")

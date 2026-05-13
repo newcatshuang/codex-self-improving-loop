@@ -20,6 +20,7 @@ It is designed for developers who want their coding agent to improve over time w
 | Skill patch candidates | Captures evidence that an existing skill should be upgraded                                     | `$HOME/.codex/skill-candidates/patches` |
 | Safety scan            | Flags secrets, private URLs, redacted values, prompt injection text, and raw transcript markers | terminal or Markdown report             |
 | End-of-task nudge      | Runs the learning loop in review mode near handoff                                              | `$HOME/.codex/nudge-reports`            |
+| Session watcher        | Polls Codex session files and runs the nudge after idle periods                                 | `$HOME/.codex/memory-watcher-state.json` |
 | Usage metadata         | Tracks skill `use_count`, `last_used`, and failures                                             | `$HOME/.codex/skill-usage.json`         |
 | Learning reports       | Generates skill index and learning inbox summaries                                              | `$HOME/.codex/*.md`                     |
 
@@ -141,6 +142,24 @@ Run the end-of-task self-improvement loop:
 python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
 ```
 
+Run the automatic session watcher. In long-running mode, it polls once per hour by default and processes sessions that have been idle for at least 10 minutes:
+
+```bash
+python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py"
+```
+
+Run one watcher cycle for testing:
+
+```bash
+python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --dry-run
+```
+
+For OS schedulers such as cron, launchd, systemd timers, or Windows Task Scheduler, schedule one real cycle hourly:
+
+```bash
+python "$HOME/.agents/skills/memory-capture/scripts/install_watcher_schedule.py"
+```
+
 Generate maintenance reports:
 
 ```bash
@@ -166,6 +185,8 @@ python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
 | `generate_skills_index.py`         | Generate a skill index from installed `SKILL.md` files                  |
 | `summarize_learning_inbox.py`      | Summarize memory, skill, patch, scan, and usage signals                 |
 | `codex_memory_nudge.py`            | Run the full review-mode learning loop                                  |
+| `codex_session_watcher.py`         | Watch session files and run nudge after idle periods                    |
+| `install_watcher_schedule.py`      | Install an hourly OS schedule for the installed watcher                 |
 
 ## Repository Layout
 
@@ -191,11 +212,13 @@ codex-self-improving-loop/
          ├─ SKILL.md
          └─ scripts/
             ├─ codex_memory_nudge.py
+            ├─ codex_session_watcher.py
             ├─ compact_user_memory.py
             ├─ extract_memory.py
             ├─ extract_skill_candidate.py
             ├─ extract_skill_patch_candidate.py
             ├─ generate_skills_index.py
+            ├─ install_watcher_schedule.py
             ├─ learning_loop_common.py
             ├─ promote_candidates.py
             ├─ promote_memory.py
@@ -220,12 +243,67 @@ Default runtime outputs live under `$HOME/.codex`:
 │  ├─ patches/
 │  └─ archive/
 ├─ nudge-reports/
+├─ memory-watcher-state.json
 ├─ skill-usage.json
 ├─ skills-index.md
 └─ learning-inbox-summary.md
 ```
 
 These files are local runtime state. Do not commit them unless intentionally curated.
+
+## Automatic Session Watcher
+
+Codex does not always expose a reliable session-end hook across every environment. The watcher provides a lightweight external trigger:
+
+```text
+poll $HOME/.codex/sessions
+  -> find idle unprocessed session files
+  -> run codex_memory_nudge.py --session-file <file>
+  -> write nudge reports and watcher state
+```
+
+Defaults:
+
+| Option | Default |
+| --- | ---: |
+| `--interval-seconds` | `3600` |
+| `--idle-seconds` | `600` |
+| `--max-sessions-per-run` | `0` |
+
+`--max-sessions-per-run 0` means all ready sessions in the current cycle. This is the default because the watcher is I/O-light and uses a lock plus processed-session state to avoid duplicate work.
+
+By default, the first run processes all historical session files that are idle and not already marked processed. To limit the first run and future runs to a time window, pass `--since-date YYYY-MM-DD`.
+
+The watcher is review-first. It does not run `promote_memory.py --approved`, does not apply skill patches, and does not auto-promote candidates.
+
+Examples:
+
+```bash
+# Long-running watcher
+python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py"
+
+# One cycle without writing reports
+python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --dry-run
+
+# One real cycle
+python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once
+
+# Only process sessions on or after a date
+python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --since-date 2026-05-01
+
+# Install an hourly OS schedule at minute 0, using the installed watcher under $HOME/.agents
+python "$HOME/.agents/skills/memory-capture/scripts/install_watcher_schedule.py"
+```
+
+For workstation setups, an hourly OS scheduler that runs the `--once` command on the hour is usually more reliable than keeping a terminal process open. Long-running mode remains available when a persistent process manager is already in use.
+
+Schedule installer backends:
+
+| Platform | Backend |
+| --- | --- |
+| Windows | Task Scheduler via `schtasks.exe` |
+| Linux | systemd user timer |
+| macOS | `launchd` LaunchAgent |
 
 ## Safety Model
 

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 
 from learning_loop_common import (
@@ -33,7 +34,8 @@ def main() -> int:
         return 1
     messages = read_session_messages(session, args.max_messages)
     candidates = suggest_memory_candidates(messages)
-    path = write_candidate_report(output_dir, "Memory Candidates", candidates, str(session), "memory-candidates")
+    suffix = "-" + hashlib.sha1(str(session.expanduser().resolve()).encode("utf-8")).hexdigest()[:8]
+    path = write_candidate_report(output_dir, "Memory Candidates", candidates, str(session), "memory-candidates", suffix=suffix)
     print(path if args.pass_thru else f"Memory candidate report written: {path}")
     print(f"Candidates: {len(candidates)}")
     return 0

@@ -304,9 +304,10 @@ def write_candidate_report(
     candidates: Iterable[str],
     source: str,
     kind: str,
+    suffix: str = "",
 ) -> Path:
     ensure_dir(output_dir)
-    path = output_dir / f"{now_stamp()}-{kind}.md"
+    path = output_dir / f"{now_stamp()}{suffix}-{kind}.md"
     lines = [
         f"# {title}",
         "",

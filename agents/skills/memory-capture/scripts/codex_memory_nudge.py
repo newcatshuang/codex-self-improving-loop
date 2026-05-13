@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import subprocess
 import sys
@@ -28,6 +29,7 @@ def run_step(name: str, command: list[str]) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=default_codex_root())
+    parser.add_argument("--session-file", type=Path, help="Specific Codex session file to inspect")
     parser.add_argument("--report-dir", type=Path)
     parser.add_argument("--max-messages", type=int, default=80)
     parser.add_argument("--skip-skill-candidate-scan", action="store_true")
@@ -40,18 +42,23 @@ def main() -> int:
     report_dir = args.report_dir.expanduser() if args.report_dir else root / "nudge-reports"
     ensure_dir(report_dir)
     stamp = now_stamp()
-    report_path = report_dir / f"{stamp}-end-of-task-nudge.md"
+    session_suffix = ""
+    if args.session_file:
+        digest = hashlib.sha1(str(args.session_file.expanduser().resolve()).encode("utf-8")).hexdigest()[:8]
+        session_suffix = f"-{digest}"
+    report_path = report_dir / f"{stamp}{session_suffix}-end-of-task-nudge.md"
     usage_file = root / "skill-usage.json"
+    session_args = ["--session-file", str(args.session_file.expanduser())] if args.session_file else []
 
     py = sys.executable
     steps: list[dict[str, object]] = []
-    steps.append(run_step("extract_memory", [py, str(script_dir / "extract_memory.py"), "--root", str(root), "--max-messages", str(args.max_messages)]))
-    steps.append(run_step("extract_skill_candidate", [py, str(script_dir / "extract_skill_candidate.py"), "--root", str(root), "--max-messages", str(args.max_messages)]))
-    steps.append(run_step("extract_skill_patch_candidate", [py, str(script_dir / "extract_skill_patch_candidate.py"), "--root", str(root), "--max-messages", str(args.max_messages)]))
+    steps.append(run_step("extract_memory", [py, str(script_dir / "extract_memory.py"), "--root", str(root), "--max-messages", str(args.max_messages), *session_args]))
+    steps.append(run_step("extract_skill_candidate", [py, str(script_dir / "extract_skill_candidate.py"), "--root", str(root), "--max-messages", str(args.max_messages), *session_args]))
+    steps.append(run_step("extract_skill_patch_candidate", [py, str(script_dir / "extract_skill_patch_candidate.py"), "--root", str(root), "--max-messages", str(args.max_messages), *session_args]))
     if not args.skip_skill_candidate_scan:
-        steps.append(run_step("scan_skill_candidates", [py, str(script_dir / "scan_skill_candidates.py"), "--root", str(root), "--report-path", str(report_dir / f"{stamp}-skill-candidate-security-scan.md")]))
+        steps.append(run_step("scan_skill_candidates", [py, str(script_dir / "scan_skill_candidates.py"), "--root", str(root), "--report-path", str(report_dir / f"{stamp}{session_suffix}-skill-candidate-security-scan.md")]))
     steps.append(run_step("promote_candidates_report", [py, str(script_dir / "promote_candidates.py"), "--root", str(root)]))
-    steps.append(run_step("compact_user_memory", [py, str(script_dir / "compact_user_memory.py"), "--root", str(root), "--report-path", str(report_dir / f"{stamp}-user-memory-budget.md")]))
+    steps.append(run_step("compact_user_memory", [py, str(script_dir / "compact_user_memory.py"), "--root", str(root), "--report-path", str(report_dir / f"{stamp}{session_suffix}-user-memory-budget.md")]))
     steps.append(run_step("record_skill_usage", [py, str(script_dir / "record_skill_usage.py"), "--root", str(root), "--skill-name", "memory-capture", "--status", "success", "--notes", "Ran end-of-task nudge"]))
     if not args.skip_skills_index:
         skills_root = Path.home() / ".agents" / "skills"
@@ -59,7 +66,7 @@ def main() -> int:
     if not args.skip_learning_summary:
         steps.append(run_step("summarize_learning_inbox", [py, str(script_dir / "summarize_learning_inbox.py"), "--root", str(root), "--usage-file", str(usage_file), "--report-path", str(root / "learning-inbox-summary.md")]))
 
-    lines = ["# End-of-task Nudge Report", "", f"- root: {root}", f"- failed_steps: {sum(1 for step in steps if step['status'] != 'ok')}", ""]
+    lines = ["# End-of-task Nudge Report", "", f"- root: {root}", f"- session_file: {args.session_file.expanduser() if args.session_file else 'latest'}", f"- failed_steps: {sum(1 for step in steps if step['status'] != 'ok')}", ""]
     for step in steps:
         lines.extend(
             [
