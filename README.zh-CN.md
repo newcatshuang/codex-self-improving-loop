@@ -274,7 +274,9 @@ codex-self-improving-loop/
 
 默认情况下，首次运行会处理所有已经空闲、且未标记为 processed 的历史 session。只有需要限制处理窗口时，才显式传入 `--since-date YYYY-MM-DD`。
 
-监听器仍然是 review-first：不会执行 `promote_memory.py --approved`，不会应用 skill patch，也不会自动晋升候选。
+监听器仍然是 review-first：它会自动生成候选报告，但不会执行 `promote_memory.py --approved`，不会应用 skill patch，也不会把候选自动晋升到 `USER.md`。
+
+候选抽取会同时读取用户指令和 assistant 的最终结论，更偏向根因、修复方案、验证结果、可复用流程、稳定偏好和安全修正。一类一次性任务请求，例如“帮我查 X”“列出 Y”“只返回 Z”，会被视为当前工作项，而不是长期记忆。
 
 示例：
 
@@ -331,12 +333,13 @@ python install_watcher_schedule.py
 
 ```bash
 python tests/verify-install.py --codex-root ./tmp/codex --agents-root ./tmp/agents
+python tests/verify-learning-extraction.py --work-root ./tmp/learning
 ```
 
 运行语法检查：
 
 ```bash
-python -m compileall agents install.py tests
+python -m compileall agents install.py install_watcher_schedule.py tests
 ```
 
 ## 灵感来源

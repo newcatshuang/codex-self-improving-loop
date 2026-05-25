@@ -17,5 +17,6 @@ Before handoff, run:
 
 ```bash
 python tests/verify-install.py --codex-root ./tmp/codex --agents-root ./tmp/agents
-python -m compileall agents install.py tests
+python tests/verify-learning-extraction.py --work-root ./tmp/learning
+python -m compileall agents install.py install_watcher_schedule.py tests
 ```

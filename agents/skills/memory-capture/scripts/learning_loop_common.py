@@ -40,6 +40,16 @@ CODE_FRAGMENT_RE = re.compile(
 )
 BOOTSTRAP_CONTEXT_RE = re.compile(r"(?is)^# AGENTS\.md instructions for|<INSTRUCTIONS>|--- project-doc ---|<environment_context>")
 ASSISTANT_PROGRESS_RE = re.compile(r"(?i)^(我会|我将|我现在|我先|下一步|接下来|当前|上一条|I will|I'll|I am going to|Next,|Now I)")
+CONTROL_EVENT_RE = re.compile(r"(?i)<turn_aborted>|</turn_aborted>|<environment_context>|</environment_context>")
+ONE_OFF_REQUEST_RE = re.compile(
+    r"(?i)^(帮我|查下|检查一下|重新检查|只返回|列出|给出|看下|"
+    r"can you|please check|find|list|show me|summarize)"
+)
+LEARNING_OUTCOME_RE = re.compile(
+    r"(?i)(root cause|fixed|implemented|verified|passed|regression|lesson|pitfall|"
+    r"根因|已修复|修复了|已验证|验证通过|通过验证|结论|原因是|问题在|"
+    r"改为|应该|需要|避免|不要|默认|以后|记住|沉淀)"
+)
 
 
 def now_stamp() -> str:
@@ -210,7 +220,11 @@ def is_noisy_learning_line(text: str) -> bool:
         return True
     if BOOTSTRAP_CONTEXT_RE.search(stripped):
         return True
+    if CONTROL_EVENT_RE.search(stripped):
+        return True
     if ASSISTANT_PROGRESS_RE.search(stripped):
+        return True
+    if ONE_OFF_REQUEST_RE.search(stripped):
         return True
     if LOCAL_PATH_RE.search(stripped) and not re.search(r"(?i)(prefer|remember|workflow|skill|patch|以后|默认|记住|流程|技能|补丁)", stripped):
         return True
@@ -223,12 +237,25 @@ def clean_candidate_text(text: str) -> str:
     return re.sub(r"\s+", " ", strip_ansi(text)).strip()
 
 
+def split_learning_fragments(text: str) -> list[str]:
+    compact = clean_candidate_text(text)
+    if len(compact) <= 260:
+        return [compact] if compact else []
+    pieces = re.split(r"(?<=[。.!?？])\s+|\n+", text)
+    fragments: list[str] = []
+    for piece in pieces:
+        fragment = clean_candidate_text(piece)
+        if fragment:
+            fragments.append(fragment)
+    return fragments or [compact[:500]]
+
+
 def latest_session_file(root: Path) -> Path | None:
     files = iter_session_files(root)
     return files[0] if files else None
 
 
-def read_session_messages(path: Path, max_messages: int = 80, include_roles: tuple[str | None, ...] | None = ("user", None)) -> list[str]:
+def read_session_messages(path: Path, max_messages: int = 80, include_roles: tuple[str | None, ...] | None = ("user", "assistant", None)) -> list[str]:
     messages: list[str] = []
     if not path.exists():
         return messages
@@ -274,15 +301,16 @@ def classify_candidate(text: str) -> str:
 def suggest_memory_candidates(messages: list[str], limit: int = 12) -> list[str]:
     signals = re.compile(
         r"(?i)(remember|learn|prefer|default|always|never|avoid|workflow|process|verify|lesson|rule|"
-        r"记住|沉淀|以后|默认|不要|流程|步骤|验证|经验|规则)"
+        r"root cause|fixed|implemented|verified|passed|regression|pitfall|"
+        r"记住|沉淀|以后|默认|不要|流程|步骤|验证|经验|规则|根因|已修复|结论|原因是|问题在|改为)"
     )
     candidates: list[str] = []
     seen: set[str] = set()
     for message in reversed(messages):
-        for line in message.splitlines():
+        for line in split_learning_fragments(message):
             stripped = re.sub(r"^[-*#>\s]+", "", line).strip()
             stripped = clean_candidate_text(stripped)
-            if len(stripped) < 12 or len(stripped) > 260:
+            if len(stripped) < 12 or len(stripped) > 500:
                 continue
             if is_noisy_learning_line(stripped):
                 continue

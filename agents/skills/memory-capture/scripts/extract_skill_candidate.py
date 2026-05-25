@@ -7,31 +7,32 @@ import argparse
 import hashlib
 from pathlib import Path
 
-from learning_loop_common import clean_candidate_text, default_codex_root, is_noisy_learning_line, latest_session_file, read_session_messages, write_candidate_report
+from learning_loop_common import clean_candidate_text, default_codex_root, is_noisy_learning_line, latest_session_file, read_session_messages, split_learning_fragments, write_candidate_report
 
 
 def suggest_skill_candidates(messages: list[str], limit: int = 8) -> list[str]:
     import re
 
-    signals = re.compile(r"(?i)(workflow|procedure|skill|reusable|repeat|verification|pitfall|流程|步骤|技能|复用|验证|踩坑)")
+    signals = re.compile(r"(?i)(workflow|procedure|skill|reusable|repeat|verification|verified|pitfall|root cause|regression|流程|步骤|技能|复用|验证|已验证|根因|回归|踩坑)")
     candidates: list[str] = []
     seen: set[str] = set()
     for message in reversed(messages):
-        compact = clean_candidate_text(" ".join(line.strip() for line in message.splitlines() if line.strip()))
-        if len(compact) < 30:
-            continue
-        if is_noisy_learning_line(compact):
-            continue
-        if not signals.search(compact):
-            continue
-        excerpt = compact[:500]
-        key = excerpt.lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        candidates.append(excerpt)
-        if len(candidates) >= limit:
-            break
+        for fragment in split_learning_fragments(message):
+            compact = clean_candidate_text(fragment)
+            if len(compact) < 30:
+                continue
+            if is_noisy_learning_line(compact):
+                continue
+            if not signals.search(compact):
+                continue
+            excerpt = compact[:500]
+            key = excerpt.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            candidates.append(excerpt)
+            if len(candidates) >= limit:
+                return candidates
     return candidates
 
 

@@ -274,7 +274,9 @@ Defaults:
 
 By default, the first run processes all historical session files that are idle and not already marked processed. To limit the first run and future runs to a time window, pass `--since-date YYYY-MM-DD`.
 
-The watcher is review-first. It does not run `promote_memory.py --approved`, does not apply skill patches, and does not auto-promote candidates.
+The watcher is review-first. It creates candidate reports automatically, but it does not run `promote_memory.py --approved`, does not apply skill patches, and does not auto-promote candidates into `USER.md`.
+
+Candidate extraction reads both user instructions and assistant outcomes. It favors durable lessons such as root causes, fixes, verification results, reusable workflows, preferences, and safety corrections. One-off task requests such as "find X", "list Y", or "only return Z" are treated as work items rather than long-term memory.
 
 Examples:
 
@@ -331,12 +333,13 @@ Run local verification:
 
 ```bash
 python tests/verify-install.py --codex-root ./tmp/codex --agents-root ./tmp/agents
+python tests/verify-learning-extraction.py --work-root ./tmp/learning
 ```
 
 Run syntax checks:
 
 ```bash
-python -m compileall agents install.py tests
+python -m compileall agents install.py install_watcher_schedule.py tests
 ```
 
 ## Inspiration

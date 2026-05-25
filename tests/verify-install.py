@@ -61,6 +61,7 @@ def main() -> int:
     subprocess.run([sys.executable, str(scripts / "generate_skills_index.py"), "--root", str(codex), "--skills-root", str(agents / "skills")], check=True)
     subprocess.run([sys.executable, str(scripts / "summarize_learning_inbox.py"), "--root", str(codex)], check=True)
     subprocess.run([sys.executable, str(scripts / "codex_memory_nudge.py"), "--root", str(codex), "--session-file", str(session_file), "--skip-skills-index", "--skip-learning-summary"], check=True)
+    subprocess.run([sys.executable, str(repo / "tests" / "verify-learning-extraction.py"), "--repo-root", str(repo), "--work-root", str(codex / "learning-extraction-test")], check=True)
     schedule_dry_run = subprocess.run(
         [
             sys.executable,
