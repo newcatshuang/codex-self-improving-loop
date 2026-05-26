@@ -170,7 +170,7 @@ def main() -> int:
     for path in (codex / "skills-index.md", codex / "learning-inbox-summary.md", codex / "skill-usage.json", codex / "memory-watcher-state.json"):
         if not path.exists():
             raise FileNotFoundError(path)
-    if not list((codex / "nudge-reports").glob("*-end-of-task-nudge.md")):
+    if not list((codex / "nudge-reports").rglob("*-end-of-task-nudge.md")):
         raise FileNotFoundError(codex / "nudge-reports" / "*-end-of-task-nudge.md")
 
     print("verify-install passed")

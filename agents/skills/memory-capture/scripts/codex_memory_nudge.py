@@ -10,7 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from learning_loop_common import default_codex_root, ensure_dir, now_stamp, write_text
+from learning_loop_common import dated_output_path, default_codex_root, ensure_dir, now_stamp, write_text
 
 
 def run_step(name: str, command: list[str]) -> dict[str, object]:
@@ -46,7 +46,7 @@ def main() -> int:
     if args.session_file:
         digest = hashlib.sha1(str(args.session_file.expanduser().resolve()).encode("utf-8")).hexdigest()[:8]
         session_suffix = f"-{digest}"
-    report_path = report_dir / f"{stamp}{session_suffix}-end-of-task-nudge.md"
+    report_path = dated_output_path(report_dir, f"{stamp}{session_suffix}-end-of-task-nudge.md")
     usage_file = root / "skill-usage.json"
     session_args = ["--session-file", str(args.session_file.expanduser())] if args.session_file else []
 
@@ -56,9 +56,9 @@ def main() -> int:
     steps.append(run_step("extract_skill_candidate", [py, str(script_dir / "extract_skill_candidate.py"), "--root", str(root), "--max-messages", str(args.max_messages), *session_args]))
     steps.append(run_step("extract_skill_patch_candidate", [py, str(script_dir / "extract_skill_patch_candidate.py"), "--root", str(root), "--max-messages", str(args.max_messages), *session_args]))
     if not args.skip_skill_candidate_scan:
-        steps.append(run_step("scan_skill_candidates", [py, str(script_dir / "scan_skill_candidates.py"), "--root", str(root), "--report-path", str(report_dir / f"{stamp}{session_suffix}-skill-candidate-security-scan.md")]))
+        steps.append(run_step("scan_skill_candidates", [py, str(script_dir / "scan_skill_candidates.py"), "--root", str(root), "--report-path", str(dated_output_path(report_dir, f"{stamp}{session_suffix}-skill-candidate-security-scan.md"))]))
     steps.append(run_step("promote_candidates_report", [py, str(script_dir / "promote_candidates.py"), "--root", str(root)]))
-    steps.append(run_step("compact_user_memory", [py, str(script_dir / "compact_user_memory.py"), "--root", str(root), "--report-path", str(report_dir / f"{stamp}{session_suffix}-user-memory-budget.md")]))
+    steps.append(run_step("compact_user_memory", [py, str(script_dir / "compact_user_memory.py"), "--root", str(root), "--report-path", str(dated_output_path(report_dir, f"{stamp}{session_suffix}-user-memory-budget.md"))]))
     steps.append(run_step("record_skill_usage", [py, str(script_dir / "record_skill_usage.py"), "--root", str(root), "--skill-name", "memory-capture", "--status", "success", "--notes", "Ran end-of-task nudge"]))
     if not args.skip_skills_index:
         skills_root = Path.home() / ".agents" / "skills"

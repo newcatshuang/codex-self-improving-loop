@@ -249,7 +249,7 @@ Default runtime outputs live under `$HOME/.codex`:
 └─ learning-inbox-summary.md
 ```
 
-These files are local runtime state. Do not commit them unless intentionally curated.
+Generated review files are grouped by date, for example `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md` and `$HOME/.codex/nudge-reports/YYYY/MM/DD/*.md`. These files are local runtime state. Do not commit them unless intentionally curated.
 
 ## Automatic Session Watcher
 

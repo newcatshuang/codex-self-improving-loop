@@ -7,6 +7,7 @@ import argparse
 import json
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 
@@ -16,10 +17,21 @@ def write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
 
 
 def latest_report(directory: Path) -> str:
-    reports = sorted(directory.glob("*.md"), key=lambda path: path.stat().st_mtime)
+    reports = sorted(directory.rglob("*.md"), key=lambda path: path.stat().st_mtime)
     if not reports:
         raise AssertionError(f"no report written under {directory}")
     return reports[-1].read_text(encoding="utf-8")
+
+
+def assert_report_under_today(directory: Path) -> None:
+    today_parts = (datetime.now().strftime("%Y"), datetime.now().strftime("%m"), datetime.now().strftime("%d"))
+    reports = sorted(directory.rglob("*.md"), key=lambda path: path.stat().st_mtime)
+    if not reports:
+        raise AssertionError(f"no report written under {directory}")
+    relative = reports[-1].relative_to(directory)
+    if relative.parts[:3] != today_parts:
+        expected = "/".join(today_parts)
+        raise AssertionError(f"report should be written under {expected}/, got {relative}")
 
 
 def run_script(script: Path, root: Path, session: Path) -> None:
@@ -65,11 +77,13 @@ def main() -> int:
         ],
     )
     run_script(scripts / "extract_memory.py", root, assistant_session)
+    assert_report_under_today(root / "memories" / "inbox")
     memory_report = latest_report(root / "memories" / "inbox")
     if "Daily+Repetition" not in memory_report or "HOURLY" not in memory_report:
         raise AssertionError("assistant outcome should be extracted as a memory candidate")
 
     run_script(scripts / "extract_skill_candidate.py", root, assistant_session)
+    assert_report_under_today(root / "skill-candidates" / "inbox")
     skill_report = latest_report(root / "skill-candidates" / "inbox")
     if "verify-install" not in skill_report:
         raise AssertionError("assistant verification workflow should be extracted as a skill candidate")
@@ -85,6 +99,7 @@ def main() -> int:
         ],
     )
     run_script(scripts / "extract_memory.py", root, task_request_session)
+    assert_report_under_today(root / "memories" / "inbox")
     task_report = latest_report(root / "memories" / "inbox")
     if "fin_bad_debt_record" in task_report:
         raise AssertionError("one-off task requests should not become memory candidates")

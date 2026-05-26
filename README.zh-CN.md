@@ -249,7 +249,7 @@ codex-self-improving-loop/
 └─ learning-inbox-summary.md
 ```
 
-这些是本地运行状态，不应提交，除非你已经人工整理并确认。
+生成的 review 文件会按日期分目录保存，例如 `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md` 和 `$HOME/.codex/nudge-reports/YYYY/MM/DD/*.md`。这些是本地运行状态，不应提交，除非你已经人工整理并确认。
 
 ## 自动会话监听器
 

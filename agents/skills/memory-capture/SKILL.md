@@ -48,6 +48,7 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
 
 ## Output Locations
 
+- Generated review files are grouped under `YYYY/MM/DD` subdirectories.
 - Memory candidate inbox: `$HOME/.codex/memories/inbox`
 - Stable global memory: `$HOME/.codex/memories/USER.md`
 - Skill candidates: `$HOME/.codex/skill-candidates/inbox`

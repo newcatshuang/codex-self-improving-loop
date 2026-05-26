@@ -16,6 +16,7 @@ from learning_loop_common import (
     default_codex_root,
     ensure_dir,
     is_noisy_learning_line,
+    markdown_files_recursive,
     normalize_memory_text,
     read_text,
     write_text,
@@ -60,7 +61,7 @@ def main() -> int:
     inbox = args.inbox.expanduser() if args.inbox else root / "memories" / "inbox"
     target = args.target.expanduser() if args.target else root / "memories" / "USER.md"
     archive = root / "memories" / "archive"
-    files = sorted(inbox.glob("*.md")) if inbox.exists() else []
+    files = markdown_files_recursive(inbox)
     existing = read_text(target)
     existing_normalized = {normalize_memory_text(line.lstrip("- ").strip()) for line in existing.splitlines() if line.strip().startswith("-")}
 
@@ -90,7 +91,12 @@ def main() -> int:
         ensure_dir(archive)
         for path in files:
             if unresolved_by_file.get(path, 0) == 0:
-                destination = archive / path.name
+                try:
+                    relative = path.relative_to(inbox)
+                except ValueError:
+                    relative = Path(path.name)
+                destination = archive / relative
+                ensure_dir(destination.parent)
                 shutil.move(str(path), str(destination))
                 archived.append(str(destination))
 

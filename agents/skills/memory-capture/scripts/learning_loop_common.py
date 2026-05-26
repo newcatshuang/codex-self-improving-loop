@@ -56,6 +56,15 @@ def now_stamp() -> str:
     return datetime.now().strftime("%Y%m%d-%H%M%S")
 
 
+def today_dir_parts() -> tuple[str, str, str]:
+    now = datetime.now()
+    return now.strftime("%Y"), now.strftime("%m"), now.strftime("%d")
+
+
+def today_dir_name() -> str:
+    return str(Path(*today_dir_parts()))
+
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
 
@@ -93,6 +102,18 @@ def append_text(path: Path, content: str) -> None:
     ensure_dir(path.parent)
     with path.open("a", encoding="utf-8") as handle:
         handle.write(content)
+
+
+def dated_output_dir(base_dir: Path) -> Path:
+    return base_dir.joinpath(*today_dir_parts())
+
+
+def dated_output_path(base_dir: Path, filename: str) -> Path:
+    return dated_output_dir(base_dir) / filename
+
+
+def markdown_files_recursive(directory: Path) -> list[Path]:
+    return sorted(directory.rglob("*.md")) if directory.exists() else []
 
 
 def redact(text: str) -> str:
@@ -334,8 +355,7 @@ def write_candidate_report(
     kind: str,
     suffix: str = "",
 ) -> Path:
-    ensure_dir(output_dir)
-    path = output_dir / f"{now_stamp()}{suffix}-{kind}.md"
+    path = dated_output_path(output_dir, f"{now_stamp()}{suffix}-{kind}.md")
     lines = [
         f"# {title}",
         "",

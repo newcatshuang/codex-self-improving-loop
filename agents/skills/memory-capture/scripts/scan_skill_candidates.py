@@ -13,6 +13,7 @@ from learning_loop_common import (
     RAW_TRANSCRIPT_RE,
     SECRET_PATTERNS,
     default_codex_root,
+    markdown_files_recursive,
     read_text,
     write_text,
 )
@@ -50,7 +51,7 @@ def main() -> int:
     ]
     results = []
     for directory in dirs:
-        for path in sorted(directory.glob("*.md")) if directory.exists() else []:
+        for path in markdown_files_recursive(directory):
             findings = scan_text(read_text(path))
             status = "blocked" if any(item in findings for item in ("secret_like_text", "contains_redacted_value")) else ("review" if findings else "ok")
             results.append({"file": str(path), "status": status, "findings": findings})

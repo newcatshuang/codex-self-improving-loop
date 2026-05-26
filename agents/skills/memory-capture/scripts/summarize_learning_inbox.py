@@ -7,17 +7,19 @@ import argparse
 import json
 from pathlib import Path
 
-from learning_loop_common import default_codex_root, read_usage, write_text
+from learning_loop_common import default_codex_root, markdown_files_recursive, read_usage, write_text
 
 
 def count_files(path: Path, pattern: str = "*.md") -> int:
-    return len(list(path.glob(pattern))) if path.exists() else 0
+    if pattern == "*.md":
+        return len(markdown_files_recursive(path))
+    return len(list(path.rglob(pattern))) if path.exists() else 0
 
 
 def latest_files(path: Path, top: int = 5) -> list[str]:
     if not path.exists():
         return []
-    files = sorted(path.glob("*.md"), key=lambda item: item.stat().st_mtime, reverse=True)
+    files = sorted(markdown_files_recursive(path), key=lambda item: item.stat().st_mtime, reverse=True)
     return [str(item) for item in files[:top]]
 
 
