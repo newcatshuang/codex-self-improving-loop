@@ -174,6 +174,37 @@ def main() -> int:
     assert_not_contains(task_report, "unified exec", "tool interruption text should not become memory")
     assert_not_contains(task_report, "PowerShell 初始化失败", "temporary environment failures should not become memory")
 
+    noisy_artifact_session = root / "sessions" / "noisy-artifacts.jsonl"
+    noisy_lines = [
+        "::inbox-item{title=\"自动化重试规则确认\" summary=\"脚本默认会重试到当天结束\"}",
+        "![Claude Code 工作流说明图](./claude-code-flow.png) ## 先说结论 `Claude Code` 的价值，可以用一句话讲清楚。",
+        "+二次改稿说明：根据 2026-06-01 反馈，原正文结构与前几天文章趋同，本次改为资料流叙事。",
+        "`/PreVerifyRecordView/GetList` 里有这个条件：",
+        "`FinCompanyVisibilityRuleCompanyRel`：配置公司角色，比如“深圳默认可见公司”“受限部门可见公司”。",
+        "验证已跑： `dotnet build OHL.Finance\\src\\OHL.Finance.sln -c Debug --no-restore /clp:ErrorsOnly` 通过，0 Error。",
+        "验证通过。现在我会把增强过滤同步到本机真实 `.agents`，并手动跑一次 watcher/digest，看候选数量是否下降。",
+        "测试文件里已经有一部分噪声用例，我会追加真实运行暴露出的几类噪声，并让它同时覆盖 memory 和 skill candidate。",
+        "同步完成。因为旧候选文件已经存在，单独重跑 digest 不会减少历史候选；要验证过滤效果，需要对现有会话重新跑 watcher。",
+        "学习提取测试通过，并且噪声 session 没再落 memory/skill 报告。接下来跑 review digest、install、低产物模式和编译检查。",
+    ]
+    write_jsonl(
+        noisy_artifact_session,
+        [
+            {
+                "type": "event_msg",
+                "payload": {"type": "agent_message", "message": line},
+            }
+            for line in noisy_lines
+        ],
+    )
+    run_script(scripts / "extract_memory.py", root, noisy_artifact_session)
+    memory_noise_report = latest_report(root / "memories" / "inbox")
+    run_script(scripts / "extract_skill_candidate.py", root, noisy_artifact_session)
+    skill_noise_report = latest_report(root / "skill-candidates" / "inbox")
+    for noisy in noisy_lines:
+        assert_not_contains(memory_noise_report, noisy, f"artifact noise should not become memory: {noisy}")
+        assert_not_contains(skill_noise_report, noisy, f"artifact noise should not become skill candidate: {noisy}")
+
     patch_session = root / "sessions" / "skill-patch.jsonl"
     write_jsonl(
         patch_session,

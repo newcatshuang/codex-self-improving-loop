@@ -50,6 +50,20 @@ TRANSIENT_STATUS_RE = re.compile(
     r"还在拉上下文|我先继续等结果|环境问题|sandbox.*(failed|blocked)|"
     r"workdir.*invalid|工作目录路径已经不存在)"
 )
+UI_ARTIFACT_RE = re.compile(r"(?i)^::[a-z0-9_-]+\{.*\}$")
+MARKDOWN_MEDIA_RE = re.compile(r"(?i)^!\[[^\]]*\]\([^)]+\)")
+ARTICLE_DRAFT_NOTE_RE = re.compile(r"(?i)^(\+?二次改稿说明|改稿说明|封面或配图建议|摘要：|推荐标签：|发布步骤：)")
+HANGING_CODE_CONTEXT_RE = re.compile(
+    r"(?i)^`[^`]+`[：:].{0,80}$|^`/[^`]+`|^`[A-Za-z_][A-Za-z0-9_.]*`[：:]"
+)
+VALIDATION_LOG_ONLY_RE = re.compile(
+    r"(?i)^(验证(已跑|已通过|结果|：|:)|静态检查通过|构建通过|build passed|"
+    r"verification passed|tests? passed)[：:\s]"
+)
+PROGRESS_NARRATION_RE = re.compile(
+    r"(?i)(现在我会|接下来|下一步|我会先|我会把|我先|我再|"
+    r"now I|next I|I will now|I will run|I will sync)"
+)
 ONE_OFF_REQUEST_RE = re.compile(
     r"(?i)^(帮我|查下|检查一下|重新检查|只返回|列出|给出|看下|"
     r"can you|please check|find|list|show me|summarize)"
@@ -279,6 +293,18 @@ def extract_text(value: Any) -> str:
 def is_noisy_learning_line(text: str) -> bool:
     stripped = strip_ansi(text).strip()
     if not stripped:
+        return True
+    if UI_ARTIFACT_RE.search(stripped):
+        return True
+    if MARKDOWN_MEDIA_RE.search(stripped):
+        return True
+    if ARTICLE_DRAFT_NOTE_RE.search(stripped):
+        return True
+    if HANGING_CODE_CONTEXT_RE.search(stripped):
+        return True
+    if VALIDATION_LOG_ONLY_RE.search(stripped) and not re.search(r"(?i)(root cause|lesson|pitfall|regression|根因|原因|踩坑|教训)", stripped):
+        return True
+    if PROGRESS_NARRATION_RE.search(stripped) and re.search(r"(?i)(验证|测试|同步|重跑|digest|install|review|候选|报告|通过|完成)", stripped):
         return True
     if TRANSIENT_STATUS_RE.search(stripped):
         return True
