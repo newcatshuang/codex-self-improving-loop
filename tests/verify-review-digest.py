@@ -82,6 +82,7 @@ def main() -> int:
     digest = report_path.read_text(encoding="utf-8")
     assert_contains(digest, "# Learning Inbox Review Digest", "digest should use Review Digest title")
     assert_contains(digest, "## Action Queue", "digest should include an action queue")
+    assert_contains(digest, "## Promotion Options", "digest should include promotion options")
     assert_contains(digest, "## Area Overview", "digest should include area-level counts")
     assert_contains(digest, "## Candidate Highlights", "digest should include candidate highlights")
     assert_contains(digest, "memory_candidates", "digest should include memory candidate area")
@@ -90,7 +91,11 @@ def main() -> int:
     assert_contains(digest, repeated, "digest should include repeated memory candidate text")
     assert_contains(digest, "occurrences: 2, files: 2", "digest should merge duplicate candidates")
     assert_contains(digest, "Review repeated safe preference", "digest should suggest promotion review for repeated memory")
+    assert_contains(digest, "promote_memory.py", "digest should include a memory promotion command")
+    assert_contains(digest, "--approved", "memory promotion command should require approval")
+    assert_contains(digest, "scan_skill_candidates.py", "skill candidates should point to scan before promotion")
     assert_contains(digest, "memory-capture SKILL.md missing", "digest should surface skill patch candidates")
+    assert_contains(digest, "Inspect target SKILL.md", "skill patch candidates should require manual target skill inspection")
 
     print("verify-review-digest passed")
     return 0

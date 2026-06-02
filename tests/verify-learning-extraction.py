@@ -80,7 +80,7 @@ def main() -> int:
                     "type": "agent_message",
                     "message": (
                         "已修复定时执行问题。根因是 Windows 计划任务使用 XML Daily+Repetition 后出现漏跑；"
-                        "改为 schtasks.exe /SC HOURLY /MO 1，并通过 verify-install 验证。"
+                        "改为 schtasks.exe /SC DAILY /ST 12:00，并通过 verify-install 验证。"
                     ),
                 },
             }
@@ -90,7 +90,7 @@ def main() -> int:
     assert_report_under_today(root / "memories" / "inbox")
     memory_report = latest_report(root / "memories" / "inbox")
     assert_contains(memory_report, "Daily+Repetition", "assistant outcome should be extracted as a memory candidate")
-    assert_contains(memory_report, "HOURLY", "assistant outcome should preserve the verified fix")
+    assert_contains(memory_report, "DAILY", "assistant outcome should preserve the verified fix")
 
     run_script(scripts / "extract_skill_candidate.py", root, assistant_session)
     assert_report_under_today(root / "skill-candidates" / "inbox")

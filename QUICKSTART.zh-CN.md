@@ -37,7 +37,7 @@ python -m compileall agents install.py install_watcher_schedule.py tests
 
 ## 启用定时任务
 
-安装每小时整点执行的系统调度：
+安装每天 12:00 执行的系统调度：
 
 ```bash
 python install_watcher_schedule.py
@@ -45,19 +45,19 @@ python install_watcher_schedule.py
 
 ## 查看结果
 
-候选和报告会按日期分目录保存，例如：
+每日 Review Digest 是主要查看入口：
+
+```text
+$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md
+$HOME/.codex/learning-inbox-summary.md
+```
+
+只有检测到候选时，才会写入候选文件：
 
 ```text
 $HOME/.codex/memories/inbox/YYYY/MM/DD
 $HOME/.codex/skill-candidates/inbox/YYYY/MM/DD
 $HOME/.codex/skill-candidates/patches/YYYY/MM/DD
-$HOME/.codex/nudge-reports/YYYY/MM/DD
-```
-
-记忆候选：
-
-```text
-$HOME/.codex/memories/inbox
 ```
 
 已晋升的全局记忆：
@@ -78,16 +78,11 @@ $HOME/.codex/skill-candidates/inbox
 $HOME/.codex/skill-candidates/patches
 ```
 
-nudge 报告：
+覆盖式维护报告：
 
 ```text
-$HOME/.codex/nudge-reports
-```
-
-学习 inbox 汇总：
-
-```text
-$HOME/.codex/learning-inbox-summary.md
+$HOME/.codex/latest-skill-candidate-security-scan.md
+$HOME/.codex/latest-user-memory-budget.md
 ```
 
 技能索引：

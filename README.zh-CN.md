@@ -142,7 +142,7 @@ python "$HOME/.agents/skills/memory-capture/scripts/promote_memory.py" \
 python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
 ```
 
-运行自动会话监听器。长期运行模式下，默认每小时轮询一次，并处理至少空闲 10 分钟的会话文件：
+运行自动会话监听器。长期运行模式下，默认每天轮询一次，并处理至少空闲 10 分钟的会话文件：
 
 ```bash
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py"
@@ -154,7 +154,7 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py"
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --dry-run
 ```
 
-如果使用 cron、launchd、systemd timer 或 Windows Task Scheduler 等系统调度器，建议每小时调度一次真实扫描：
+如果使用 cron、launchd、systemd timer 或 Windows Task Scheduler 等系统调度器，建议每天 12:00 调度一次真实扫描：
 
 ```bash
 python install_watcher_schedule.py
@@ -183,10 +183,10 @@ python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
 | `record_skill_usage.py`            | 记录 skill 使用元数据                   |
 | `show_skill_usage.py`              | 展示 skill 使用元数据                   |
 | `generate_skills_index.py`         | 根据已安装 `SKILL.md` 生成技能索引      |
-| `summarize_learning_inbox.py`      | 汇总记忆、技能、补丁、扫描和 usage 信号 |
+| `summarize_learning_inbox.py`      | 生成 Review Digest，汇总记忆、技能、补丁和晋升选项 |
 | `codex_memory_nudge.py`            | 运行完整 review-mode 学习闭环           |
 | `codex_session_watcher.py`         | 监听会话文件，并在空闲后自动运行 nudge  |
-| `install_watcher_schedule.py`      | 为已安装 watcher 配置每小时系统调度     |
+| `install_watcher_schedule.py`      | 为已安装 watcher 配置每天 12:00 系统调度 |
 
 ## 仓库结构
 
@@ -242,14 +242,17 @@ codex-self-improving-loop/
 │  ├─ inbox/
 │  ├─ patches/
 │  └─ archive/
+├─ daily-digests/
 ├─ nudge-reports/
+├─ latest-skill-candidate-security-scan.md
+├─ latest-user-memory-budget.md
 ├─ memory-watcher-state.json
 ├─ skill-usage.json
 ├─ skills-index.md
 └─ learning-inbox-summary.md
 ```
 
-生成的 review 文件会按日期分目录保存，例如 `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md` 和 `$HOME/.codex/nudge-reports/YYYY/MM/DD/*.md`。这些是本地运行状态，不应提交，除非你已经人工整理并确认。
+生成的候选文件会按日期分目录保存，例如 `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md`，但默认不会写入空候选报告。每日主入口是 `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`。安全扫描和记忆预算报告会覆盖写入 `latest-*` 路径，减少文件数量。详细 nudge 报告只在发现候选或步骤失败时写入。
 
 ## 自动会话监听器
 
@@ -259,14 +262,14 @@ codex-self-improving-loop/
 轮询 $HOME/.codex/sessions
   -> 找到空闲且未处理的 session 文件
   -> 运行 codex_memory_nudge.py --session-file <file>
-  -> 写入 nudge report 和 watcher state
+  -> 写入每日 digest、latest 报告、必要时的 nudge report 和 watcher state
 ```
 
 默认参数：
 
 | 参数                     | 默认值 |
 | ------------------------ | -----: |
-| `--interval-seconds`     | `3600` |
+| `--interval-seconds`     | `86400` |
 | `--idle-seconds`         |  `600` |
 | `--max-sessions-per-run` |    `0` |
 
@@ -275,6 +278,8 @@ codex-self-improving-loop/
 默认情况下，首次运行会处理所有已经空闲、且未标记为 processed 的历史 session。只有需要限制处理窗口时，才显式传入 `--since-date YYYY-MM-DD`。
 
 监听器仍然是 review-first：它会自动生成候选报告，但不会执行 `promote_memory.py --approved`，不会应用 skill patch，也不会把候选自动晋升到 `USER.md`。
+
+每次真实 watcher 执行完成后，nudge 会在终端输出 Review Digest 摘要，并写入 `$HOME/.codex/learning-inbox-summary.md` 和 `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`。Digest 会分组展示记忆候选、技能候选、技能补丁，并列出可选晋升动作。记忆候选会给出显式的 `promote_memory.py --approved` 命令；技能和补丁仍保持 review-only，需要先扫描并人工检查目标 skill 后再应用。
 
 候选抽取会同时读取用户指令和 assistant 的最终结论，更偏向根因、修复方案、验证结果、可复用流程、稳定偏好和安全修正。一类一次性任务请求，例如“帮我查 X”“列出 Y”“只返回 Z”，会被视为当前工作项，而不是长期记忆。
 
@@ -293,19 +298,19 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 # 只处理指定日期之后的 session
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --since-date 2026-05-01
 
-# 安装整点每小时执行的系统调度，实际运行 $HOME/.agents 下已安装的 watcher
+# 安装每天 12:00 执行的系统调度，实际运行 $HOME/.agents 下已安装的 watcher
 python install_watcher_schedule.py
 ```
 
-对个人工作站来说，用系统调度器在每小时整点运行一次 `--once` 通常比长期占用一个终端进程更可靠。已有进程管理器时，也可以直接使用长期运行模式。
+对个人工作站来说，用系统调度器在每天 12:00 运行一次 `--once` 通常比长期占用一个终端进程更可靠。已有进程管理器时，也可以直接使用长期运行模式。
 
 调度安装脚本后端：
 
 | 平台    | 后端                                |
 | ------- | ----------------------------------- |
-| Windows | Task Scheduler，通过 `schtasks.exe /SC HOURLY /MO 1` |
-| Linux   | systemd user timer                  |
-| macOS   | `launchd` LaunchAgent               |
+| Windows | Task Scheduler，通过 `schtasks.exe /SC DAILY /ST 12:00` |
+| Linux   | systemd user timer，使用 `OnCalendar=*-*-* 12:00:00` |
+| macOS   | `launchd` LaunchAgent，使用 `Hour=12`、`Minute=0` |
 
 ## 安全模型
 

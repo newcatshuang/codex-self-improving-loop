@@ -23,17 +23,25 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, help="Memory candidate inbox")
     parser.add_argument("--max-messages", type=int, default=80, help="Messages to inspect from session tail")
     parser.add_argument("--pass-thru", action="store_true", help="Print generated candidate file path only")
+    parser.add_argument("--write-empty", action="store_true", help="Write an empty report when no candidates are detected")
     args = parser.parse_args()
 
     root = args.root.expanduser()
     session = args.session_file.expanduser() if args.session_file else latest_session_file(root)
     output_dir = args.output_dir.expanduser() if args.output_dir else root / "memories" / "inbox"
     if not session:
+        if not args.write_empty:
+            print("No session found; memory candidate report skipped.")
+            return 1
         path = write_candidate_report(output_dir, "Memory Candidates", [], "no session found", "memory-candidates")
         print(path if args.pass_thru else f"Memory candidate report written: {path}")
         return 1
     messages = read_session_messages(session, args.max_messages)
     candidates = suggest_memory_candidates(messages)
+    if not candidates and not args.write_empty:
+        print("No memory candidates detected; report skipped.")
+        print("Candidates: 0")
+        return 0
     suffix = "-" + hashlib.sha1(str(session.expanduser().resolve()).encode("utf-8")).hexdigest()[:8]
     path = write_candidate_report(output_dir, "Memory Candidates", candidates, str(session), "memory-candidates", suffix=suffix)
     print(path if args.pass_thru else f"Memory candidate report written: {path}")

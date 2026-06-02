@@ -263,6 +263,8 @@ def process_once(args: argparse.Namespace) -> int:
                 except OSError:
                     pass
                 print(f"Processed session: {session}")
+                if completed.stdout:
+                    print(completed.stdout.strip())
             else:
                 failures += 1
                 print(f"Failed session: {session}", file=sys.stderr)
@@ -279,7 +281,7 @@ def process_once(args: argparse.Namespace) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=default_codex_root(), help="Codex root directory")
-    parser.add_argument("--interval-seconds", type=int, default=3600, help="Polling interval in seconds")
+    parser.add_argument("--interval-seconds", type=int, default=86400, help="Polling interval in seconds")
     parser.add_argument("--idle-seconds", type=int, default=600, help="Session must be unchanged for this long before processing")
     parser.add_argument("--max-messages", type=int, default=80)
     parser.add_argument("--max-sessions-per-run", type=int, default=0, help="Maximum sessions per cycle; 0 means all ready sessions")

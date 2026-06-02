@@ -112,6 +112,21 @@ def action_for(area: str, item: dict[str, object]) -> str:
     return "Review candidate manually"
 
 
+def shell_quote(value: str) -> str:
+    return "'" + value.replace("'", "'\"'\"'") + "'"
+
+
+def promotion_option_for(area: str, item: dict[str, object]) -> str:
+    text = str(item["text"])
+    if area == "memory_candidates" and str(item["safety"]) != "blocked":
+        return f"python \"$HOME/.agents/skills/memory-capture/scripts/promote_memory.py\" --text {shell_quote(text)} --approved"
+    if area == "skill_candidates":
+        return "Run scan_skill_candidates.py, then create or update a skill manually after review."
+    if area == "skill_patches":
+        return "Inspect target SKILL.md, run scan_skill_candidates.py, then apply the patch manually after review."
+    return "Review manually before promotion."
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=default_codex_root())
@@ -176,6 +191,22 @@ def main() -> int:
     for name, count in summary["counts"].items():
         merged_count = len(summary["candidates"].get(name, []))
         lines.append(f"| {name} | {count} | {merged_count} |")
+    lines.extend(["", "## Promotion Options", ""])
+    for name, items in summary["candidates"].items():
+        lines.append(f"### {name}")
+        if not items:
+            lines.append("- None")
+        for index, item in enumerate(items[:5], start=1):
+            text = str(item["text"])
+            excerpt = text if len(text) <= 180 else text[:177] + "..."
+            lines.extend(
+                [
+                    f"{index}. {excerpt}",
+                    f"   - evidence: occurrences: {item['occurrences']}, files: {item['file_count']}",
+                    f"   - option: {promotion_option_for(name, item)}",
+                ]
+            )
+        lines.append("")
     lines.extend(["", "## Candidate Highlights", ""])
     for name, items in summary["candidates"].items():
         lines.append(f"### {name}")
@@ -199,6 +230,13 @@ def main() -> int:
         lines.append("")
     write_text(report_path, "\n".join(lines))
     print(f"Learning inbox review digest written: {report_path}")
+    print(
+        "Review digest summary: "
+        f"memory_candidates={len(summary['candidates'].get('memory_candidates', []))}, "
+        f"skill_candidates={len(summary['candidates'].get('skill_candidates', []))}, "
+        f"skill_patches={len(summary['candidates'].get('skill_patches', []))}"
+    )
+    print(f"Promotion options: {report_path}")
     return 0
 
 

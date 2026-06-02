@@ -64,6 +64,8 @@ def main() -> int:
     subprocess.run([sys.executable, str(repo / "tests" / "verify-learning-extraction.py"), "--repo-root", str(repo), "--work-root", str(codex / "learning-extraction-test")], check=True)
     subprocess.run([sys.executable, str(repo / "tests" / "verify-candidate-dedup.py"), "--repo-root", str(repo), "--work-root", str(codex / "candidate-dedup-test")], check=True)
     subprocess.run([sys.executable, str(repo / "tests" / "verify-review-digest.py"), "--repo-root", str(repo), "--work-root", str(codex / "review-digest-test")], check=True)
+    subprocess.run([sys.executable, str(repo / "tests" / "verify-daily-schedule.py"), "--repo-root", str(repo), "--work-root", str(codex / "daily-schedule-test")], check=True)
+    subprocess.run([sys.executable, str(repo / "tests" / "verify-low-output-mode.py"), "--repo-root", str(repo), "--work-root", str(codex / "low-output-test")], check=True)
     schedule_dry_run = subprocess.run(
         [
             sys.executable,
@@ -92,8 +94,6 @@ def main() -> int:
             "install_watcher_schedule.py",
             "--agents-root",
             str(agents),
-            "--minute",
-            "0",
         ]
         schedule.platform.system = lambda: "Windows"
         schedule.subprocess.run = fake_run
@@ -107,10 +107,12 @@ def main() -> int:
     windows_create = schtasks_calls[0]
     if "/XML" in windows_create:
         raise AssertionError("Windows schedule installer should not use XML Daily+Repetition")
-    expected_flags = ["/SC", "HOURLY", "/MO", "1", "/ST", "00:00"]
+    expected_flags = ["/SC", "DAILY", "/ST", "12:00"]
     for flag in expected_flags:
         if flag not in windows_create:
-            raise AssertionError(f"Windows hourly schedule missing {flag}: {windows_create}")
+            raise AssertionError(f"Windows daily schedule missing {flag}: {windows_create}")
+    if "/MO" in windows_create or "HOURLY" in windows_create:
+        raise AssertionError(f"Windows schedule should run daily, not hourly: {windows_create}")
     if "/TR" not in windows_create or "codex_session_watcher.py" not in " ".join(windows_create):
         raise AssertionError("Windows schedule should run the installed watcher command")
     watcher_state = codex / "watcher-test-state.json"
@@ -156,7 +158,7 @@ def main() -> int:
     future_payload = json.loads(future_dry_run.stdout)
     if future_payload.get("ready_sessions"):
         raise AssertionError("--since-date should filter out older sessions")
-    subprocess.run(
+    watcher_run = subprocess.run(
         [
             sys.executable,
             str(scripts / "codex_session_watcher.py"),
@@ -167,13 +169,26 @@ def main() -> int:
             "0",
         ],
         check=True,
+        text=True,
+        capture_output=True,
     )
+    if "Review digest summary:" not in watcher_run.stdout:
+        raise AssertionError("watcher should print the post-run review digest summary")
+    if "Promotion options:" not in watcher_run.stdout:
+        raise AssertionError("watcher should print promotion option location after processing")
 
-    for path in (codex / "skills-index.md", codex / "learning-inbox-summary.md", codex / "skill-usage.json", codex / "memory-watcher-state.json"):
+    for path in (
+        codex / "skills-index.md",
+        codex / "learning-inbox-summary.md",
+        codex / "latest-skill-candidate-security-scan.md",
+        codex / "latest-user-memory-budget.md",
+        codex / "skill-usage.json",
+        codex / "memory-watcher-state.json",
+    ):
         if not path.exists():
             raise FileNotFoundError(path)
-    if not list((codex / "nudge-reports").rglob("*-end-of-task-nudge.md")):
-        raise FileNotFoundError(codex / "nudge-reports" / "*-end-of-task-nudge.md")
+    if not list((codex / "daily-digests").rglob("review-digest.md")):
+        raise FileNotFoundError(codex / "daily-digests" / "review-digest.md")
 
     print("verify-install passed")
     return 0

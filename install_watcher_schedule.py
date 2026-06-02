@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install an hourly OS schedule for the installed Codex session watcher."""
+"""Install a daily OS schedule for the installed Codex session watcher."""
 
 from __future__ import annotations
 
@@ -55,11 +55,9 @@ def install_windows(args: argparse.Namespace) -> None:
             "/TN",
             TASK_NAME,
             "/SC",
-            "HOURLY",
-            "/MO",
-            "1",
+            "DAILY",
             "/ST",
-            f"00:{int(args.minute):02d}",
+            f"{int(args.hour):02d}:{int(args.minute):02d}",
             "/TR",
             task_run,
             "/F",
@@ -92,10 +90,10 @@ def install_linux(args: argparse.Namespace) -> None:
         "\n".join(
             [
                 "[Unit]",
-                "Description=Run Codex Self-Improving Loop watcher hourly",
+                "Description=Run Codex Self-Improving Loop watcher daily",
                 "",
                 "[Timer]",
-                f"OnCalendar=*-*-* *:{int(args.minute):02d}:00",
+                f"OnCalendar=*-*-* {int(args.hour):02d}:{int(args.minute):02d}:00",
                 "Persistent=true",
                 "",
                 "[Install]",
@@ -133,6 +131,8 @@ def install_macos(args: argparse.Namespace) -> None:
   </array>
   <key>StartCalendarInterval</key>
   <dict>
+    <key>Hour</key>
+    <integer>{int(args.hour)}</integer>
     <key>Minute</key>
     <integer>{int(args.minute)}</integer>
   </dict>
@@ -156,12 +156,15 @@ def install_macos(args: argparse.Namespace) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--agents-root", type=Path, default=Path.home() / ".agents", help="Installed agents root; defaults to $HOME/.agents")
-    parser.add_argument("--minute", type=int, default=0, help="Minute within each hour to run; 0 means on the hour")
+    parser.add_argument("--hour", type=int, default=12, help="Hour of day to run, 0-23; defaults to 12")
+    parser.add_argument("--minute", type=int, default=0, help="Minute of hour to run, 0-59; defaults to 0")
     parser.add_argument("--since-date", help="Pass through to codex_session_watcher.py")
     parser.add_argument("--max-sessions-per-run", type=int, default=None, help="Pass through to codex_session_watcher.py; omit for watcher default")
     parser.add_argument("--dry-run", action="store_true", help="Print the scheduled command without installing")
     args = parser.parse_args()
 
+    if args.hour < 0 or args.hour > 23:
+        raise SystemExit("--hour must be between 0 and 23")
     if args.minute < 0 or args.minute > 59:
         raise SystemExit("--minute must be between 0 and 59")
     watcher = installed_watcher(args.agents_root)
@@ -182,7 +185,7 @@ def main() -> int:
     else:
         raise SystemExit(f"Unsupported platform: {system}")
 
-    print(f"Installed hourly watcher schedule for {watcher}")
+    print(f"Installed daily watcher schedule for {watcher} at {int(args.hour):02d}:{int(args.minute):02d}")
     return 0
 
 

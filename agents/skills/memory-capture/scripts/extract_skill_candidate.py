@@ -36,12 +36,17 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, help="Skill candidate inbox")
     parser.add_argument("--max-messages", type=int, default=80)
     parser.add_argument("--pass-thru", action="store_true")
+    parser.add_argument("--write-empty", action="store_true", help="Write an empty report when no candidates are detected")
     args = parser.parse_args()
     root = args.root.expanduser()
     session = args.session_file.expanduser() if args.session_file else latest_session_file(root)
     output_dir = args.output_dir.expanduser() if args.output_dir else root / "skill-candidates" / "inbox"
     messages = read_session_messages(session, args.max_messages) if session else []
     candidates = suggest_skill_candidates(messages)
+    if not candidates and not args.write_empty:
+        print("No skill candidates detected; report skipped.")
+        print("Candidates: 0")
+        return 0
     suffix = "-" + hashlib.sha1(str(session.expanduser().resolve()).encode("utf-8")).hexdigest()[:8] if session else ""
     path = write_candidate_report(output_dir, "Skill Candidates", candidates, str(session or "no session found"), "skill-candidates", suffix=suffix)
     print(path if args.pass_thru else f"Skill candidate report written: {path}")

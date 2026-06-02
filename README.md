@@ -142,7 +142,7 @@ Run the end-of-task self-improvement loop:
 python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
 ```
 
-Run the automatic session watcher. In long-running mode, it polls once per hour by default and processes sessions that have been idle for at least 10 minutes:
+Run the automatic session watcher. In long-running mode, it polls once per day by default and processes sessions that have been idle for at least 10 minutes:
 
 ```bash
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py"
@@ -154,7 +154,7 @@ Run one watcher cycle for testing:
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --dry-run
 ```
 
-For OS schedulers such as cron, launchd, systemd timers, or Windows Task Scheduler, schedule one real cycle hourly:
+For OS schedulers such as cron, launchd, systemd timers, or Windows Task Scheduler, schedule one real cycle daily at 12:00:
 
 ```bash
 python install_watcher_schedule.py
@@ -183,10 +183,10 @@ python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
 | `record_skill_usage.py`            | Record usage metadata for a skill                                       |
 | `show_skill_usage.py`              | Show skill usage metadata                                               |
 | `generate_skills_index.py`         | Generate a skill index from installed `SKILL.md` files                  |
-| `summarize_learning_inbox.py`      | Summarize memory, skill, patch, scan, and usage signals                 |
+| `summarize_learning_inbox.py`      | Generate a Review Digest with memory, skill, patch, and promotion options |
 | `codex_memory_nudge.py`            | Run the full review-mode learning loop                                  |
 | `codex_session_watcher.py`         | Watch session files and run nudge after idle periods                    |
-| `install_watcher_schedule.py`      | Install an hourly OS schedule for the installed watcher                 |
+| `install_watcher_schedule.py`      | Install a daily 12:00 OS schedule for the installed watcher              |
 
 ## Repository Layout
 
@@ -242,14 +242,17 @@ Default runtime outputs live under `$HOME/.codex`:
 │  ├─ inbox/
 │  ├─ patches/
 │  └─ archive/
+├─ daily-digests/
 ├─ nudge-reports/
+├─ latest-skill-candidate-security-scan.md
+├─ latest-user-memory-budget.md
 ├─ memory-watcher-state.json
 ├─ skill-usage.json
 ├─ skills-index.md
 └─ learning-inbox-summary.md
 ```
 
-Generated review files are grouped by date, for example `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md` and `$HOME/.codex/nudge-reports/YYYY/MM/DD/*.md`. These files are local runtime state. Do not commit them unless intentionally curated.
+Generated candidate files are grouped by date, for example `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md`, but empty candidate reports are skipped by default. The main daily entry point is `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`. Security scan and memory budget reports are overwritten at `latest-*` paths to reduce file count. Detailed nudge reports are written only when candidates are found or a step fails.
 
 ## Automatic Session Watcher
 
@@ -259,14 +262,14 @@ Codex does not always expose a reliable session-end hook across every environmen
 poll $HOME/.codex/sessions
   -> find idle unprocessed session files
   -> run codex_memory_nudge.py --session-file <file>
-  -> write nudge reports and watcher state
+  -> write daily digest, latest reports, optional nudge report, and watcher state
 ```
 
 Defaults:
 
 | Option                   | Default |
 | ------------------------ | ------: |
-| `--interval-seconds`     |  `3600` |
+| `--interval-seconds`     | `86400` |
 | `--idle-seconds`         |   `600` |
 | `--max-sessions-per-run` |     `0` |
 
@@ -275,6 +278,8 @@ Defaults:
 By default, the first run processes all historical session files that are idle and not already marked processed. To limit the first run and future runs to a time window, pass `--since-date YYYY-MM-DD`.
 
 The watcher is review-first. It creates candidate reports automatically, but it does not run `promote_memory.py --approved`, does not apply skill patches, and does not auto-promote candidates into `USER.md`.
+
+After each real watcher cycle, the nudge prints a Review Digest summary and writes both `$HOME/.codex/learning-inbox-summary.md` and `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`. The digest groups memory candidates, skill candidates, and skill patch candidates, then lists promotion options. Memory options include explicit `promote_memory.py --approved` commands. Skill and patch options remain review-only and point you to scan and inspect the target skill before applying anything.
 
 Candidate extraction reads both user instructions and assistant outcomes. It favors durable lessons such as root causes, fixes, verification results, reusable workflows, preferences, and safety corrections. One-off task requests such as "find X", "list Y", or "only return Z" are treated as work items rather than long-term memory.
 
@@ -293,19 +298,19 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 # Only process sessions on or after a date
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --since-date 2026-05-01
 
-# Install an hourly OS schedule at minute 0, using the installed watcher under $HOME/.agents
+# Install a daily 12:00 OS schedule, using the installed watcher under $HOME/.agents
 python install_watcher_schedule.py
 ```
 
-For workstation setups, an hourly OS scheduler that runs the `--once` command on the hour is usually more reliable than keeping a terminal process open. Long-running mode remains available when a persistent process manager is already in use.
+For workstation setups, a daily OS scheduler that runs the `--once` command at 12:00 is usually more reliable than keeping a terminal process open. Long-running mode remains available when a persistent process manager is already in use.
 
 Schedule installer backends:
 
 | Platform | Backend                           |
 | -------- | --------------------------------- |
-| Windows  | Task Scheduler via `schtasks.exe /SC HOURLY /MO 1` |
-| Linux    | systemd user timer                |
-| macOS    | `launchd` LaunchAgent             |
+| Windows  | Task Scheduler via `schtasks.exe /SC DAILY /ST 12:00` |
+| Linux    | systemd user timer with `OnCalendar=*-*-* 12:00:00` |
+| macOS    | `launchd` LaunchAgent with `Hour=12`, `Minute=0` |
 
 ## Safety Model
 
