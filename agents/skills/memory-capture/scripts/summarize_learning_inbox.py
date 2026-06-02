@@ -112,14 +112,101 @@ def action_for(area: str, item: dict[str, object]) -> str:
     return "Review candidate manually"
 
 
+def is_push_retry_rule(text: str) -> bool:
+    return bool(re.search(r"(?i)(push|推送)", text) and re.search(r"(?i)(retry|重试|最多.*3|3 次|three)", text))
+
+
+def is_sql_preference(text: str) -> bool:
+    return bool(re.search(r"(?i)(sql|query|select\s+\*|不应该返回\*)", text))
+
+
+def is_project_data_fact(text: str) -> bool:
+    return bool(re.search(r"(?i)(table|field|表名|核心字段|数据库|bms\.|soms\.|fin_|fee_type|order_id|/[^/\s]+/[^/\s]+)", text))
+
+
+def is_transcript_artifact(text: str) -> bool:
+    return bool(text.startswith("::") or text.startswith("![") or text.startswith("+二次改稿说明"))
+
+
+def destination_for(area: str, item: dict[str, object]) -> str:
+    text = str(item["text"])
+    lower = text.lower()
+    safety = str(item["safety"])
+    category = str(item["category"])
+    if safety == "blocked":
+        return "blocked_review"
+    if area == "skill_patches":
+        return "skill_patch"
+    if area == "skill_candidates":
+        return "skill_candidate"
+    if area != "memory_candidates":
+        return "manual_review"
+    if is_transcript_artifact(text):
+        return "manual_review"
+    if is_push_retry_rule(text):
+        return "global_user_memory"
+    if is_sql_preference(text):
+        return "global_user_memory"
+    if is_project_data_fact(text):
+        return "project_agents"
+    project_markers = (
+        "github trending",
+        "github 官方趋势",
+        "github 趋势",
+        "article.md",
+        "publishing-notes.md",
+        "cover-preview.png",
+        "verify-daily-post",
+        "daily-post",
+        "visiblecount",
+        "项目事实",
+        "仓库",
+    )
+    if any(marker in lower for marker in project_markers):
+        return "project_agents"
+    if category == "workflow_pattern":
+        return "skill_candidate"
+    if "skill" in lower and ("missing" in lower or "缺" in lower or "patch" in lower or "补丁" in lower):
+        return "skill_patch"
+    if category in {"user_preference", "safety_rule"}:
+        return "global_user_memory"
+    return "manual_review"
+
+
+def rewrite_suggestion_for(area: str, item: dict[str, object]) -> str:
+    text = clean_candidate_text(str(item["text"]))
+    lower = text.lower()
+    destination = destination_for(area, item)
+    if destination == "blocked_review":
+        return "Do not rewrite until the blocked safety finding is reviewed."
+    if is_push_retry_rule(text):
+        return "When git push fails due to environment or network access, retry at most three times; if still blocked, stop and report the commit hash, remote, failure reason, and a manual push command instead of claiming success."
+    if is_sql_preference(text):
+        return "When writing SQL, verify table columns before drafting queries; avoid SELECT * by default and select only the required fields."
+    if "github trending" in lower or "github 官方趋势" in lower or "github 趋势" in lower:
+        return "For GitHub Trending publishing workflows, use https://github.com/trending as the source of truth; do not replace the official daily page with GitTrend, search results, history, or adjacent time windows."
+    if area == "skill_candidates":
+        return "Convert this repeated workflow into a small SKILL.md with trigger conditions, steps, verification, and safety notes."
+    if area == "skill_patches":
+        return "Patch the named target SKILL.md only after inspecting the skill and running the skill-candidate safety scan."
+    if destination == "project_agents":
+        return f"Move this project-specific rule into the nearest project AGENTS.md: {text}"
+    if destination == "global_user_memory":
+        return text.rstrip(".。")
+    return "Rewrite as one short, durable rule before promotion."
+
+
 def shell_quote(value: str) -> str:
     return "'" + value.replace("'", "'\"'\"'") + "'"
 
 
 def promotion_option_for(area: str, item: dict[str, object]) -> str:
-    text = str(item["text"])
-    if area == "memory_candidates" and str(item["safety"]) != "blocked":
-        return f"python \"$HOME/.agents/skills/memory-capture/scripts/promote_memory.py\" --text {shell_quote(text)} --approved"
+    destination = destination_for(area, item)
+    rewrite = rewrite_suggestion_for(area, item)
+    if destination == "global_user_memory" and str(item["safety"]) != "blocked":
+        return f"python \"$HOME/.agents/skills/memory-capture/scripts/promote_memory.py\" --text {shell_quote(rewrite)} --approved"
+    if destination == "project_agents":
+        return "Move the rewritten rule into the nearest project AGENTS.md after review."
     if area == "skill_candidates":
         return "Run scan_skill_candidates.py, then create or update a skill manually after review."
     if area == "skill_patches":
@@ -158,6 +245,10 @@ def main() -> int:
         },
         "skills_with_usage": len(usage.get("skills", {})),
     }
+    for area, items in summary["candidates"].items():
+        for item in items:
+            item["destination"] = destination_for(area, item)
+            item["rewrite_suggestion"] = rewrite_suggestion_for(area, item)
     if args.json:
         print(json.dumps(summary, indent=2, ensure_ascii=False))
         return 0
@@ -175,18 +266,20 @@ def main() -> int:
         "",
         "## Action Queue",
         "",
-        "| Area | Action | Candidate | Evidence |",
-        "| --- | --- | --- | --- |",
+        "| Area | Destination | Action | Candidate | Rewrite Suggestion | Evidence |",
+        "| --- | --- | --- | --- | --- | --- |",
     ]
     if action_rows:
         for area, action, item in action_rows[:10]:
             text = str(item["text"])
             excerpt = text if len(text) <= 160 else text[:157] + "..."
+            rewrite = rewrite_suggestion_for(area, item)
+            rewrite_excerpt = rewrite if len(rewrite) <= 160 else rewrite[:157] + "..."
             lines.append(
-                f"| {area} | {action} | {excerpt} | occurrences: {item['occurrences']}, files: {item['file_count']} |"
+                f"| {area} | {destination_for(area, item)} | {action} | {excerpt} | {rewrite_excerpt} | occurrences: {item['occurrences']}, files: {item['file_count']} |"
             )
     else:
-        lines.append("| all | No open candidates detected | None | occurrences: 0, files: 0 |")
+        lines.append("| all | none | No open candidates detected | None | None | occurrences: 0, files: 0 |")
     lines.extend(["", "## Area Overview", "", "| Area | Files | Merged Candidates |", "| --- | ---: | ---: |"])
     for name, count in summary["counts"].items():
         merged_count = len(summary["candidates"].get(name, []))
@@ -202,6 +295,8 @@ def main() -> int:
             lines.extend(
                 [
                     f"{index}. {excerpt}",
+                    f"   - destination: {destination_for(name, item)}",
+                    f"   - rewrite: {rewrite_suggestion_for(name, item)}",
                     f"   - evidence: occurrences: {item['occurrences']}, files: {item['file_count']}",
                     f"   - option: {promotion_option_for(name, item)}",
                 ]
@@ -217,6 +312,8 @@ def main() -> int:
                 [
                     f"- {item['text']}",
                     f"  - category: {item['category']}",
+                    f"  - destination: {destination_for(name, item)}",
+                    f"  - rewrite: {rewrite_suggestion_for(name, item)}",
                     f"  - safety: {item['safety']}",
                     f"  - status: {item['status']}",
                     f"  - occurrences: {item['occurrences']}, files: {item['file_count']}",

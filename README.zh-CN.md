@@ -189,7 +189,7 @@ python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
 | `record_skill_usage.py`            | 记录 skill 使用元数据                   |
 | `show_skill_usage.py`              | 展示 skill 使用元数据                   |
 | `generate_skills_index.py`         | 根据已安装 `SKILL.md` 生成技能索引      |
-| `summarize_learning_inbox.py`      | 生成 Review Digest，汇总记忆、技能、补丁和晋升选项 |
+| `summarize_learning_inbox.py`      | 生成 Review Digest，汇总记忆、技能、补丁、归属、改写建议和晋升选项 |
 | `codex_memory_nudge.py`            | 运行完整 review-mode 学习闭环           |
 | `codex_session_watcher.py`         | 监听会话文件，并在空闲后自动运行 nudge  |
 | `install_watcher_schedule.py`      | 为已安装 watcher 配置每天 12:00 系统调度 |
@@ -285,7 +285,7 @@ codex-self-improving-loop/
 
 监听器仍然是 review-first：它会自动生成候选报告，但不会执行 `promote_memory.py --approved`，不会应用 skill patch，也不会把候选自动晋升到 `USER.md`。
 
-每次真实 watcher 执行完成后，nudge 会在终端输出 Review Digest 摘要，并写入 `$HOME/.codex/learning-inbox-summary.md` 和 `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`。Digest 会分组展示记忆候选、技能候选、技能补丁，并列出可选晋升动作。记忆候选会给出显式的 `promote_memory.py --approved` 命令；技能和补丁仍保持 review-only，需要先扫描并人工检查目标 skill 后再应用。
+每次真实 watcher 执行完成后，nudge 会在终端输出 Review Digest 摘要，并写入 `$HOME/.codex/learning-inbox-summary.md` 和 `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`。Digest 会分组展示记忆候选、技能候选、技能补丁，并列出归属、改写建议和可选晋升动作。归属会区分全局 `USER.md`、项目级 `AGENTS.md`、skill candidate、skill patch、blocked review 和 manual review。记忆候选会用改写建议生成显式的 `promote_memory.py --approved` 命令；技能和补丁仍保持 review-only，需要先扫描并人工检查目标 skill 后再应用。
 
 候选抽取会同时读取用户指令和 assistant 的最终结论，更偏向根因、修复方案、验证结果、可复用流程、稳定偏好和安全修正。一类一次性任务请求，例如“帮我查 X”“列出 Y”“只返回 Z”，会被视为当前工作项，而不是长期记忆。
 

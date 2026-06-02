@@ -61,8 +61,8 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
 ## Review Workflow
 
 1. Capture candidates with `extract_memory.py` or `codex_memory_nudge.py`.
-2. Inspect generated Markdown files.
+2. Inspect the Review Digest destination and rewrite suggestion before promotion.
 3. Run `scan_skill_candidates.py` before applying any skill candidate.
-4. Promote only reviewed memories with `promote_memory.py --approved`.
+4. Promote only reviewed global memories with `promote_memory.py --approved`; move project facts to project `AGENTS.md`.
 5. Use `promote_candidates.py --auto-promote` only for safe, short, repeated user preferences or avoidance rules.
 6. Use `promote_candidates.py --archive-processed` only after unresolved review and conflict items have been intentionally left in the inbox.

@@ -189,7 +189,7 @@ python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
 | `record_skill_usage.py`            | Record usage metadata for a skill                                       |
 | `show_skill_usage.py`              | Show skill usage metadata                                               |
 | `generate_skills_index.py`         | Generate a skill index from installed `SKILL.md` files                  |
-| `summarize_learning_inbox.py`      | Generate a Review Digest with memory, skill, patch, and promotion options |
+| `summarize_learning_inbox.py`      | Generate a Review Digest with memory, skill, patch, destinations, rewrite suggestions, and promotion options |
 | `codex_memory_nudge.py`            | Run the full review-mode learning loop                                  |
 | `codex_session_watcher.py`         | Watch session files and run nudge after idle periods                    |
 | `install_watcher_schedule.py`      | Install a daily 12:00 OS schedule for the installed watcher              |
@@ -285,7 +285,7 @@ By default, the first run processes all historical session files that are idle a
 
 The watcher is review-first. It creates candidate reports automatically, but it does not run `promote_memory.py --approved`, does not apply skill patches, and does not auto-promote candidates into `USER.md`.
 
-After each real watcher cycle, the nudge prints a Review Digest summary and writes both `$HOME/.codex/learning-inbox-summary.md` and `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`. The digest groups memory candidates, skill candidates, and skill patch candidates, then lists promotion options. Memory options include explicit `promote_memory.py --approved` commands. Skill and patch options remain review-only and point you to scan and inspect the target skill before applying anything.
+After each real watcher cycle, the nudge prints a Review Digest summary and writes both `$HOME/.codex/learning-inbox-summary.md` and `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`. The digest groups memory candidates, skill candidates, and skill patch candidates, then lists destinations, rewrite suggestions, and promotion options. Destinations distinguish global `USER.md`, project `AGENTS.md`, skill candidates, skill patches, blocked review, and manual review. Memory options include explicit `promote_memory.py --approved` commands using the rewrite suggestion when a candidate can be shortened. Skill and patch options remain review-only and point you to scan and inspect the target skill before applying anything.
 
 Candidate extraction reads both user instructions and assistant outcomes. It favors durable lessons such as root causes, fixes, verification results, reusable workflows, preferences, and safety corrections. One-off task requests such as "find X", "list Y", or "only return Z" are treated as work items rather than long-term memory.
 

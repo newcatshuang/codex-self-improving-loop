@@ -58,6 +58,8 @@ $HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md
 $HOME/.codex/learning-inbox-summary.md
 ```
 
+Digest 会给每条候选标出建议归属和改写建议：全局偏好进 `USER.md`，项目事实进项目 `AGENTS.md`，复用流程保留为 skill candidate，已有技能改进进入 skill patch。
+
 只有检测到候选时，才会写入候选文件：
 
 ```text
