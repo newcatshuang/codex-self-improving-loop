@@ -50,6 +50,16 @@ def run_script(script: Path, root: Path, session: Path) -> None:
     )
 
 
+def assert_contains(text: str, expected: str, message: str) -> None:
+    if expected not in text:
+        raise AssertionError(message)
+
+
+def assert_not_contains(text: str, unexpected: str, message: str) -> None:
+    if unexpected in text:
+        raise AssertionError(message)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parent.parent)
@@ -79,14 +89,50 @@ def main() -> int:
     run_script(scripts / "extract_memory.py", root, assistant_session)
     assert_report_under_today(root / "memories" / "inbox")
     memory_report = latest_report(root / "memories" / "inbox")
-    if "Daily+Repetition" not in memory_report or "HOURLY" not in memory_report:
-        raise AssertionError("assistant outcome should be extracted as a memory candidate")
+    assert_contains(memory_report, "Daily+Repetition", "assistant outcome should be extracted as a memory candidate")
+    assert_contains(memory_report, "HOURLY", "assistant outcome should preserve the verified fix")
 
     run_script(scripts / "extract_skill_candidate.py", root, assistant_session)
     assert_report_under_today(root / "skill-candidates" / "inbox")
     skill_report = latest_report(root / "skill-candidates" / "inbox")
-    if "verify-install" not in skill_report:
-        raise AssertionError("assistant verification workflow should be extracted as a skill candidate")
+    assert_contains(skill_report, "verify-install", "assistant verification workflow should be extracted as a skill candidate")
+
+    reusable_workflow_session = root / "sessions" / "reusable-workflow.jsonl"
+    write_jsonl(
+        reusable_workflow_session,
+        [
+            {
+                "type": "event_msg",
+                "payload": {
+                    "type": "agent_message",
+                    "message": (
+                        "Reusable workflow: first run verify-learning-extraction.py, then run verify-install.py, "
+                        "then run python -m compileall agents install.py tests before handoff."
+                    ),
+                },
+            }
+        ],
+    )
+    run_script(scripts / "extract_skill_candidate.py", root, reusable_workflow_session)
+    skill_report = latest_report(root / "skill-candidates" / "inbox")
+    assert_contains(skill_report, "verify-learning-extraction.py", "reusable command sequence should become a skill candidate")
+
+    preference_session = root / "sessions" / "preference-only.jsonl"
+    write_jsonl(
+        preference_session,
+        [
+            {
+                "type": "event_msg",
+                "payload": {
+                    "type": "agent_message",
+                    "message": "默认不要把一次性生产排查细节写入长期记忆。",
+                },
+            }
+        ],
+    )
+    run_script(scripts / "extract_skill_candidate.py", root, preference_session)
+    skill_report = latest_report(root / "skill-candidates" / "inbox")
+    assert_not_contains(skill_report, "一次性生产排查", "preference-only memory should not become a skill candidate")
 
     task_request_session = root / "sessions" / "task-request.jsonl"
     write_jsonl(
@@ -101,8 +147,57 @@ def main() -> int:
     run_script(scripts / "extract_memory.py", root, task_request_session)
     assert_report_under_today(root / "memories" / "inbox")
     task_report = latest_report(root / "memories" / "inbox")
-    if "fin_bad_debt_record" in task_report:
-        raise AssertionError("one-off task requests should not become memory candidates")
+    assert_not_contains(task_report, "fin_bad_debt_record", "one-off task requests should not become memory candidates")
+
+    transient_session = root / "sessions" / "transient-status.jsonl"
+    write_jsonl(
+        transient_session,
+        [
+            {
+                "type": "event_msg",
+                "payload": {
+                    "type": "agent_message",
+                    "message": "Any running unified exec processes may still be running in the background.",
+                },
+            },
+            {
+                "type": "event_msg",
+                "payload": {
+                    "type": "agent_message",
+                    "message": "本地 PowerShell 初始化失败，暂时没法直接检索仓库。",
+                },
+            },
+        ],
+    )
+    run_script(scripts / "extract_memory.py", root, transient_session)
+    task_report = latest_report(root / "memories" / "inbox")
+    assert_not_contains(task_report, "unified exec", "tool interruption text should not become memory")
+    assert_not_contains(task_report, "PowerShell 初始化失败", "temporary environment failures should not become memory")
+
+    patch_session = root / "sessions" / "skill-patch.jsonl"
+    write_jsonl(
+        patch_session,
+        [
+            {
+                "type": "event_msg",
+                "payload": {
+                    "type": "agent_message",
+                    "message": "memory-capture SKILL.md missing a rule: skill patch candidates must name the target skill before promotion.",
+                },
+            },
+            {
+                "type": "event_msg",
+                "payload": {
+                    "type": "agent_message",
+                    "message": "根因是脚本只扫描用户消息，已修复并通过验证。",
+                },
+            },
+        ],
+    )
+    run_script(scripts / "extract_skill_patch_candidate.py", root, patch_session)
+    patch_report = latest_report(root / "skill-candidates" / "patches")
+    assert_contains(patch_report, "memory-capture SKILL.md missing", "specific skill gaps should become patch candidates")
+    assert_not_contains(patch_report, "只扫描用户消息", "generic fixes should not become patch candidates without a skill target")
 
     print("verify-learning-extraction passed")
     return 0

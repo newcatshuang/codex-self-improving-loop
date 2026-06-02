@@ -7,7 +7,7 @@ import argparse
 import json
 import re
 import shutil
-from collections import Counter, defaultdict
+from collections import defaultdict
 from pathlib import Path
 
 from learning_loop_common import (
@@ -33,6 +33,52 @@ def extract_candidate_blocks(path: Path) -> list[str]:
             continue
         candidates.append(candidate)
     return candidates
+
+
+def merge_candidate_items(items: list[tuple[Path, str]]) -> list[dict[str, object]]:
+    grouped: dict[str, dict[str, object]] = {}
+    for path, text in items:
+        normalized = normalize_memory_text(text)
+        if not normalized:
+            continue
+        entry = grouped.setdefault(
+            normalized,
+            {
+                "text": text,
+                "normalized": normalized,
+                "occurrences": 0,
+                "files": set(),
+                "examples": [],
+            },
+        )
+        entry["occurrences"] = int(entry["occurrences"]) + 1
+        files = entry["files"]
+        if isinstance(files, set):
+            files.add(path)
+        examples = entry["examples"]
+        if isinstance(examples, list) and len(examples) < 3:
+            examples.append({"file": str(path), "text": text})
+        if len(text) > len(str(entry["text"])):
+            entry["text"] = text
+    merged = []
+    for entry in grouped.values():
+        files = entry["files"]
+        file_set = files if isinstance(files, set) else set()
+        examples = entry["examples"] if isinstance(entry["examples"], list) else []
+        merged.append(
+            {
+                "text": str(entry["text"]),
+                "normalized": str(entry["normalized"]),
+                "occurrences": int(entry["occurrences"]),
+                "file_count": len(file_set),
+                "files": sorted(str(path) for path in file_set),
+                "examples": examples,
+            }
+        )
+    return sorted(
+        merged,
+        key=lambda item: (-int(item["occurrences"]), -int(item["file_count"]), str(item["text"]).lower()),
+    )
 
 
 def status_for(text: str, existing_normalized: set[str], occurrences: int) -> str:
@@ -68,13 +114,14 @@ def main() -> int:
     all_items: list[tuple[Path, str]] = []
     for path in files:
         all_items.extend((path, text) for text in extract_candidate_blocks(path))
-    counts = Counter(normalize_memory_text(text) for _, text in all_items)
+    merged_items = merge_candidate_items(all_items)
 
     report_items = []
     promoted: list[str] = []
     unresolved_by_file: dict[Path, int] = defaultdict(int)
-    for path, text in all_items:
-        occurrences = counts[normalize_memory_text(text)]
+    for item in merged_items:
+        text = str(item["text"])
+        occurrences = int(item["occurrences"])
         status = status_for(text, existing_normalized, occurrences)
         if status == "auto_promote_candidate" and args.auto_promote:
             existing = read_text(target)
@@ -82,9 +129,21 @@ def main() -> int:
             existing_normalized.add(normalize_memory_text(text))
             status = "promoted"
             promoted.append(text)
+        files_for_item = [Path(file) for file in item["files"] if isinstance(file, str)]
         if status in {"review", "auto_promote_candidate"}:
-            unresolved_by_file[path] += 1
-        report_items.append({"file": str(path), "text": text, "occurrences": occurrences, "status": status})
+            for path in files_for_item:
+                unresolved_by_file[path] += 1
+        report_items.append(
+            {
+                "text": text,
+                "normalized": item["normalized"],
+                "occurrences": occurrences,
+                "file_count": item["file_count"],
+                "files": item["files"],
+                "examples": item["examples"],
+                "status": status,
+            }
+        )
 
     archived = []
     if args.archive_processed:
@@ -103,6 +162,7 @@ def main() -> int:
     summary = {
         "candidate_files": len(files),
         "candidate_count": len(all_items),
+        "merged_candidate_count": len(merged_items),
         "promoted_count": len(promoted),
         "archived_count": len(archived),
         "items": report_items,
@@ -115,11 +175,14 @@ def main() -> int:
         print()
         print(f"- candidate_files: {summary['candidate_files']}")
         print(f"- candidate_count: {summary['candidate_count']}")
+        print(f"- merged_candidate_count: {summary['merged_candidate_count']}")
         print(f"- promoted_count: {summary['promoted_count']}")
         print(f"- archived_count: {summary['archived_count']}")
         print()
         for item in report_items:
-            print(f"- [{item['status']}] {item['text']} (occurrences: {item['occurrences']})")
+            print(f"- [{item['status']}] {item['text']} (occurrences: {item['occurrences']}, files: {item['file_count']})")
+            for example in item.get("examples", [])[:2]:
+                print(f"  - source: {example['file']}")
     return 0
 
 

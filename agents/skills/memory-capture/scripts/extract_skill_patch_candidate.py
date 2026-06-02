@@ -7,24 +7,25 @@ import argparse
 import hashlib
 from pathlib import Path
 
-from learning_loop_common import clean_candidate_text, default_codex_root, is_noisy_learning_line, latest_session_file, read_session_messages, split_learning_fragments, write_candidate_report
+from learning_loop_common import clean_candidate_text, default_codex_root, is_patch_candidate_text, latest_session_file, normalize_memory_text, read_session_messages, split_learning_fragments, write_candidate_report
 
 
 def suggest_patch_candidates(messages: list[str], skill_name: str | None, limit: int = 8) -> list[str]:
-    import re
-
-    signals = re.compile(r"(?i)(skill|SKILL\\.md|patch|pitfall|workaround|missing|improve|regression|root cause|技能|补丁|缺口|改进|回归|根因|踩坑)")
     candidates: list[str] = []
+    seen: set[str] = set()
     for message in reversed(messages):
         for fragment in split_learning_fragments(message):
             compact = clean_candidate_text(fragment)
-            if len(compact) < 30 or not signals.search(compact):
-                continue
-            if is_noisy_learning_line(compact):
+            if not is_patch_candidate_text(compact, skill_name):
                 continue
             if skill_name and skill_name.lower() not in compact.lower():
                 compact = f"Target skill: {skill_name}. Evidence: {compact}"
-            candidates.append(compact[:600])
+            excerpt = compact[:600]
+            key = normalize_memory_text(excerpt)
+            if key in seen:
+                continue
+            seen.add(key)
+            candidates.append(excerpt)
             if len(candidates) >= limit:
                 return candidates
     return candidates

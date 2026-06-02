@@ -39,16 +39,63 @@ CODE_FRAGMENT_RE = re.compile(
     r"root\s*/\s*['\"]|type=Path|str\(|Path\(|\.expanduser\(|\.glob\(|\.rglob\()"
 )
 BOOTSTRAP_CONTEXT_RE = re.compile(r"(?is)^# AGENTS\.md instructions for|<INSTRUCTIONS>|--- project-doc ---|<environment_context>")
-ASSISTANT_PROGRESS_RE = re.compile(r"(?i)^(我会|我将|我现在|我先|下一步|接下来|当前|上一条|I will|I'll|I am going to|Next,|Now I)")
+ASSISTANT_PROGRESS_RE = re.compile(
+    r"(?i)^(我会|我将|我现在|我先|我准备|下一步|接下来|当前|上一条|"
+    r"I will|I'll|I am going to|I plan to|Next,|Now I)"
+)
 CONTROL_EVENT_RE = re.compile(r"(?i)<turn_aborted>|</turn_aborted>|<environment_context>|</environment_context>")
+TRANSIENT_STATUS_RE = re.compile(
+    r"(?i)(Any running unified exec processes|If any tools/commands were aborted|"
+    r"PowerShell 初始化失败|本地 PowerShell.*(卡住|失败)|shell 已经恢复|"
+    r"还在拉上下文|我先继续等结果|环境问题|sandbox.*(failed|blocked)|"
+    r"workdir.*invalid|工作目录路径已经不存在)"
+)
 ONE_OFF_REQUEST_RE = re.compile(
     r"(?i)^(帮我|查下|检查一下|重新检查|只返回|列出|给出|看下|"
     r"can you|please check|find|list|show me|summarize)"
+)
+ONE_OFF_REQUEST_ANYWHERE_RE = re.compile(
+    r"(?i)(帮我查一下|帮我查下|只返回|不要展开分析|我可以提供给你|"
+    r"生产数据库查到|please check|only return|do not expand analysis)"
 )
 LEARNING_OUTCOME_RE = re.compile(
     r"(?i)(root cause|fixed|implemented|verified|passed|regression|lesson|pitfall|"
     r"根因|已修复|修复了|已验证|验证通过|通过验证|结论|原因是|问题在|"
     r"改为|应该|需要|避免|不要|默认|以后|记住|沉淀)"
+)
+MEMORY_PREFERENCE_RE = re.compile(
+    r"(?i)(prefer|default|always|never|avoid|remember|do not|must|should|"
+    r"以后|默认|记住|不要|避免|优先|保持)"
+)
+MEMORY_FACT_RE = re.compile(
+    r"(?i)(project fact|stable fact|supports only|api|database|table|field|"
+    r"项目事实|稳定事实|只支持|接口|数据库|数据表|字段)"
+)
+SAFETY_RULE_RE = re.compile(r"(?i)(secret|token|credential|security|redacted|安全|密钥|凭证|脱敏)")
+WORKFLOW_ONLY_RE = re.compile(
+    r"(?i)(workflow|procedure|steps?|checklist|reusable|repeatable|"
+    r"流程|步骤|清单|复用|可复用)"
+)
+SKILL_ACTION_RE = re.compile(
+    r"(?i)(workflow|procedure|reusable|repeatable|checklist|run|execute|verify|rerun|"
+    r"test|build|lint|scan|stage|commit|push|流程|步骤|复用|可复用|验证|"
+    r"运行|执行|检查|扫描|构建|提交|发布)"
+)
+SKILL_STRUCTURE_RE = re.compile(
+    r"(?i)(first|then|next|after|before|sequence|trigger|when|steps?|"
+    r"先.*再|然后|最后|触发条件|适用|步骤|流程)"
+)
+COMMAND_OR_TOOL_RE = re.compile(
+    r"(?i)(git diff|dotnet build|pytest|npm|pnpm|python|verify-|scan|script|tool|"
+    r"命令|脚本|工具|检查)"
+)
+PATCH_SIGNAL_RE = re.compile(
+    r"(?i)(skill patch|patch candidate|target skill|existing skill|"
+    r"update .*skill|skill .*?(missing|gap|improve|regression|pitfall)|"
+    r"技能.*?(缺口|改进|更新|回归|踩坑)|更新.*?技能|补丁候选)"
+)
+SKILL_FILE_PATCH_RE = re.compile(
+    r"(?i)SKILL\.md.*?(missing|gap|improve|update|regression|pitfall|缺口|缺少|改进|更新|回归|踩坑)"
 )
 
 
@@ -233,6 +280,8 @@ def is_noisy_learning_line(text: str) -> bool:
     stripped = strip_ansi(text).strip()
     if not stripped:
         return True
+    if TRANSIENT_STATUS_RE.search(stripped):
+        return True
     if LOG_LINE_RE.search(stripped):
         return True
     if CODE_ECHO_RE.search(stripped):
@@ -246,6 +295,8 @@ def is_noisy_learning_line(text: str) -> bool:
     if ASSISTANT_PROGRESS_RE.search(stripped):
         return True
     if ONE_OFF_REQUEST_RE.search(stripped):
+        return True
+    if ONE_OFF_REQUEST_ANYWHERE_RE.search(stripped):
         return True
     if LOCAL_PATH_RE.search(stripped) and not re.search(r"(?i)(prefer|remember|workflow|skill|patch|以后|默认|记住|流程|技能|补丁)", stripped):
         return True
@@ -306,6 +357,53 @@ def normalize_memory_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.strip().rstrip(".。")).lower()
 
 
+def is_memory_candidate_text(text: str) -> bool:
+    compact = clean_candidate_text(text)
+    if len(compact) < 12 or len(compact) > 500:
+        return False
+    if is_noisy_learning_line(compact):
+        return False
+    if not LEARNING_OUTCOME_RE.search(compact):
+        return False
+    has_memory_signal = bool(MEMORY_PREFERENCE_RE.search(compact) or MEMORY_FACT_RE.search(compact) or SAFETY_RULE_RE.search(compact))
+    has_durable_outcome = bool(
+        re.search(
+            r"(?i)(root cause|fixed|verified|passed|lesson|pitfall|regression|"
+            r"根因|已修复|修复了|验证通过|通过验证|结论|原因是|问题在|改为)",
+            compact,
+        )
+    )
+    if WORKFLOW_ONLY_RE.search(compact) and not (has_memory_signal or has_durable_outcome):
+        return False
+    return has_memory_signal or has_durable_outcome
+
+
+def is_skill_candidate_text(text: str) -> bool:
+    compact = clean_candidate_text(text)
+    if len(compact) < 40 or len(compact) > 700:
+        return False
+    if is_noisy_learning_line(compact):
+        return False
+    if not SKILL_ACTION_RE.search(compact):
+        return False
+    if not (SKILL_STRUCTURE_RE.search(compact) or COMMAND_OR_TOOL_RE.search(compact)):
+        return False
+    if MEMORY_PREFERENCE_RE.search(compact) and not (WORKFLOW_ONLY_RE.search(compact) or COMMAND_OR_TOOL_RE.search(compact)):
+        return False
+    return True
+
+
+def is_patch_candidate_text(text: str, skill_name: str | None = None) -> bool:
+    compact = clean_candidate_text(text)
+    if len(compact) < 40 or len(compact) > 800:
+        return False
+    if is_noisy_learning_line(compact):
+        return False
+    if skill_name and skill_name.lower() in compact.lower():
+        return bool(PATCH_SIGNAL_RE.search(compact) or re.search(r"(?i)(missing|gap|improve|regression|pitfall|缺口|改进|回归|踩坑)", compact))
+    return bool(PATCH_SIGNAL_RE.search(compact) or SKILL_FILE_PATCH_RE.search(compact))
+
+
 def classify_candidate(text: str) -> str:
     lower = text.lower()
     if any(word in lower for word in ("prefer", "default", "always", "never", "以后", "默认", "记住", "不要")):
@@ -320,22 +418,13 @@ def classify_candidate(text: str) -> str:
 
 
 def suggest_memory_candidates(messages: list[str], limit: int = 12) -> list[str]:
-    signals = re.compile(
-        r"(?i)(remember|learn|prefer|default|always|never|avoid|workflow|process|verify|lesson|rule|"
-        r"root cause|fixed|implemented|verified|passed|regression|pitfall|"
-        r"记住|沉淀|以后|默认|不要|流程|步骤|验证|经验|规则|根因|已修复|结论|原因是|问题在|改为)"
-    )
     candidates: list[str] = []
     seen: set[str] = set()
     for message in reversed(messages):
         for line in split_learning_fragments(message):
             stripped = re.sub(r"^[-*#>\s]+", "", line).strip()
             stripped = clean_candidate_text(stripped)
-            if len(stripped) < 12 or len(stripped) > 500:
-                continue
-            if is_noisy_learning_line(stripped):
-                continue
-            if not signals.search(stripped):
+            if not is_memory_candidate_text(stripped):
                 continue
             normalized = normalize_memory_text(stripped)
             if normalized in seen:
@@ -367,7 +456,12 @@ def write_candidate_report(
         "",
     ]
     count = 0
+    seen: set[str] = set()
     for candidate in candidates:
+        normalized = normalize_memory_text(candidate)
+        if normalized in seen:
+            continue
+        seen.add(normalized)
         count += 1
         category = classify_candidate(candidate)
         safety = "blocked" if contains_secret_like_text(candidate) else "review"
