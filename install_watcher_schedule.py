@@ -46,8 +46,37 @@ def windows_task_quote(part: str) -> str:
     return escaped
 
 
+def windows_command_line(parts: list[str]) -> str:
+    return subprocess.list2cmdline(parts)
+
+
+def write_windows_pause_wrapper(args: argparse.Namespace) -> Path:
+    wrapper = args.agents_root.expanduser() / "codex-self-improving-loop-watcher.cmd"
+    ensure_dir(wrapper.parent)
+    command = windows_command_line(command_parts(args))
+    wrapper.write_text(
+        "\r\n".join(
+            [
+                "@echo off",
+                command,
+                'set "codex_sil_exit=%ERRORLEVEL%"',
+                "echo.",
+                "echo Codex Self-Improving Loop watcher finished with exit code %codex_sil_exit%.",
+                "pause",
+                "exit /b %codex_sil_exit%",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    return wrapper
+
+
 def install_windows(args: argparse.Namespace) -> None:
-    task_run = " ".join(windows_task_quote(part) for part in command_parts(args))
+    if args.pause_on_exit:
+        task_run = windows_command_line([str(write_windows_pause_wrapper(args))])
+    else:
+        task_run = windows_command_line(command_parts(args))
     subprocess.run(
         [
             "schtasks.exe",
@@ -160,6 +189,7 @@ def main() -> int:
     parser.add_argument("--minute", type=int, default=0, help="Minute of hour to run, 0-59; defaults to 0")
     parser.add_argument("--since-date", help="Pass through to codex_session_watcher.py")
     parser.add_argument("--max-sessions-per-run", type=int, default=None, help="Pass through to codex_session_watcher.py; omit for watcher default")
+    parser.add_argument("--pause-on-exit", action="store_true", help="Windows only: keep the scheduled console open after each run with a pause prompt")
     parser.add_argument("--dry-run", action="store_true", help="Print the scheduled command without installing")
     args = parser.parse_args()
 
@@ -172,12 +202,18 @@ def main() -> int:
         raise SystemExit(f"Installed watcher not found: {watcher}. Run install.py first.")
 
     if args.dry_run:
-        print(shell_quote(command_parts(args)))
+        if platform.system() == "Windows" and args.pause_on_exit:
+            wrapper = args.agents_root.expanduser() / "codex-self-improving-loop-watcher.cmd"
+            print(f"{windows_command_line([str(wrapper)])}  # wrapper will pause after running {windows_command_line(command_parts(args))}")
+        else:
+            print(shell_quote(command_parts(args)))
         return 0
 
     system = platform.system()
     if system == "Windows":
         install_windows(args)
+    elif args.pause_on_exit:
+        raise SystemExit("--pause-on-exit is only supported on Windows")
     elif system == "Linux":
         install_linux(args)
     elif system == "Darwin":

@@ -160,6 +160,12 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 python install_watcher_schedule.py
 ```
 
+Windows 下如果希望计划任务执行完成后终端窗口停留，方便查看本次摘要，可以这样安装：
+
+```bash
+python install_watcher_schedule.py --pause-on-exit
+```
+
 生成维护报告：
 
 ```bash
@@ -300,6 +306,9 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 
 # 安装每天 12:00 执行的系统调度，实际运行 $HOME/.agents 下已安装的 watcher
 python install_watcher_schedule.py
+
+# 仅 Windows：执行完成后保留终端窗口，方便查看摘要
+python install_watcher_schedule.py --pause-on-exit
 ```
 
 对个人工作站来说，用系统调度器在每天 12:00 运行一次 `--once` 通常比长期占用一个终端进程更可靠。已有进程管理器时，也可以直接使用长期运行模式。

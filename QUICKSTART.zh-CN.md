@@ -43,6 +43,12 @@ python -m compileall agents install.py install_watcher_schedule.py tests
 python install_watcher_schedule.py
 ```
 
+Windows 下如果希望计划任务执行完成后终端窗口停留，方便查看本次摘要：
+
+```bash
+python install_watcher_schedule.py --pause-on-exit
+```
+
 ## 查看结果
 
 每日 Review Digest 是主要查看入口：

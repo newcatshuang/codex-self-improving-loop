@@ -160,6 +160,12 @@ For OS schedulers such as cron, launchd, systemd timers, or Windows Task Schedul
 python install_watcher_schedule.py
 ```
 
+On Windows, if you want the scheduled console window to stay open after the watcher finishes so you can read the summary, install the task with:
+
+```bash
+python install_watcher_schedule.py --pause-on-exit
+```
+
 Generate maintenance reports:
 
 ```bash
@@ -300,6 +306,9 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 
 # Install a daily 12:00 OS schedule, using the installed watcher under $HOME/.agents
 python install_watcher_schedule.py
+
+# Windows only: keep the scheduled console open after each run
+python install_watcher_schedule.py --pause-on-exit
 ```
 
 For workstation setups, a daily OS scheduler that runs the `--once` command at 12:00 is usually more reliable than keeping a terminal process open. Long-running mode remains available when a persistent process manager is already in use.

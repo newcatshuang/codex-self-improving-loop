@@ -115,6 +115,29 @@ def main() -> int:
         raise AssertionError(f"Windows schedule should run daily, not hourly: {windows_create}")
     if "/TR" not in windows_create or "codex_session_watcher.py" not in " ".join(windows_create):
         raise AssertionError("Windows schedule should run the installed watcher command")
+    pause_calls = []
+    try:
+        sys.argv = [
+            "install_watcher_schedule.py",
+            "--agents-root",
+            str(agents),
+            "--pause-on-exit",
+        ]
+        schedule.platform.system = lambda: "Windows"
+        schedule.subprocess.run = lambda command, check=True, **_kwargs: pause_calls.append(command)
+        schedule.main()
+    finally:
+        sys.argv = original_argv
+        schedule.platform.system = original_system
+        schedule.subprocess.run = original_run
+    pause_wrapper = agents / "codex-self-improving-loop-watcher.cmd"
+    if not pause_wrapper.exists():
+        raise AssertionError("Windows pause-on-exit should create a wrapper under agents root")
+    pause_text = pause_wrapper.read_text(encoding="utf-8")
+    if "pause" not in pause_text or "codex_session_watcher.py" not in pause_text:
+        raise AssertionError("Windows pause wrapper should run watcher and wait for user input")
+    if not pause_calls or str(pause_wrapper) not in " ".join(pause_calls[0]):
+        raise AssertionError("Windows pause-on-exit task should run the wrapper")
     watcher_state = codex / "watcher-test-state.json"
     dry_run = subprocess.run(
         [

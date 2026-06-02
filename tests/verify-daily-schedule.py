@@ -58,6 +58,27 @@ def main() -> int:
     if "HOURLY" in windows_create or "/MO" in windows_create:
         raise AssertionError(f"Windows schedule should not be hourly: {windows_create}")
 
+    windows_pause_calls = []
+    try:
+        sys.argv = ["install_watcher_schedule.py", "--agents-root", str(agents), "--pause-on-exit"]
+        schedule.platform.system = lambda: "Windows"
+        schedule.subprocess.run = lambda command, check=True, **_kwargs: windows_pause_calls.append(command)
+        schedule.main()
+    finally:
+        sys.argv = original_argv
+        schedule.platform.system = original_system
+        schedule.subprocess.run = original_run
+    if not windows_pause_calls:
+        raise AssertionError("Windows pause-on-exit install should call schtasks.exe")
+    wrapper = agents / "codex-self-improving-loop-watcher.cmd"
+    if not wrapper.exists():
+        raise AssertionError("Windows pause-on-exit should write a cmd wrapper")
+    wrapper_text = wrapper.read_text(encoding="utf-8")
+    if "pause" not in wrapper_text or "codex_session_watcher.py" not in wrapper_text:
+        raise AssertionError(f"Windows pause wrapper should run watcher and pause: {wrapper_text}")
+    if str(wrapper) not in " ".join(windows_pause_calls[0]):
+        raise AssertionError(f"Windows task should run the pause wrapper: {windows_pause_calls[0]}")
+
     systemctl_calls = []
 
     def fake_linux_run(command, check=True, **_kwargs):
