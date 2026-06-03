@@ -51,14 +51,28 @@ python install_watcher_schedule.py --pause-on-exit
 
 ## 查看结果
 
-每日 Review Digest 是主要查看入口：
+本地 Dashboard 是最方便的查看入口，默认展示当天记录，也可以在页面中切换历史日期：
 
 ```text
+$HOME/.codex/codex-self-improving-loop-dashboard.html
+```
+
+Dashboard 只用于查看和复制建议命令，不会写入文件或执行脚本。需要手动刷新时运行：
+
+```bash
+python "$HOME/.agents/skills/memory-capture/scripts/build_learning_index.py"
+python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
+```
+
+每日 Review Digest 是 Markdown 查看入口：
+
+```text
+$HOME/.codex/learning-index.json
 $HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md
 $HOME/.codex/learning-inbox-summary.md
 ```
 
-Digest 会给每条候选标出建议归属和改写建议：全局偏好进 `USER.md`，项目事实进项目 `AGENTS.md`，复用流程保留为 skill candidate，已有技能改进进入 skill patch。
+`learning-index.json` 是 Dashboard 和轻量每日 Digest 共用的数据层。Digest 会给候选标出建议归属和改写建议：全局偏好进 `USER.md`，项目事实进项目 `AGENTS.md`，复用流程保留为 skill candidate，已有技能改进进入 skill patch。
 
 只有检测到候选时，才会写入候选文件：
 

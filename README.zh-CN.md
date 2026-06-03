@@ -8,6 +8,8 @@ Codex Self-Improving Loop 可以帮助 Codex 跨会话回忆、沉淀稳定偏�
 
 [English README](./README.md)
 
+![Codex Self-Improving Loop WebUI Dashboard](docs/assets/webui-dashboard.png)
+
 ## 你会得到什么
 
 | 能力         | 作用                                                            | 默认输出                                 |
@@ -23,6 +25,7 @@ Codex Self-Improving Loop 可以帮助 Codex 跨会话回忆、沉淀稳定偏�
 | 会话监听器   | 轮询 Codex 会话文件，并在空闲后自动运行 nudge                   | `$HOME/.codex/memory-watcher-state.json` |
 | 使用元数据   | 记录 skill 的 `use_count`、`last_used` 和失败次数               | `$HOME/.codex/skill-usage.json`          |
 | 学习报告     | 生成技能索引和学习 inbox 汇总                                   | `$HOME/.codex/*.md`                      |
+| 本地 Dashboard | 生成只读单 HTML 页面，用于查看今日记录、历史记录、全量汇总和复制命令 | `$HOME/.codex/codex-self-improving-loop-dashboard.html` |
 
 ## 为什么需要它
 
@@ -142,6 +145,39 @@ python "$HOME/.agents/skills/memory-capture/scripts/promote_memory.py" \
 python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
 ```
 
+打开本地 review dashboard：
+
+```text
+$HOME/.codex/codex-self-improving-loop-dashboard.html
+```
+
+Dashboard 默认展示当天记录，也可以直接在页面里切换历史日期，不需要手动选择候选文件。页面包含当前所有记录的汇总，并且只提供复制建议命令或改写文本，不会写入文件或执行脚本。
+
+## WebUI Dashboard
+
+Dashboard 是一个本地只读的学习候选审阅界面。它读取共享的 `$HOME/.codex/learning-index.json` 快照，并把这份数据嵌入到一个单 HTML 文件中，因此不需要启动 Web 服务，直接用浏览器打开即可。
+
+它适合用来：
+
+- 默认查看当天生成的 memory、skill、skill patch 候选。
+- 在页面中切换历史日期，不需要手动定位候选文件。
+- 通过彩色汇总卡片区分全局记忆、项目 `AGENTS.md`、skill candidate、skill patch、manual review 和 blocked review。
+- 在右侧审阅栏查看候选内容、改写建议、来源文件和可复制的晋升命令。
+- 只复制建议命令或改写文本；页面本身不会写入文件，也不会执行脚本。
+
+手动生成或刷新：
+
+```bash
+python "$HOME/.agents/skills/memory-capture/scripts/build_learning_index.py"
+python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
+```
+
+每日 watcher 和 `codex_memory_nudge.py` 也会自动刷新：
+
+```text
+$HOME/.codex/codex-self-improving-loop-dashboard.html
+```
+
 运行自动会话监听器。长期运行模式下，默认每天轮询一次，并处理至少空闲 10 分钟的会话文件：
 
 ```bash
@@ -171,6 +207,7 @@ python install_watcher_schedule.py --pause-on-exit
 ```bash
 python "$HOME/.agents/skills/memory-capture/scripts/generate_skills_index.py"
 python "$HOME/.agents/skills/memory-capture/scripts/summarize_learning_inbox.py"
+python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
 python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
 ```
 
@@ -189,7 +226,9 @@ python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
 | `record_skill_usage.py`            | 记录 skill 使用元数据                   |
 | `show_skill_usage.py`              | 展示 skill 使用元数据                   |
 | `generate_skills_index.py`         | 根据已安装 `SKILL.md` 生成技能索引      |
+| `build_learning_index.py`          | 生成 digest 和 Dashboard 共用的 `learning-index.json` |
 | `summarize_learning_inbox.py`      | 生成 Review Digest，汇总记忆、技能、补丁、归属、改写建议和晋升选项 |
+| `render_dashboard.py`              | 生成只读本地 HTML Dashboard，支持今日/历史切换和复制命令 |
 | `codex_memory_nudge.py`            | 运行完整 review-mode 学习闭环           |
 | `codex_session_watcher.py`         | 监听会话文件，并在空闲后自动运行 nudge  |
 | `install_watcher_schedule.py`      | 为已安装 watcher 配置每天 12:00 系统调度 |
@@ -217,21 +256,25 @@ codex-self-improving-loop/
       │     └─ search_sessions.py
       └─ memory-capture/
          ├─ SKILL.md
-         └─ scripts/
-            ├─ codex_memory_nudge.py
-            ├─ codex_session_watcher.py
-            ├─ compact_user_memory.py
-            ├─ extract_memory.py
-            ├─ extract_skill_candidate.py
-            ├─ extract_skill_patch_candidate.py
-            ├─ generate_skills_index.py
-            ├─ learning_loop_common.py
-            ├─ promote_candidates.py
-            ├─ promote_memory.py
-            ├─ record_skill_usage.py
-            ├─ scan_skill_candidates.py
-            ├─ show_skill_usage.py
-            └─ summarize_learning_inbox.py
+         ├─ scripts/
+         │  ├─ codex_memory_nudge.py
+         │  ├─ codex_session_watcher.py
+         │  ├─ compact_user_memory.py
+         │  ├─ extract_memory.py
+         │  ├─ extract_skill_candidate.py
+         │  ├─ extract_skill_patch_candidate.py
+         │  ├─ generate_skills_index.py
+         │  ├─ build_learning_index.py
+         │  ├─ learning_loop_common.py
+         │  ├─ promote_candidates.py
+         │  ├─ promote_memory.py
+         │  ├─ record_skill_usage.py
+         │  ├─ render_dashboard.py
+         │  ├─ scan_skill_candidates.py
+         │  ├─ show_skill_usage.py
+         │  └─ summarize_learning_inbox.py
+         └─ templates/
+            └─ dashboard.html
 ```
 
 ## 运行时输出
@@ -252,13 +295,15 @@ codex-self-improving-loop/
 ├─ nudge-reports/
 ├─ latest-skill-candidate-security-scan.md
 ├─ latest-user-memory-budget.md
+├─ learning-index.json
+├─ codex-self-improving-loop-dashboard.html
 ├─ memory-watcher-state.json
 ├─ skill-usage.json
 ├─ skills-index.md
 └─ learning-inbox-summary.md
 ```
 
-生成的候选文件会按日期分目录保存，例如 `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md`，但默认不会写入空候选报告。每日主入口是 `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`。安全扫描和记忆预算报告会覆盖写入 `latest-*` 路径，减少文件数量。详细 nudge 报告只在发现候选或步骤失败时写入。
+生成的候选文件会按日期分目录保存，例如 `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md`，但默认不会写入空候选报告。`$HOME/.codex/learning-index.json` 每次运行覆盖写入，作为 Dashboard 和轻量每日 Digest 共用的数据层。每日 Markdown 主入口是 `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`，可视化 review 主入口是 `$HOME/.codex/codex-self-improving-loop-dashboard.html`。安全扫描和记忆预算报告会覆盖写入 `latest-*` 路径，减少文件数量。详细 nudge 报告只在发现候选或步骤失败时写入。
 
 ## 自动会话监听器
 
@@ -285,7 +330,7 @@ codex-self-improving-loop/
 
 监听器仍然是 review-first：它会自动生成候选报告，但不会执行 `promote_memory.py --approved`，不会应用 skill patch，也不会把候选自动晋升到 `USER.md`。
 
-每次真实 watcher 执行完成后，nudge 会在终端输出 Review Digest 摘要，并写入 `$HOME/.codex/learning-inbox-summary.md` 和 `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`。Digest 会分组展示记忆候选、技能候选、技能补丁，并列出归属、改写建议和可选晋升动作。归属会区分全局 `USER.md`、项目级 `AGENTS.md`、skill candidate、skill patch、blocked review 和 manual review。记忆候选会用改写建议生成显式的 `promote_memory.py --approved` 命令；技能和补丁仍保持 review-only，需要先扫描并人工检查目标 skill 后再应用。
+每次真实 watcher 执行完成后，nudge 会在终端输出 Review Digest 摘要，并写入 `$HOME/.codex/learning-index.json`、`$HOME/.codex/learning-inbox-summary.md`、`$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md` 和 `$HOME/.codex/codex-self-improving-loop-dashboard.html`。Dashboard 是主要审阅入口。每日 Digest 会保持轻量：指向 Dashboard 和共享索引，并列出紧凑的待处理队列。归属会区分全局 `USER.md`、项目级 `AGENTS.md`、skill candidate、skill patch、blocked review 和 manual review。记忆候选会用改写建议生成显式的 `promote_memory.py --approved` 命令；技能和补丁仍保持 review-only，需要先扫描并人工检查目标 skill 后再应用。
 
 候选抽取会同时读取用户指令和 assistant 的最终结论，更偏向根因、修复方案、验证结果、可复用流程、稳定偏好和安全修正。一类一次性任务请求，例如“帮我查 X”“列出 Y”“只返回 Z”，会被视为当前工作项，而不是长期记忆。
 
@@ -303,6 +348,10 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 
 # 只处理指定日期之后的 session
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --since-date 2026-05-01
+
+# 重新生成只读本地 Dashboard
+python "$HOME/.agents/skills/memory-capture/scripts/build_learning_index.py"
+python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
 
 # 安装每天 12:00 执行的系统调度，实际运行 $HOME/.agents 下已安装的 watcher
 python install_watcher_schedule.py

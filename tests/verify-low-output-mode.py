@@ -64,10 +64,18 @@ def main() -> int:
         raise AssertionError("daily digest should contain review digest")
     if not (root / "learning-inbox-summary.md").exists():
         raise AssertionError("latest learning inbox summary should still be written")
+    if not (root / "learning-index.json").exists():
+        raise AssertionError("shared learning index should be refreshed even when there are no candidates")
     if not (root / "latest-skill-candidate-security-scan.md").exists():
         raise AssertionError("latest skill scan report should be written")
     if not (root / "latest-user-memory-budget.md").exists():
         raise AssertionError("latest memory budget report should be written")
+    dashboard = root / "codex-self-improving-loop-dashboard.html"
+    if not dashboard.exists():
+        raise AssertionError("dashboard should be refreshed even when there are no candidates")
+    dashboard_text = dashboard.read_text(encoding="utf-8")
+    if "Codex Self-Improving Loop Dashboard" not in dashboard_text:
+        raise AssertionError("dashboard should contain the local WebUI title")
 
     print("verify-low-output-mode passed")
     return 0

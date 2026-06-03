@@ -76,9 +76,12 @@ def main() -> int:
         skills_root = Path.home() / ".agents" / "skills"
         steps.append(run_step("generate_skills_index", [py, str(script_dir / "generate_skills_index.py"), "--skills-root", str(skills_root), "--usage-file", str(usage_file), "--output-path", str(root / "skills-index.md")]))
     if not args.skip_learning_summary:
+        index_path = root / "learning-index.json"
+        steps.append(run_step("build_learning_index", [py, str(script_dir / "build_learning_index.py"), "--root", str(root), "--output", str(index_path)]))
         steps.append(run_step("summarize_learning_inbox", [py, str(script_dir / "summarize_learning_inbox.py"), "--root", str(root), "--usage-file", str(usage_file), "--report-path", str(root / "learning-inbox-summary.md")]))
         daily_digest = root / "daily-digests" / Path(*today_dir_parts()) / "review-digest.md"
-        steps.append(run_step("summarize_daily_digest", [py, str(script_dir / "summarize_learning_inbox.py"), "--root", str(root), "--usage-file", str(usage_file), "--report-path", str(daily_digest)]))
+        steps.append(run_step("summarize_daily_digest", [py, str(script_dir / "summarize_learning_inbox.py"), "--root", str(root), "--usage-file", str(usage_file), "--index-path", str(index_path), "--report-path", str(daily_digest), "--light"]))
+        steps.append(run_step("render_dashboard", [py, str(script_dir / "render_dashboard.py"), "--root", str(root), "--index-path", str(index_path), "--output", str(root / "codex-self-improving-loop-dashboard.html")]))
 
     lines = ["# End-of-task Nudge Report", "", f"- root: {root}", f"- session_file: {args.session_file.expanduser() if args.session_file else 'latest'}", f"- failed_steps: {sum(1 for step in steps if step['status'] != 'ok')}", ""]
     for step in steps:
@@ -105,7 +108,9 @@ def main() -> int:
     print("End-of-task nudge complete")
     print(f"Report: {report_path if wrote_detail else 'skipped (no candidates and no failures)'}")
     for step in steps:
-        if step["name"] in {"summarize_learning_inbox", "summarize_daily_digest"} and step["stdout"]:
+        if step["name"] in {"build_learning_index", "summarize_learning_inbox", "summarize_daily_digest"} and step["stdout"]:
+            print(str(step["stdout"]))
+        if step["name"] == "render_dashboard" and step["stdout"]:
             print(str(step["stdout"]))
     failed = [step for step in steps if step["status"] != "ok"]
     return 1 if failed else 0

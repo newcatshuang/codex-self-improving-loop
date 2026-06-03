@@ -41,6 +41,9 @@ def main() -> int:
         agents / "skills" / "memory-capture" / "SKILL.md",
         agents / "skills" / "memory-capture" / "scripts" / "codex_memory_nudge.py",
         agents / "skills" / "memory-capture" / "scripts" / "codex_session_watcher.py",
+        agents / "skills" / "memory-capture" / "scripts" / "build_learning_index.py",
+        agents / "skills" / "memory-capture" / "scripts" / "render_dashboard.py",
+        agents / "skills" / "memory-capture" / "templates" / "dashboard.html",
         repo / "install_watcher_schedule.py",
     ]
     for path in expected:
@@ -64,6 +67,9 @@ def main() -> int:
     subprocess.run([sys.executable, str(repo / "tests" / "verify-learning-extraction.py"), "--repo-root", str(repo), "--work-root", str(codex / "learning-extraction-test")], check=True)
     subprocess.run([sys.executable, str(repo / "tests" / "verify-candidate-dedup.py"), "--repo-root", str(repo), "--work-root", str(codex / "candidate-dedup-test")], check=True)
     subprocess.run([sys.executable, str(repo / "tests" / "verify-review-digest.py"), "--repo-root", str(repo), "--work-root", str(codex / "review-digest-test")], check=True)
+    subprocess.run([sys.executable, str(repo / "tests" / "verify-learning-index.py"), "--repo-root", str(repo), "--work-root", str(codex / "learning-index-test")], check=True)
+    subprocess.run([sys.executable, str(repo / "tests" / "verify-dashboard-render.py"), "--repo-root", str(repo), "--work-root", str(codex / "dashboard-render-test")], check=True)
+    subprocess.run([sys.executable, str(repo / "tests" / "verify-readme-assets.py"), "--repo-root", str(repo)], check=True)
     subprocess.run([sys.executable, str(repo / "tests" / "verify-daily-schedule.py"), "--repo-root", str(repo), "--work-root", str(codex / "daily-schedule-test")], check=True)
     subprocess.run([sys.executable, str(repo / "tests" / "verify-low-output-mode.py"), "--repo-root", str(repo), "--work-root", str(codex / "low-output-test")], check=True)
     schedule_dry_run = subprocess.run(
@@ -207,6 +213,8 @@ def main() -> int:
         codex / "latest-user-memory-budget.md",
         codex / "skill-usage.json",
         codex / "memory-watcher-state.json",
+        codex / "learning-index.json",
+        codex / "codex-self-improving-loop-dashboard.html",
     ):
         if not path.exists():
             raise FileNotFoundError(path)

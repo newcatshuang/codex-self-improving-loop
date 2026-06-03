@@ -35,6 +35,12 @@ python "$HOME/.agents/skills/memory-capture/scripts/promote_candidates.py"
 
 # Run the full end-of-task learning nudge in review mode.
 python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
+
+# Rebuild the shared index used by digest and dashboard renderers.
+python "$HOME/.agents/skills/memory-capture/scripts/build_learning_index.py"
+
+# Rebuild the read-only local review dashboard.
+python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
 ```
 
 ## Safety Rules
@@ -56,7 +62,9 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
 - Nudge reports: `$HOME/.codex/nudge-reports`
 - Skill usage metadata: `$HOME/.codex/skill-usage.json`
 - Skill index: `$HOME/.codex/skills-index.md`
+- Shared learning index: `$HOME/.codex/learning-index.json`
 - Learning inbox summary: `$HOME/.codex/learning-inbox-summary.md`
+- Local review dashboard: `$HOME/.codex/codex-self-improving-loop-dashboard.html`
 
 ## Review Workflow
 

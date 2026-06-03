@@ -214,16 +214,128 @@ def promotion_option_for(area: str, item: dict[str, object]) -> str:
     return "Review manually before promotion."
 
 
+def short_text(value: object, limit: int = 120) -> str:
+    text = clean_candidate_text(str(value)).replace("\n", " ")
+    return text if len(text) <= limit else text[: limit - 3] + "..."
+
+
+def markdown_cell(value: object, limit: int = 120) -> str:
+    text = short_text(value, limit)
+    return text.replace("|", "\\|")
+
+
+def index_counts(payload: dict[str, object]) -> dict[str, int]:
+    candidates = payload.get("candidates", [])
+    counts = {"memory_candidates": 0, "skill_candidates": 0, "skill_patches": 0}
+    if not isinstance(candidates, list):
+        return counts
+    for item in candidates:
+        if isinstance(item, dict):
+            area = str(item.get("area", ""))
+            if area in counts:
+                counts[area] += 1
+    return counts
+
+
+def write_light_digest(root: Path, payload: dict[str, object], report_path: Path, index_path: Path | None) -> None:
+    candidates_raw = payload.get("candidates", [])
+    candidates = [item for item in candidates_raw if isinstance(item, dict)] if isinstance(candidates_raw, list) else []
+    summary = payload.get("summary", {}) if isinstance(payload.get("summary"), dict) else {}
+    dashboard_path = root / "codex-self-improving-loop-dashboard.html"
+    index_display = index_path or Path(str(payload.get("index_path") or root / "learning-index.json"))
+    action_rows = sorted(
+        candidates,
+        key=lambda item: (-int(item.get("occurrences", 0)), str(item.get("area", "")), str(item.get("text", "")).lower()),
+    )
+    lines = [
+        "# Learning Inbox Review Digest",
+        "",
+        f"- root: {root}",
+        f"- open_review_items: {summary.get('total_candidates', len(candidates))}",
+        f"- dashboard: {dashboard_path}",
+        f"- learning_index: {index_display}",
+        "",
+        "## Review Entry Points",
+        "",
+        "| Entry | Path | Purpose |",
+        "| --- | --- | --- |",
+        f"| WebUI Dashboard | {dashboard_path} | Review today, history, summaries, and copy commands. |",
+        f"| Shared Index | {index_display} | Shared JSON data used by the dashboard and this digest. |",
+        f"| Latest Summary | {root / 'learning-inbox-summary.md'} | Longer Markdown review report when details are needed. |",
+        "",
+        "## Summary",
+        "",
+        "| Metric | Count |",
+        "| --- | ---: |",
+        f"| Total Candidates | {summary.get('total_candidates', len(candidates))} |",
+        f"| Today Candidates | {summary.get('today_candidates', 0)} |",
+    ]
+    by_area = summary.get("by_area", {}) if isinstance(summary.get("by_area"), dict) else {}
+    for area in ("memory_candidates", "skill_candidates", "skill_patches"):
+        lines.append(f"| {area} | {by_area.get(area, 0)} |")
+    lines.extend(
+        [
+            "",
+            "## Action Queue",
+            "",
+            "| Area | Destination | Action | Candidate | Evidence | Option |",
+            "| --- | --- | --- | --- | --- | --- |",
+        ]
+    )
+    if action_rows:
+        for item in action_rows[:12]:
+            area = str(item.get("area", "manual_review"))
+            action = action_for(area, item)
+            evidence = f"occurrences: {item.get('occurrences', 0)}, files: {item.get('file_count', 0)}"
+            lines.append(
+                "| "
+                + " | ".join(
+                    [
+                        markdown_cell(area, 48),
+                        markdown_cell(item.get("destination", "manual_review"), 56),
+                        markdown_cell(action, 96),
+                        markdown_cell(item.get("rewrite_suggestion") or item.get("text", ""), 140),
+                        markdown_cell(evidence, 56),
+                        markdown_cell(item.get("promotion_option", "Review manually before promotion."), 120),
+                    ]
+                )
+                + " |"
+            )
+    else:
+        lines.append("| all | none | No open candidates detected | None | occurrences: 0, files: 0 | Review manually before promotion. |")
+    write_text(report_path, "\n".join(lines) + "\n")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=default_codex_root())
     parser.add_argument("--usage-file", type=Path)
     parser.add_argument("--report-path", type=Path)
+    parser.add_argument("--index-path", type=Path, help="Read candidates from an existing learning-index.json payload")
+    parser.add_argument("--light", action="store_true", help="Write a compact digest with review entry points and an action queue")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     root = args.root.expanduser()
     usage_file = args.usage_file.expanduser() if args.usage_file else root / "skill-usage.json"
     report_path = args.report_path.expanduser() if args.report_path else root / "learning-inbox-summary.md"
+    index_path = args.index_path.expanduser() if args.index_path else None
+    if index_path:
+        payload = json.loads(index_path.read_text(encoding="utf-8"))
+        if args.json:
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+            return 0
+        if args.light:
+            write_light_digest(root, payload, report_path, index_path)
+            counts = index_counts(payload)
+            print(f"Learning inbox review digest written: {report_path}")
+            print(
+                "Review digest summary: "
+                f"memory_candidates={counts['memory_candidates']}, "
+                f"skill_candidates={counts['skill_candidates']}, "
+                f"skill_patches={counts['skill_patches']}"
+            )
+            print(f"Promotion options: {report_path}")
+            return 0
     dirs = {
         "memory_candidates": root / "memories" / "inbox",
         "memory_archive": root / "memories" / "archive",

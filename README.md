@@ -8,6 +8,8 @@ It is designed for developers who want their coding agent to improve over time w
 
 [中文说明](./README.zh-CN.md)
 
+![Codex Self-Improving Loop WebUI Dashboard](docs/assets/webui-dashboard.png)
+
 ## What You Get
 
 | Capability             | What it does                                                                                    | Default output                           |
@@ -23,6 +25,7 @@ It is designed for developers who want their coding agent to improve over time w
 | Session watcher        | Polls Codex session files and runs the nudge after idle periods                                 | `$HOME/.codex/memory-watcher-state.json` |
 | Usage metadata         | Tracks skill `use_count`, `last_used`, and failures                                             | `$HOME/.codex/skill-usage.json`          |
 | Learning reports       | Generates skill index and learning inbox summaries                                              | `$HOME/.codex/*.md`                      |
+| Local dashboard        | Renders a read-only single HTML page for today's records, history, summaries, and copy commands | `$HOME/.codex/codex-self-improving-loop-dashboard.html` |
 
 ## Why This Exists
 
@@ -142,6 +145,39 @@ Run the end-of-task self-improvement loop:
 python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
 ```
 
+Open the local review dashboard after a nudge or watcher run:
+
+```text
+$HOME/.codex/codex-self-improving-loop-dashboard.html
+```
+
+The dashboard defaults to today's records, lets you switch historical dates without manually choosing files, shows an all-records summary, and only copies suggested commands or rewritten text. It does not write files or execute scripts.
+
+## WebUI Dashboard
+
+The dashboard is a local, read-only review surface for the learning inbox. It reads the shared `$HOME/.codex/learning-index.json` snapshot and embeds that data into a single HTML file, so it can be opened directly in a browser without running a web server.
+
+Use it to:
+
+- Review today's memory, skill, and skill patch candidates by default.
+- Switch to historical dates from the page without manually locating candidate files.
+- See all-record summaries with color-coded destinations such as global memory, project `AGENTS.md`, skill candidates, skill patches, manual review, and blocked review.
+- Inspect the selected candidate, rewrite suggestion, source files, and promotion command in one review rail.
+- Copy suggested commands or rewritten text only; the page never writes files or executes scripts.
+
+Generate or refresh it manually:
+
+```bash
+python "$HOME/.agents/skills/memory-capture/scripts/build_learning_index.py"
+python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
+```
+
+The daily watcher and `codex_memory_nudge.py` also refresh it automatically at:
+
+```text
+$HOME/.codex/codex-self-improving-loop-dashboard.html
+```
+
 Run the automatic session watcher. In long-running mode, it polls once per day by default and processes sessions that have been idle for at least 10 minutes:
 
 ```bash
@@ -171,6 +207,7 @@ Generate maintenance reports:
 ```bash
 python "$HOME/.agents/skills/memory-capture/scripts/generate_skills_index.py"
 python "$HOME/.agents/skills/memory-capture/scripts/summarize_learning_inbox.py"
+python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
 python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
 ```
 
@@ -189,7 +226,9 @@ python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
 | `record_skill_usage.py`            | Record usage metadata for a skill                                       |
 | `show_skill_usage.py`              | Show skill usage metadata                                               |
 | `generate_skills_index.py`         | Generate a skill index from installed `SKILL.md` files                  |
+| `build_learning_index.py`          | Build the shared `learning-index.json` used by digest and dashboard renderers |
 | `summarize_learning_inbox.py`      | Generate a Review Digest with memory, skill, patch, destinations, rewrite suggestions, and promotion options |
+| `render_dashboard.py`              | Generate a read-only local HTML dashboard with today/history switching and copy commands |
 | `codex_memory_nudge.py`            | Run the full review-mode learning loop                                  |
 | `codex_session_watcher.py`         | Watch session files and run nudge after idle periods                    |
 | `install_watcher_schedule.py`      | Install a daily 12:00 OS schedule for the installed watcher              |
@@ -217,21 +256,25 @@ codex-self-improving-loop/
       │     └─ search_sessions.py
       └─ memory-capture/
          ├─ SKILL.md
-         └─ scripts/
-            ├─ codex_memory_nudge.py
-            ├─ codex_session_watcher.py
-            ├─ compact_user_memory.py
-            ├─ extract_memory.py
-            ├─ extract_skill_candidate.py
-            ├─ extract_skill_patch_candidate.py
-            ├─ generate_skills_index.py
-            ├─ learning_loop_common.py
-            ├─ promote_candidates.py
-            ├─ promote_memory.py
-            ├─ record_skill_usage.py
-            ├─ scan_skill_candidates.py
-            ├─ show_skill_usage.py
-            └─ summarize_learning_inbox.py
+         ├─ scripts/
+         │  ├─ codex_memory_nudge.py
+         │  ├─ codex_session_watcher.py
+         │  ├─ compact_user_memory.py
+         │  ├─ extract_memory.py
+         │  ├─ extract_skill_candidate.py
+         │  ├─ extract_skill_patch_candidate.py
+         │  ├─ generate_skills_index.py
+         │  ├─ build_learning_index.py
+         │  ├─ learning_loop_common.py
+         │  ├─ promote_candidates.py
+         │  ├─ promote_memory.py
+         │  ├─ record_skill_usage.py
+         │  ├─ render_dashboard.py
+         │  ├─ scan_skill_candidates.py
+         │  ├─ show_skill_usage.py
+         │  └─ summarize_learning_inbox.py
+         └─ templates/
+            └─ dashboard.html
 ```
 
 ## Runtime Outputs
@@ -252,13 +295,15 @@ Default runtime outputs live under `$HOME/.codex`:
 ├─ nudge-reports/
 ├─ latest-skill-candidate-security-scan.md
 ├─ latest-user-memory-budget.md
+├─ learning-index.json
+├─ codex-self-improving-loop-dashboard.html
 ├─ memory-watcher-state.json
 ├─ skill-usage.json
 ├─ skills-index.md
 └─ learning-inbox-summary.md
 ```
 
-Generated candidate files are grouped by date, for example `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md`, but empty candidate reports are skipped by default. The main daily entry point is `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`. Security scan and memory budget reports are overwritten at `latest-*` paths to reduce file count. Detailed nudge reports are written only when candidates are found or a step fails.
+Generated candidate files are grouped by date, for example `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md`, but empty candidate reports are skipped by default. `$HOME/.codex/learning-index.json` is overwritten on each run and acts as the shared data layer for the dashboard and lightweight daily digest. The main daily Markdown entry point is `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`. The main visual review entry point is `$HOME/.codex/codex-self-improving-loop-dashboard.html`. Security scan and memory budget reports are overwritten at `latest-*` paths to reduce file count. Detailed nudge reports are written only when candidates are found or a step fails.
 
 ## Automatic Session Watcher
 
@@ -285,7 +330,7 @@ By default, the first run processes all historical session files that are idle a
 
 The watcher is review-first. It creates candidate reports automatically, but it does not run `promote_memory.py --approved`, does not apply skill patches, and does not auto-promote candidates into `USER.md`.
 
-After each real watcher cycle, the nudge prints a Review Digest summary and writes both `$HOME/.codex/learning-inbox-summary.md` and `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`. The digest groups memory candidates, skill candidates, and skill patch candidates, then lists destinations, rewrite suggestions, and promotion options. Destinations distinguish global `USER.md`, project `AGENTS.md`, skill candidates, skill patches, blocked review, and manual review. Memory options include explicit `promote_memory.py --approved` commands using the rewrite suggestion when a candidate can be shortened. Skill and patch options remain review-only and point you to scan and inspect the target skill before applying anything.
+After each real watcher cycle, the nudge prints a Review Digest summary and writes `$HOME/.codex/learning-index.json`, `$HOME/.codex/learning-inbox-summary.md`, `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`, and `$HOME/.codex/codex-self-improving-loop-dashboard.html`. The dashboard is the primary review surface. The daily digest is intentionally lightweight: it points to the dashboard and shared index, then lists a compact action queue. Destinations distinguish global `USER.md`, project `AGENTS.md`, skill candidates, skill patches, blocked review, and manual review. Memory options include explicit `promote_memory.py --approved` commands using the rewrite suggestion when a candidate can be shortened. Skill and patch options remain review-only and point you to scan and inspect the target skill before applying anything.
 
 Candidate extraction reads both user instructions and assistant outcomes. It favors durable lessons such as root causes, fixes, verification results, reusable workflows, preferences, and safety corrections. One-off task requests such as "find X", "list Y", or "only return Z" are treated as work items rather than long-term memory.
 
@@ -303,6 +348,10 @@ python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --
 
 # Only process sessions on or after a date
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --since-date 2026-05-01
+
+# Rebuild the read-only local dashboard
+python "$HOME/.agents/skills/memory-capture/scripts/build_learning_index.py"
+python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
 
 # Install a daily 12:00 OS schedule, using the installed watcher under $HOME/.agents
 python install_watcher_schedule.py
