@@ -130,7 +130,20 @@ def main() -> int:
             if not required_detail_keys.issubset(candidate_keys):
                 raise AssertionError(f"summary API should expose detail panel fields: {candidate_keys}")
         summary_keys = set(summary_api["summary"])
-        required_summary_keys = {"memory", "skill", "skill_patch", "review", "blocked", "promoted", "rejected", "archived", "skill_usage_total", "skill_usage_success", "skill_usage_failed"}
+        required_summary_keys = {
+            "memory",
+            "skill",
+            "skill_patch",
+            "review",
+            "blocked",
+            "promoted",
+            "rejected",
+            "archived",
+            "skill_usage_total",
+            "skill_usage_success",
+            "skill_usage_failed",
+            "skill_usage_by_skill",
+        }
         if not required_summary_keys.issubset(summary_keys):
             raise AssertionError(f"summary API should expose dashboard metrics: {summary_keys}")
     finally:
@@ -166,6 +179,14 @@ def main() -> int:
         "createdAtFilter",
         "statusFilter",
         "detailActions",
+        "paginationControls",
+        "pageSizeSelect",
+        "prevPage",
+        "nextPage",
+        "currentPageLabel",
+        "skillUsageList",
+        "compact-density",
+        "min-height: 30px",
         "initializeData",
         "installSchedule",
         "installShortcut",

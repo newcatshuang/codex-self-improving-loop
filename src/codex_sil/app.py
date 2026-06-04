@@ -48,6 +48,19 @@ def summary_payload(root: Path) -> dict[str, Any]:
         status_rows = conn.execute("select status, count(*) as count from candidates group by status").fetchall()
         destination_rows = conn.execute("select destination, count(*) as count from candidates group by destination").fetchall()
         skill_usage_rows = conn.execute("select status, count(*) as count from skill_usage group by status").fetchall()
+        skill_usage_by_skill_rows = conn.execute(
+            """
+            select
+              skill_name,
+              count(*) as total,
+              sum(case when status='success' then 1 else 0 end) as success,
+              sum(case when status in ('failed', 'error') then 1 else 0 end) as failed
+            from skill_usage
+            group by skill_name
+            order by total desc, skill_name asc
+            limit 20
+            """
+        ).fetchall()
         candidates = conn.execute(
             """
             select
@@ -75,6 +88,15 @@ def summary_payload(root: Path) -> dict[str, Any]:
     status_counts = {str(row["status"]): int(row["count"]) for row in status_rows}
     destination_counts = {str(row["destination"]): int(row["count"]) for row in destination_rows}
     skill_usage_counts = {str(row["status"]): int(row["count"]) for row in skill_usage_rows}
+    skill_usage_by_skill = [
+        {
+            "skill_name": str(row["skill_name"]),
+            "total": int(row["total"] or 0),
+            "success": int(row["success"] or 0),
+            "failed": int(row["failed"] or 0),
+        }
+        for row in skill_usage_by_skill_rows
+    ]
     summary = {
         "memory": 0,
         "skill": 0,
@@ -90,6 +112,7 @@ def summary_payload(root: Path) -> dict[str, Any]:
         "by_status": status_counts,
         "by_destination": destination_counts,
         "skill_usage_by_status": skill_usage_counts,
+        "skill_usage_by_skill": skill_usage_by_skill,
     }
     for row in rows:
         summary[str(row["type"])] = int(row["count"])
