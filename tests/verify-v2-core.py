@@ -104,6 +104,35 @@ def main() -> int:
             page = response.read().decode("utf-8")
         if "Codex Self-Improving Loop" not in page:
             raise AssertionError("tokenized WebUI landing URL should return HTML")
+        request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/summary",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(request, timeout=5) as response:
+            summary_api = json.loads(response.read().decode("utf-8"))
+        if summary_api["candidates"]:
+            candidate_keys = set(summary_api["candidates"][0])
+            required_detail_keys = {
+                "id",
+                "type",
+                "title",
+                "destination",
+                "text",
+                "rewrite_suggestion",
+                "status",
+                "safety",
+                "confidence",
+                "created_at",
+                "updated_at",
+                "source_count",
+                "source_files",
+            }
+            if not required_detail_keys.issubset(candidate_keys):
+                raise AssertionError(f"summary API should expose detail panel fields: {candidate_keys}")
+        summary_keys = set(summary_api["summary"])
+        required_summary_keys = {"memory", "skill", "skill_patch", "review", "blocked", "promoted", "rejected", "archived", "skill_usage_total", "skill_usage_success", "skill_usage_failed"}
+        if not required_summary_keys.issubset(summary_keys):
+            raise AssertionError(f"summary API should expose dashboard metrics: {summary_keys}")
     finally:
         server.shutdown()
         server.server_close()
@@ -112,10 +141,31 @@ def main() -> int:
     for expected in (
         "Codex Self-Improving Loop",
         "Candidate Center",
-        "Promotion Center",
+        "候选中心",
         "Schedule Center",
+        "调度中心",
+        "Skill Usage",
+        "技能使用",
+        "Status Summary",
+        "状态统计",
         "Rebuild Database",
+        "重建数据库",
         "clear active data, and rescan all historical sessions",
+        "清空当前数据并全量重扫历史会话",
+        "navigator.language",
+        "localStorage",
+        "languageToggle",
+        "data-i18n",
+        "statusToast",
+        "selectedTitle",
+        "selectedText",
+        "selectedRewrite",
+        "selectedMeta",
+        "createdAtHeader",
+        "updatedAtHeader",
+        "createdAtFilter",
+        "statusFilter",
+        "detailActions",
         "initializeData",
         "installSchedule",
         "installShortcut",
@@ -133,6 +183,8 @@ def main() -> int:
     ):
         if expected not in html:
             raise AssertionError(f"WebUI missing {expected}")
+    if "promotion-panel" in html or 'data-i18n="promotionCenter"' in html:
+        raise AssertionError("promotion actions should live inside selected record details, not a separate promotion panel")
 
     schedule = run([sys.executable, str(sil), "schedule", "install", "--codex-root", str(root), "--dry-run"], repo)
     if "sil.py scan --once" not in schedule.stdout:

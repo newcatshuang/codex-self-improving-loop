@@ -23,6 +23,16 @@ from .scheduler import install_schedule, install_shortcut, uninstall_schedule, u
 LOCAL_HOST = "127.0.0.1"
 
 
+def _json_group_array_values(value: str | None) -> list[str]:
+    if not value:
+        return []
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        return []
+    return [str(item) for item in parsed if item]
+
+
 def write_webui(root: Path) -> Path:
     source = Path(__file__).parent / "web" / "index.html"
     target = html_path(root)
@@ -35,14 +45,60 @@ def summary_payload(root: Path) -> dict[str, Any]:
     init_db(root)
     with connect(root) as conn:
         rows = conn.execute("select type, count(*) as count from candidates group by type").fetchall()
-        review = conn.execute("select count(*) as count from candidates where status='review'").fetchone()
+        status_rows = conn.execute("select status, count(*) as count from candidates group by status").fetchall()
+        destination_rows = conn.execute("select destination, count(*) as count from candidates group by destination").fetchall()
+        skill_usage_rows = conn.execute("select status, count(*) as count from skill_usage group by status").fetchall()
         candidates = conn.execute(
-            "select id, type, destination, text, status from candidates order by updated_at desc, id desc limit 200"
+            """
+            select
+              c.id,
+              c.type,
+              c.title,
+              c.destination,
+              c.text,
+              c.rewrite_suggestion,
+              c.status,
+              c.safety,
+              c.confidence,
+              c.created_at,
+              c.updated_at,
+              count(distinct cs.session_id) as source_count,
+              json_group_array(distinct s.rel_path) as source_files
+            from candidates c
+            left join candidate_sources cs on cs.candidate_id=c.id
+            left join sessions s on s.id=cs.session_id
+            group by c.id
+            order by c.updated_at desc, c.id desc
+            limit 200
+            """
         ).fetchall()
-    summary = {"memory": 0, "skill": 0, "skill_patch": 0, "review": int(review["count"])}
+    status_counts = {str(row["status"]): int(row["count"]) for row in status_rows}
+    destination_counts = {str(row["destination"]): int(row["count"]) for row in destination_rows}
+    skill_usage_counts = {str(row["status"]): int(row["count"]) for row in skill_usage_rows}
+    summary = {
+        "memory": 0,
+        "skill": 0,
+        "skill_patch": 0,
+        "review": status_counts.get("review", 0),
+        "blocked": status_counts.get("blocked", 0),
+        "promoted": status_counts.get("promoted", 0),
+        "rejected": status_counts.get("rejected", 0),
+        "archived": status_counts.get("archived", 0),
+        "skill_usage_total": sum(skill_usage_counts.values()),
+        "skill_usage_success": skill_usage_counts.get("success", 0),
+        "skill_usage_failed": skill_usage_counts.get("failed", 0) + skill_usage_counts.get("error", 0),
+        "by_status": status_counts,
+        "by_destination": destination_counts,
+        "skill_usage_by_status": skill_usage_counts,
+    }
     for row in rows:
         summary[str(row["type"])] = int(row["count"])
-    return {"summary": summary, "candidates": [dict(row) for row in candidates]}
+    candidate_items = []
+    for row in candidates:
+        item = dict(row)
+        item["source_files"] = _json_group_array_values(item.get("source_files"))[:5]
+        candidate_items.append(item)
+    return {"summary": summary, "candidates": candidate_items}
 
 
 class SilHandler(BaseHTTPRequestHandler):

@@ -7,177 +7,1439 @@
   <style>
     :root {
       color-scheme: light;
-      --ink: #15201b;
-      --muted: #66736d;
-      --line: #d9e3de;
-      --memory: #d7f0e7;
-      --skill: #dce8ff;
-      --patch: #ffe4d3;
-      --risk: #ffe1e1;
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fbfd;
+      --ink: #17211d;
+      --muted: #63736c;
+      --line: #dbe5e0;
       --accent: #0f766e;
+      --accent-strong: #0b5c56;
+      --memory-bg: #dff6ed;
+      --memory-line: #73cbb6;
+      --skill-bg: #e2ecff;
+      --skill-line: #7da2ea;
+      --patch-bg: #fff0d9;
+      --patch-line: #e2a047;
+      --review-bg: #ffe5e7;
+      --review-line: #df7a82;
+      --data-bg: #edf7ff;
+      --data-line: #71a9d8;
+      --shadow: 0 18px 42px rgba(22, 38, 54, 0.10);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; color: var(--ink); background: #f6f8f7; }
-    header { padding: 24px 32px; background: #10231d; color: white; }
-    h1 { margin: 0 0 6px; font-size: 24px; letter-spacing: 0; }
-    main { padding: 24px 32px; display: grid; gap: 16px; }
-    .grid { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 12px; }
-    .card { border: 1px solid var(--line); background: white; border-radius: 8px; padding: 16px; }
-    .card.memory { background: var(--memory); }
-    .card.skill { background: var(--skill); }
-    .card.patch { background: var(--patch); }
-    .card.risk { background: var(--risk); }
-    .label { color: var(--muted); font-size: 12px; }
-    .value { font-size: 26px; font-weight: 700; margin-top: 4px; }
-    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
-    button { border: 1px solid #0d5d55; background: var(--accent); color: white; border-radius: 6px; padding: 8px 12px; cursor: pointer; }
-    button.secondary { background: white; color: var(--accent); }
-    table { width: 100%; border-collapse: collapse; background: white; border: 1px solid var(--line); }
-    th, td { border-bottom: 1px solid var(--line); padding: 10px; text-align: left; vertical-align: top; font-size: 14px; }
-    th { color: var(--muted); font-size: 12px; background: #eef4f1; }
-    code { background: #eef4f1; padding: 2px 4px; border-radius: 4px; }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--bg);
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      min-height: 36px;
+      border: 1px solid var(--accent-strong);
+      background: var(--accent);
+      color: #ffffff;
+      border-radius: 7px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+    }
+
+    button:hover {
+      background: var(--accent-strong);
+      box-shadow: 0 6px 16px rgba(15, 118, 110, 0.22);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      cursor: progress;
+      opacity: 0.62;
+      transform: none;
+      box-shadow: none;
+    }
+
+    button.secondary {
+      background: #ffffff;
+      color: var(--accent-strong);
+      border-color: #bad3cc;
+    }
+
+    button.secondary:hover {
+      background: #eef8f6;
+      border-color: var(--accent);
+    }
+
+    .app-header {
+      background: #10231d;
+      color: #ffffff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    .header-inner {
+      width: min(100%, 1840px);
+      margin: 0 auto;
+      padding: 22px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .eyebrow {
+      color: #9cd8c9;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      margin-top: 4px;
+      font-size: 25px;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      max-width: 780px;
+      margin-top: 8px;
+      color: #d8eee7;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .token-badge {
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.10);
+      border-radius: 999px;
+      padding: 7px 11px;
+      color: #d8eee7;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .segmented {
+      display: inline-flex;
+      gap: 2px;
+      padding: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .segmented button {
+      min-height: 30px;
+      border: 0;
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: transparent;
+      color: #d8eee7;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .segmented button.active {
+      background: #ffffff;
+      color: #0d3b35;
+    }
+
+    main {
+      width: min(100%, 1840px);
+      margin: 0 auto;
+      padding: 18px 28px 28px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .summary-card {
+      min-height: 100px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 15px;
+      display: grid;
+      align-content: space-between;
+      box-shadow: 0 10px 24px rgba(25, 40, 54, 0.06);
+    }
+
+    .summary-card.memory {
+      background: var(--memory-bg);
+      border-color: var(--memory-line);
+    }
+
+    .summary-card.skill {
+      background: var(--skill-bg);
+      border-color: var(--skill-line);
+    }
+
+    .summary-card.patch {
+      background: var(--patch-bg);
+      border-color: var(--patch-line);
+    }
+
+    .summary-card.review {
+      background: var(--review-bg);
+      border-color: var(--review-line);
+    }
+
+    .summary-card.data {
+      background: var(--data-bg);
+      border-color: var(--data-line);
+    }
+
+    .summary-card.status {
+      background: #f1eaff;
+      border-color: #a993df;
+    }
+
+    .summary-label {
+      color: #37433f;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .summary-value {
+      margin-top: 10px;
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .summary-subvalue {
+      margin-top: 8px;
+      color: #4c5a55;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: minmax(360px, 1.2fr) minmax(320px, 1fr);
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: 0 12px 28px rgba(25, 40, 54, 0.07);
+      overflow: hidden;
+    }
+
+    .panel-body {
+      padding: 15px;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 52px;
+      padding: 14px 15px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-soft);
+    }
+
+    .panel-header h2 {
+      font-size: 16px;
+      line-height: 1.3;
+    }
+
+    .panel-description {
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .data-panel {
+      border-top: 4px solid var(--data-line);
+    }
+
+    .schedule-panel {
+      border-top: 4px solid var(--skill-line);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(330px, 430px);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .filters {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .filter-button {
+      min-height: 32px;
+      border-color: #cddbd6;
+      background: #ffffff;
+      color: #2f443d;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .filter-button.active {
+      border-color: var(--accent);
+      background: #e4f6f2;
+      color: var(--accent-strong);
+    }
+
+    .search-input {
+      flex: 1 1 220px;
+      min-width: 180px;
+      min-height: 36px;
+      border: 1px solid #cddbd6;
+      border-radius: 7px;
+      padding: 8px 10px;
+      color: var(--ink);
+      background: #ffffff;
+    }
+
+    .filter-select,
+    .filter-date {
+      min-height: 36px;
+      border: 1px solid #cddbd6;
+      border-radius: 7px;
+      padding: 8px 10px;
+      color: var(--ink);
+      background: #ffffff;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow: auto;
+      max-height: calc(100vh - 455px);
+      min-height: 360px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1180px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 11px 12px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+      line-height: 1.42;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #eef5f2;
+      color: #52615c;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      background: #ffffff;
+    }
+
+    tbody tr:hover {
+      background: #f4fbf9;
+    }
+
+    tbody tr.selected-row {
+      background: #e8f7f4;
+      box-shadow: inset 3px 0 0 var(--accent);
+    }
+
+    .col-type {
+      width: 140px;
+    }
+
+    .col-destination {
+      width: 170px;
+    }
+
+    .col-status {
+      width: 115px;
+    }
+
+    .col-time {
+      width: 138px;
+    }
+
+    .candidate-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .candidate-snippet {
+      color: var(--muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .empty-row {
+      color: var(--muted);
+      text-align: center;
+      padding: 34px 12px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      border: 1px solid #cddbd6;
+      border-radius: 999px;
+      padding: 4px 9px;
+      background: #ffffff;
+      color: #31433e;
+      font-size: 12px;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .tag.memory {
+      border-color: var(--memory-line);
+      background: var(--memory-bg);
+      color: #0c5e4f;
+    }
+
+    .tag.skill {
+      border-color: var(--skill-line);
+      background: var(--skill-bg);
+      color: #214b94;
+    }
+
+    .tag.skill_patch {
+      border-color: var(--patch-line);
+      background: var(--patch-bg);
+      color: #7a4a00;
+    }
+
+    .tag.review {
+      border-color: var(--review-line);
+      background: var(--review-bg);
+      color: #8c343b;
+    }
+
+    .tag.status {
+      background: #f4f7f6;
+    }
+
+    .detail-panel {
+      position: sticky;
+      top: 16px;
+    }
+
+    .detail-empty {
+      padding: 26px 15px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .detail-content {
+      display: grid;
+      gap: 14px;
+      padding: 15px;
+    }
+
+    .detail-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .detail-meta div {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px;
+      background: var(--surface-soft);
+    }
+
+    .detail-meta dt {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    .detail-meta dd {
+      margin: 4px 0 0;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .detail-block {
+      display: grid;
+      gap: 6px;
+    }
+
+    .detail-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .detail-text {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: #ffffff;
+      color: #23332d;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .source-list {
+      margin: 0;
+      padding-left: 18px;
+      color: #2c3b36;
+      font-size: 13px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    code {
+      border: 1px solid #d4e2dd;
+      background: #eef6f3;
+      border-radius: 5px;
+      padding: 2px 5px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 20;
+      max-width: min(440px, calc(100vw - 44px));
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #10231d;
+      color: #ffffff;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity 140ms ease, transform 140ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.error {
+      border-color: #d36a73;
+      background: #5e1f27;
+    }
+
+    .toast.warn {
+      border-color: #d99a3b;
+      background: #60410c;
+    }
+
+    @media (max-width: 1120px) {
+      .header-inner,
+      main {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .control-grid,
+      .workspace-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-panel {
+        position: static;
+      }
+
+      .table-wrap {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .header-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .header-actions {
+        justify-content: flex-start;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-meta {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Codex Self-Improving Loop</h1>
-    <div>Local-only learning control plane. The backend binds to 127.0.0.1 and requires a session token.</div>
+  <header class="app-header">
+    <div class="header-inner">
+      <div>
+        <div class="eyebrow" data-i18n="localOnly">Local-only control plane</div>
+        <h1>Codex Self-Improving Loop</h1>
+        <p class="subtitle" data-i18n="subtitle">Review memory, skill, and skill patch candidates from a token-protected local service. All promotion actions run through this WebUI.</p>
+      </div>
+      <div class="header-actions">
+        <div class="segmented" id="languageToggle" aria-label="Language">
+          <button type="button" data-lang="zh">中文</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
+        <div class="token-badge" data-i18n="tokenProtected">127.0.0.1 only, token protected</div>
+      </div>
+    </div>
   </header>
+
   <main>
-    <section class="grid" aria-label="Summary">
-      <div class="card memory"><div class="label">Memory Candidates</div><div class="value" id="memoryCount">0</div></div>
-      <div class="card skill"><div class="label">Skill Candidates</div><div class="value" id="skillCount">0</div></div>
-      <div class="card patch"><div class="label">Skill Patch Candidates</div><div class="value" id="patchCount">0</div></div>
-      <div class="card risk"><div class="label">Open Review Items</div><div class="value" id="reviewCount">0</div></div>
-    </section>
-    <section class="card">
-      <h2>Candidate Center</h2>
-      <div class="toolbar">
-        <button id="refreshButton">Refresh</button>
-        <button id="initializeData">Initialize Database</button>
-        <button id="installSkills">Install / Update Skills</button>
-        <button class="secondary" id="rebuildButton">Rebuild Database</button>
-        <button class="secondary" id="scanButton">Scan Once</button>
-        <button class="secondary" id="exportDigest">Export Digest</button>
-        <button class="secondary" id="exportCandidates">Export Candidates</button>
+    <section class="summary-grid" aria-label="Summary">
+      <div class="summary-card memory">
+        <div class="summary-label" data-i18n="memoryCandidates">Memory Candidates</div>
+        <div class="summary-value" id="memoryCount">0</div>
+      </div>
+      <div class="summary-card skill">
+        <div class="summary-label" data-i18n="skillCandidates">Skill Candidates</div>
+        <div class="summary-value" id="skillCount">0</div>
+      </div>
+      <div class="summary-card patch">
+        <div class="summary-label" data-i18n="skillPatchCandidates">Skill Patch Candidates</div>
+        <div class="summary-value" id="patchCount">0</div>
+      </div>
+      <div class="summary-card review">
+        <div class="summary-label" data-i18n="openReviewItems">Open Review Items</div>
+        <div class="summary-value" id="reviewCount">0</div>
+      </div>
+      <div class="summary-card data">
+        <div class="summary-label" data-i18n="skillUsage">Skill Usage</div>
+        <div class="summary-value" id="skillUsageCount">0</div>
+        <div class="summary-subvalue" id="skillUsageBreakdown">0 success / 0 failed</div>
+      </div>
+      <div class="summary-card status">
+        <div class="summary-label" data-i18n="statusSummary">Status Summary</div>
+        <div class="summary-value" id="promotedCount">0</div>
+        <div class="summary-subvalue" id="statusBreakdown">0 promoted / 0 rejected / 0 archived</div>
       </div>
     </section>
-    <section class="card">
-      <h2>Promotion Center</h2>
-      <p>Promotions are performed by this local backend after preview and confirmation. Normal use does not require copying shell commands.</p>
-      <div class="toolbar">
-        <button class="secondary" id="archiveSelected">Archive Selected</button>
-        <button class="secondary" id="rejectSelected">Reject Selected</button>
-        <button id="promoteSelected">Promote Selected To USER.md</button>
-        <button id="promoteSkill">Promote As Skill</button>
-        <button id="promotePatch">Promote As Skill Patch</button>
-      </div>
+
+    <section class="control-grid" aria-label="Actions">
+      <section class="panel data-panel">
+        <div class="panel-header">
+          <h2 data-i18n="candidateCenter">Candidate Center</h2>
+        </div>
+        <div class="panel-body">
+          <p class="panel-description" data-i18n="candidateCenterDesc">Refresh, initialize, scan, rebuild, or export the local SQLite learning database.</p>
+          <div class="toolbar">
+            <button id="refreshButton" data-action data-i18n="refresh">Refresh</button>
+            <button id="initializeData" data-action data-i18n="initializeData">Initialize Database</button>
+            <button id="installSkills" data-action data-i18n="installSkills">Install / Update Skills</button>
+            <button class="secondary" id="rebuildButton" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
+            <button class="secondary" id="scanButton" data-action data-i18n="scanOnce">Scan Once</button>
+            <button class="secondary" id="exportDigest" data-action data-i18n="exportDigest">Export Digest</button>
+            <button class="secondary" id="exportCandidates" data-action data-i18n="exportCandidates">Export Candidates</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel schedule-panel">
+        <div class="panel-header">
+          <h2 data-i18n="scheduleCenter">Schedule Center</h2>
+        </div>
+        <div class="panel-body">
+          <p class="panel-description" data-i18n="scheduleDesc">Install or remove the daily 12:00 scan and desktop WebUI launcher. The scheduled task runs <code>sil.py scan --once</code>.</p>
+          <div class="toolbar">
+            <button id="installSchedule" data-action data-i18n="installSchedule">Install Schedule</button>
+            <button class="secondary" id="uninstallSchedule" data-action data-i18n="uninstallSchedule">Uninstall Schedule</button>
+            <button id="installShortcut" data-action data-i18n="installShortcut">Install Desktop Shortcut</button>
+            <button class="secondary" id="uninstallShortcut" data-action data-i18n="uninstallShortcut">Uninstall Desktop Shortcut</button>
+          </div>
+        </div>
+      </section>
     </section>
-    <section class="card">
-      <h2>Schedule Center</h2>
-      <p>Install or remove the daily 12:00 scan from the WebUI. The scheduled task runs <code>sil.py scan --once</code>.</p>
-      <div class="toolbar">
-        <button id="installSchedule">Install Schedule</button>
-        <button class="secondary" id="uninstallSchedule">Uninstall Schedule</button>
-        <button id="installShortcut">Install Desktop Shortcut</button>
-        <button class="secondary" id="uninstallShortcut">Uninstall Desktop Shortcut</button>
-      </div>
-    </section>
-    <section>
-      <table>
-        <thead><tr><th>Type</th><th>Destination</th><th>Candidate</th><th>Status</th></tr></thead>
-        <tbody id="candidateRows"><tr><td colspan="4">No data loaded.</td></tr></tbody>
-      </table>
+
+    <section class="workspace-grid">
+      <section class="panel">
+        <div class="panel-header">
+          <h2 data-i18n="recordsTitle">Candidate Records</h2>
+          <span class="tag status" id="visibleCount">0</span>
+        </div>
+        <div class="filters">
+          <button class="filter-button active" type="button" data-filter="all" data-i18n="filterAll">All</button>
+          <button class="filter-button" type="button" data-filter="memory" data-i18n="filterMemory">Memory</button>
+          <button class="filter-button" type="button" data-filter="skill" data-i18n="filterSkill">Skill</button>
+          <button class="filter-button" type="button" data-filter="skill_patch" data-i18n="filterPatch">Skill Patch</button>
+          <select class="filter-select" id="statusFilter" aria-label="Status">
+            <option value="all" data-i18n="statusAll">All Statuses</option>
+            <option value="review" data-i18n="statusReview">Review</option>
+            <option value="promoted" data-i18n="statusPromoted">Promoted</option>
+            <option value="rejected" data-i18n="statusRejected">Rejected</option>
+            <option value="archived" data-i18n="statusArchived">Archived</option>
+            <option value="blocked" data-i18n="statusBlocked">Blocked</option>
+          </select>
+          <input class="filter-date" id="createdAtFilter" type="date" aria-label="Created date">
+          <input class="search-input" id="searchInput" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search candidates">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-type" data-i18n="typeHeader">Type</th>
+                <th class="col-destination" data-i18n="destinationHeader">Destination</th>
+                <th data-i18n="candidateHeader">Candidate</th>
+                <th class="col-status" data-i18n="statusHeader">Status</th>
+                <th class="col-time" id="createdAtHeader" data-i18n="createdAtHeader">Created</th>
+                <th class="col-time" id="updatedAtHeader" data-i18n="updatedAtHeader">Updated</th>
+              </tr>
+            </thead>
+            <tbody id="candidateRows">
+              <tr><td class="empty-row" colspan="6" data-i18n="loading">Loading data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="panel detail-panel">
+        <div class="panel-header">
+          <h2 data-i18n="selectedRecord">Selected Record</h2>
+          <span class="tag status" id="selectedBadge" data-i18n="noneSelected">None</span>
+        </div>
+        <div class="detail-empty" id="selectedEmpty" data-i18n="selectCandidateHint">Select a row to inspect the full candidate and promotion suggestion.</div>
+        <div class="detail-content" id="selectedContent" hidden>
+          <h3 id="selectedTitle"></h3>
+          <dl class="detail-meta" id="selectedMeta">
+            <div>
+              <dt data-i18n="destinationLabel">Destination</dt>
+              <dd id="selectedDestination"></dd>
+            </div>
+            <div>
+              <dt data-i18n="statusLabel">Status</dt>
+              <dd id="selectedStatus"></dd>
+            </div>
+            <div>
+              <dt data-i18n="safetyLabel">Safety</dt>
+              <dd id="selectedSafety"></dd>
+            </div>
+            <div>
+              <dt data-i18n="confidenceLabel">Confidence</dt>
+              <dd id="selectedConfidence"></dd>
+            </div>
+            <div>
+              <dt data-i18n="sourceCountLabel">Sources</dt>
+              <dd id="selectedSources"></dd>
+            </div>
+            <div>
+              <dt data-i18n="createdAtLabel">Created</dt>
+              <dd id="selectedCreatedAt"></dd>
+            </div>
+            <div>
+              <dt data-i18n="updatedAtLabel">Updated</dt>
+              <dd id="selectedUpdatedAt"></dd>
+            </div>
+          </dl>
+          <div class="detail-block">
+            <div class="detail-label" data-i18n="candidateTextLabel">Candidate</div>
+            <div class="detail-text" id="selectedText"></div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label" data-i18n="rewriteSuggestionLabel">Rewrite Suggestion</div>
+            <div class="detail-text" id="selectedRewrite"></div>
+          </div>
+          <div class="detail-block">
+            <div class="detail-label" data-i18n="sourceFilesLabel">Source Files</div>
+            <ul class="source-list" id="selectedSourceFiles"></ul>
+          </div>
+          <div class="toolbar" id="detailActions">
+            <button class="secondary" id="copyRewrite" data-i18n="copyRewrite">Copy Rewrite</button>
+            <button class="secondary" id="archiveSelected" data-action data-i18n="archiveSelected">Archive Selected</button>
+            <button class="secondary" id="rejectSelected" data-action data-i18n="rejectSelected">Reject Selected</button>
+            <button id="promoteSelected" data-action data-i18n="promoteUser">Promote Selected To USER.md</button>
+            <button id="promoteSkill" data-action data-i18n="promoteSkill">Promote As Skill</button>
+            <button id="promotePatch" data-action data-i18n="promotePatch">Promote As Skill Patch</button>
+          </div>
+        </div>
+      </aside>
     </section>
   </main>
+
+  <div class="toast" id="statusToast" role="status" aria-live="polite"></div>
+
   <script>
     const params = new URLSearchParams(location.search);
     const token = params.get("token") || "";
+    const translations = {
+      en: {
+        localOnly: "Local-only control plane",
+        subtitle: "Review memory, skill, and skill patch candidates from a token-protected local service. All promotion actions run through this WebUI.",
+        tokenProtected: "127.0.0.1 only, token protected",
+        memoryCandidates: "Memory Candidates",
+        skillCandidates: "Skill Candidates",
+        skillPatchCandidates: "Skill Patch Candidates",
+        openReviewItems: "Open Review Items",
+        skillUsage: "Skill Usage",
+        statusSummary: "Status Summary",
+        skillUsageBreakdown: "{success} success / {failed} failed",
+        statusBreakdown: "{promoted} promoted / {rejected} rejected / {archived} archived",
+        destinationBreakdown: "Destinations: {items}",
+        candidateCenter: "Candidate Center",
+        candidateCenterDesc: "Refresh, initialize, scan, rebuild, or export the local SQLite learning database.",
+        refresh: "Refresh",
+        initializeData: "Initialize Database",
+        installSkills: "Install / Update Skills",
+        rebuildDatabase: "Rebuild Database",
+        scanOnce: "Scan Once",
+        exportDigest: "Export Digest",
+        exportCandidates: "Export Candidates",
+        archiveSelected: "Archive Selected",
+        rejectSelected: "Reject Selected",
+        promoteUser: "Promote Selected To USER.md",
+        promoteSkill: "Promote As Skill",
+        promotePatch: "Promote As Skill Patch",
+        scheduleCenter: "Schedule Center",
+        scheduleDesc: "Install or remove the daily 12:00 scan and desktop WebUI launcher. The scheduled task runs sil.py scan --once.",
+        installSchedule: "Install Schedule",
+        uninstallSchedule: "Uninstall Schedule",
+        installShortcut: "Install Desktop Shortcut",
+        uninstallShortcut: "Uninstall Desktop Shortcut",
+        recordsTitle: "Candidate Records",
+        filterAll: "All",
+        filterMemory: "Memory",
+        filterSkill: "Skill",
+        filterPatch: "Skill Patch",
+        statusAll: "All Statuses",
+        statusReview: "Review",
+        statusPromoted: "Promoted",
+        statusRejected: "Rejected",
+        statusArchived: "Archived",
+        statusBlocked: "Blocked",
+        searchPlaceholder: "Search candidates",
+        typeHeader: "Type",
+        destinationHeader: "Destination",
+        candidateHeader: "Candidate",
+        statusHeader: "Status",
+        createdAtHeader: "Created",
+        updatedAtHeader: "Updated",
+        loading: "Loading data...",
+        emptyCandidates: "No candidates match the current view.",
+        selectedRecord: "Selected Record",
+        noneSelected: "None",
+        selectCandidateHint: "Select a row to inspect the full candidate and promotion suggestion.",
+        destinationLabel: "Destination",
+        statusLabel: "Status",
+        safetyLabel: "Safety",
+        confidenceLabel: "Confidence",
+        sourceCountLabel: "Sources",
+        sourceFilesLabel: "Source Files",
+        createdAtLabel: "Created",
+        updatedAtLabel: "Updated",
+        candidateTextLabel: "Candidate",
+        rewriteSuggestionLabel: "Rewrite Suggestion",
+        copyRewrite: "Copy Rewrite",
+        visibleItems: "{count} visible",
+        toastLoaded: "Dashboard refreshed.",
+        toastInitialized: "Database initialized.",
+        toastSkillsInstalled: "Skills installed or updated.",
+        toastScanned: "Scan completed.",
+        toastRebuilt: "Database rebuilt from historical sessions.",
+        toastDigestExported: "Digest exported.",
+        toastCandidatesExported: "Candidates exported.",
+        toastArchived: "Candidate archived.",
+        toastRejected: "Candidate rejected.",
+        toastPromotedUser: "Candidate promoted to USER.md.",
+        toastPromotedSkill: "Skill created from selected candidate.",
+        toastPromotedPatch: "Skill patch artifact exported.",
+        toastScheduleInstalled: "Schedule installed.",
+        toastScheduleUninstalled: "Schedule uninstalled.",
+        toastShortcutInstalled: "Desktop shortcut installed.",
+        toastShortcutUninstalled: "Desktop shortcut uninstalled.",
+        toastCopied: "Rewrite suggestion copied.",
+        toastCopyFailed: "Copy failed. Select and copy the rewrite text manually.",
+        toastLoadFailed: "Failed to load dashboard data.",
+        selectCandidateFirst: "Select a candidate first.",
+        confirmRebuild: "Backup the current SQLite database, clear active data, and rescan all historical sessions?",
+        confirmPromoteUser: "Promote this candidate into USER.md? A backup will be created first.",
+        confirmPromoteSkill: "Create an independent skill from this candidate?",
+        confirmPromotePatch: "Export this candidate as a reviewed skill patch artifact?",
+        type_memory: "Memory",
+        type_skill: "Skill",
+        type_skill_patch: "Skill Patch",
+        sourcesCount: "{count} source(s)"
+      },
+      zh: {
+        localOnly: "本机专用控制台",
+        subtitle: "从受令牌保护的本地服务中审阅记忆、技能和技能补丁候选；所有晋升操作都可以在 WebUI 中点击完成。",
+        tokenProtected: "仅绑定 127.0.0.1，并启用令牌保护",
+        memoryCandidates: "记忆候选",
+        skillCandidates: "技能候选",
+        skillPatchCandidates: "技能补丁候选",
+        openReviewItems: "待审阅项",
+        skillUsage: "技能使用",
+        statusSummary: "状态统计",
+        skillUsageBreakdown: "{success} 成功 / {failed} 失败",
+        statusBreakdown: "{promoted} 已晋升 / {rejected} 已拒绝 / {archived} 已归档",
+        destinationBreakdown: "归属：{items}",
+        candidateCenter: "候选中心",
+        candidateCenterDesc: "刷新、初始化、扫描、重建或导出本地 SQLite 学习数据库。",
+        refresh: "刷新",
+        initializeData: "初始化数据库",
+        installSkills: "安装 / 更新技能",
+        rebuildDatabase: "重建数据库",
+        scanOnce: "扫描一次",
+        exportDigest: "导出摘要",
+        exportCandidates: "导出候选",
+        archiveSelected: "归档所选",
+        rejectSelected: "拒绝所选",
+        promoteUser: "晋升到 USER.md",
+        promoteSkill: "晋升为技能",
+        promotePatch: "晋升为技能补丁",
+        scheduleCenter: "调度中心",
+        scheduleDesc: "安装或移除每天 12:00 的扫描任务和桌面 WebUI 快捷方式。定时任务会运行 sil.py scan --once。",
+        installSchedule: "安装定时任务",
+        uninstallSchedule: "卸载定时任务",
+        installShortcut: "安装桌面快捷方式",
+        uninstallShortcut: "卸载桌面快捷方式",
+        recordsTitle: "候选记录",
+        filterAll: "全部",
+        filterMemory: "记忆",
+        filterSkill: "技能",
+        filterPatch: "技能补丁",
+        statusAll: "全部状态",
+        statusReview: "待审阅",
+        statusPromoted: "已晋升",
+        statusRejected: "已拒绝",
+        statusArchived: "已归档",
+        statusBlocked: "已阻断",
+        searchPlaceholder: "搜索候选内容",
+        typeHeader: "类型",
+        destinationHeader: "归属",
+        candidateHeader: "候选内容",
+        statusHeader: "状态",
+        createdAtHeader: "落库时间",
+        updatedAtHeader: "更新时间",
+        loading: "正在加载数据...",
+        emptyCandidates: "当前视图没有匹配的候选。",
+        selectedRecord: "所选记录",
+        noneSelected: "未选择",
+        selectCandidateHint: "选择一行记录后，可查看完整候选内容和晋升建议。",
+        destinationLabel: "归属",
+        statusLabel: "状态",
+        safetyLabel: "安全状态",
+        confidenceLabel: "置信度",
+        sourceCountLabel: "来源",
+        sourceFilesLabel: "来源文件",
+        createdAtLabel: "落库时间",
+        updatedAtLabel: "更新时间",
+        candidateTextLabel: "候选内容",
+        rewriteSuggestionLabel: "改写建议",
+        copyRewrite: "复制改写建议",
+        visibleItems: "当前显示 {count} 条",
+        toastLoaded: "控制台已刷新。",
+        toastInitialized: "数据库已初始化。",
+        toastSkillsInstalled: "技能已安装或更新。",
+        toastScanned: "扫描已完成。",
+        toastRebuilt: "数据库已按历史会话重建。",
+        toastDigestExported: "摘要已导出。",
+        toastCandidatesExported: "候选已导出。",
+        toastArchived: "候选已归档。",
+        toastRejected: "候选已拒绝。",
+        toastPromotedUser: "候选已晋升到 USER.md。",
+        toastPromotedSkill: "已基于候选创建独立技能。",
+        toastPromotedPatch: "技能补丁产物已导出。",
+        toastScheduleInstalled: "定时任务已安装。",
+        toastScheduleUninstalled: "定时任务已卸载。",
+        toastShortcutInstalled: "桌面快捷方式已安装。",
+        toastShortcutUninstalled: "桌面快捷方式已卸载。",
+        toastCopied: "改写建议已复制。",
+        toastCopyFailed: "复制失败，请手动选择改写建议文本。",
+        toastLoadFailed: "加载控制台数据失败。",
+        selectCandidateFirst: "请先选择一个候选。",
+        confirmRebuild: "将先备份当前 SQLite 数据库，然后清空当前数据并全量重扫历史会话。是否继续？",
+        confirmPromoteUser: "确认将此候选晋升到 USER.md？系统会先创建备份。",
+        confirmPromoteSkill: "确认将此候选创建为一个独立技能？",
+        confirmPromotePatch: "确认将此候选导出为已审阅的技能补丁产物？",
+        type_memory: "记忆",
+        type_skill: "技能",
+        type_skill_patch: "技能补丁",
+        sourcesCount: "{count} 个来源"
+      }
+    };
+
+    let currentLanguage = initialLanguage();
+    let allCandidates = [];
+    let selectedCandidate = null;
+    let currentFilter = "all";
+    let statusFilter = "all";
+    let createdAtFilter = "";
+    let searchTerm = "";
+    let toastTimer = null;
+    window.selectedCandidateId = null;
+
+    function initialLanguage() {
+      const savedLanguage = localStorage.getItem("codexSilLanguage");
+      if (savedLanguage === "zh" || savedLanguage === "en") {
+        return savedLanguage;
+      }
+      const browserLanguage = (navigator.language || "en").toLowerCase();
+      return browserLanguage.startsWith("zh") ? "zh" : "en";
+    }
+
+    function t(key, values = {}) {
+      const source = translations[currentLanguage] || translations.en;
+      let text = source[key] || translations.en[key] || key;
+      for (const [name, value] of Object.entries(values)) {
+        text = text.replaceAll(`{${name}}`, String(value));
+      }
+      return text;
+    }
+
+    function applyLanguage() {
+      document.documentElement.lang = currentLanguage === "zh" ? "zh-CN" : "en";
+      document.querySelectorAll("[data-i18n]").forEach((element) => {
+        element.textContent = t(element.dataset.i18n);
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+        element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
+      });
+      document.querySelectorAll("#languageToggle button").forEach((button) => {
+        const active = button.dataset.lang === currentLanguage;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+      renderSummary(currentSummary);
+      renderCandidates();
+      renderSelected();
+    }
+
+    let currentSummary = {memory: 0, skill: 0, skill_patch: 0, review: 0};
+
     async function api(path, options = {}) {
       const headers = Object.assign({"Authorization": `Bearer ${token}`}, options.headers || {});
       const res = await fetch(path, Object.assign({}, options, {headers}));
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
       return res.json();
     }
-    function renderSummary(summary) {
-      document.getElementById("memoryCount").textContent = summary.memory || 0;
-      document.getElementById("skillCount").textContent = summary.skill || 0;
-      document.getElementById("patchCount").textContent = summary.skill_patch || 0;
-      document.getElementById("reviewCount").textContent = summary.review || 0;
+
+    function showToast(message, tone = "ok") {
+      const toast = document.getElementById("statusToast");
+      toast.textContent = message;
+      toast.className = `toast show ${tone}`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.className = "toast";
+      }, 3600);
     }
-    function renderCandidates(items) {
+
+    function setBusy(isBusy) {
+      document.querySelectorAll("[data-action]").forEach((button) => {
+        button.disabled = isBusy;
+      });
+    }
+
+    function renderSummary(summary) {
+      currentSummary = summary || currentSummary;
+      document.getElementById("memoryCount").textContent = currentSummary.memory || 0;
+      document.getElementById("skillCount").textContent = currentSummary.skill || 0;
+      document.getElementById("patchCount").textContent = currentSummary.skill_patch || 0;
+      document.getElementById("reviewCount").textContent = currentSummary.review || 0;
+      document.getElementById("skillUsageCount").textContent = currentSummary.skill_usage_total || 0;
+      document.getElementById("promotedCount").textContent = currentSummary.promoted || 0;
+      document.getElementById("skillUsageBreakdown").textContent = t("skillUsageBreakdown", {
+        success: currentSummary.skill_usage_success || 0,
+        failed: currentSummary.skill_usage_failed || 0,
+      });
+      document.getElementById("statusBreakdown").textContent = t("statusBreakdown", {
+        promoted: currentSummary.promoted || 0,
+        rejected: currentSummary.rejected || 0,
+        archived: currentSummary.archived || 0,
+      }) + " · " + t("destinationBreakdown", {items: formatDestinationSummary(currentSummary.by_destination)});
+    }
+
+    function formatType(type) {
+      return t(`type_${type}`) || type;
+    }
+
+    function formatDestinationSummary(destinations) {
+      const entries = Object.entries(destinations || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      if (!entries.length) {
+        return "-";
+      }
+      return entries.map(([name, count]) => `${name}: ${count}`).join(" / ");
+    }
+
+    function dateOnly(value) {
+      return String(value || "").slice(0, 10);
+    }
+
+    function formatDateTime(value) {
+      if (!value) {
+        return "-";
+      }
+      const normalized = String(value).includes("T") ? String(value) : String(value).replace(" ", "T");
+      const date = new Date(`${normalized}Z`);
+      if (Number.isNaN(date.getTime())) {
+        return String(value);
+      }
+      return new Intl.DateTimeFormat(currentLanguage === "zh" ? "zh-CN" : "en", {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
+    }
+
+    function tag(text, className = "") {
+      const element = document.createElement("span");
+      element.className = `tag ${className}`.trim();
+      element.textContent = text;
+      return element;
+    }
+
+    function cell(className = "") {
+      const td = document.createElement("td");
+      if (className) {
+        td.className = className;
+      }
+      return td;
+    }
+
+    function visibleCandidates() {
+      const normalized = searchTerm.trim().toLowerCase();
+      return allCandidates.filter((item) => {
+        const typeMatch = currentFilter === "all" || item.type === currentFilter;
+        if (!typeMatch) {
+          return false;
+        }
+        if (statusFilter !== "all" && item.status !== statusFilter) {
+          return false;
+        }
+        if (createdAtFilter && dateOnly(item.created_at) !== createdAtFilter) {
+          return false;
+        }
+        if (!normalized) {
+          return true;
+        }
+        const text = [item.type, item.title, item.destination, item.text, item.rewrite_suggestion, item.status, item.safety]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        return text.includes(normalized);
+      });
+    }
+
+    function renderCandidates() {
       const body = document.getElementById("candidateRows");
+      const items = visibleCandidates();
+      document.getElementById("visibleCount").textContent = t("visibleItems", {count: items.length});
       body.innerHTML = "";
       if (!items.length) {
-        body.innerHTML = '<tr><td colspan="4">No candidates yet.</td></tr>';
+        const row = document.createElement("tr");
+        const empty = cell("empty-row");
+        empty.colSpan = 6;
+        empty.textContent = t("emptyCandidates");
+        row.appendChild(empty);
+        body.appendChild(row);
         return;
       }
+
       for (const item of items) {
         const row = document.createElement("tr");
         row.dataset.id = item.id;
-        row.innerHTML = `<td>${item.type}</td><td>${item.destination}</td><td>${item.text}</td><td>${item.status}</td>`;
-        row.addEventListener("click", () => {
-          document.querySelectorAll("tr[data-id]").forEach(row => row.style.outline = "");
-          row.style.outline = "2px solid var(--accent)";
-          window.selectedCandidateId = item.id;
+        row.tabIndex = 0;
+        row.classList.toggle("selected-row", String(item.id) === String(window.selectedCandidateId));
+        row.addEventListener("click", () => selectCandidate(item.id));
+        row.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectCandidate(item.id);
+          }
         });
+
+        const typeCell = cell("col-type");
+        typeCell.appendChild(tag(formatType(item.type), item.type));
+        row.appendChild(typeCell);
+
+        const destinationCell = cell("col-destination");
+        destinationCell.appendChild(tag(item.destination || "-", "status"));
+        row.appendChild(destinationCell);
+
+        const candidateCell = cell();
+        const title = document.createElement("div");
+        title.className = "candidate-title";
+        title.textContent = item.title || item.text || "-";
+        const snippet = document.createElement("div");
+        snippet.className = "candidate-snippet";
+        snippet.textContent = item.text || "";
+        candidateCell.append(title, snippet);
+        row.appendChild(candidateCell);
+
+        const statusCell = cell("col-status");
+        statusCell.appendChild(tag(item.status || "-", item.status === "review" ? "review" : "status"));
+        row.appendChild(statusCell);
+
+        const createdCell = cell("col-time");
+        createdCell.textContent = formatDateTime(item.created_at);
+        row.appendChild(createdCell);
+
+        const updatedCell = cell("col-time");
+        updatedCell.textContent = formatDateTime(item.updated_at);
+        row.appendChild(updatedCell);
+
         body.appendChild(row);
       }
     }
-    async function refresh() {
+
+    function hydrateSelection() {
+      if (window.selectedCandidateId) {
+        selectedCandidate = allCandidates.find((item) => String(item.id) === String(window.selectedCandidateId)) || null;
+      }
+      if (!selectedCandidate && allCandidates.length) {
+        selectedCandidate = allCandidates[0];
+        window.selectedCandidateId = selectedCandidate.id;
+      }
+      if (!allCandidates.length) {
+        selectedCandidate = null;
+        window.selectedCandidateId = null;
+      }
+    }
+
+    function selectCandidate(id) {
+      window.selectedCandidateId = id;
+      selectedCandidate = allCandidates.find((item) => String(item.id) === String(id)) || null;
+      renderCandidates();
+      renderSelected();
+    }
+
+    function renderSelected() {
+      const empty = document.getElementById("selectedEmpty");
+      const content = document.getElementById("selectedContent");
+      const badge = document.getElementById("selectedBadge");
+      if (!selectedCandidate) {
+        empty.hidden = false;
+        content.hidden = true;
+        badge.textContent = t("noneSelected");
+        badge.className = "tag status";
+        return;
+      }
+      empty.hidden = true;
+      content.hidden = false;
+      badge.textContent = formatType(selectedCandidate.type);
+      badge.className = `tag ${selectedCandidate.type}`;
+      document.getElementById("selectedTitle").textContent = selectedCandidate.title || selectedCandidate.text || "-";
+      document.getElementById("selectedDestination").textContent = selectedCandidate.destination || "-";
+      document.getElementById("selectedStatus").textContent = selectedCandidate.status || "-";
+      document.getElementById("selectedSafety").textContent = selectedCandidate.safety || "-";
+      document.getElementById("selectedConfidence").textContent = selectedCandidate.confidence === undefined ? "-" : Number(selectedCandidate.confidence).toFixed(2);
+      document.getElementById("selectedSources").textContent = t("sourcesCount", {count: selectedCandidate.source_count || 0});
+      document.getElementById("selectedCreatedAt").textContent = formatDateTime(selectedCandidate.created_at);
+      document.getElementById("selectedUpdatedAt").textContent = formatDateTime(selectedCandidate.updated_at);
+      document.getElementById("selectedText").textContent = selectedCandidate.text || "-";
+      document.getElementById("selectedRewrite").textContent = selectedCandidate.rewrite_suggestion || selectedCandidate.text || "-";
+      const sourceFiles = document.getElementById("selectedSourceFiles");
+      sourceFiles.innerHTML = "";
+      const files = selectedCandidate.source_files || [];
+      if (!files.length) {
+        const item = document.createElement("li");
+        item.textContent = "-";
+        sourceFiles.appendChild(item);
+      } else {
+        for (const file of files) {
+          const item = document.createElement("li");
+          item.textContent = file;
+          sourceFiles.appendChild(item);
+        }
+      }
+    }
+
+    async function refresh(showMessage = false) {
       const payload = await api("/api/summary");
       renderSummary(payload.summary);
-      renderCandidates(payload.candidates);
+      allCandidates = payload.candidates || [];
+      hydrateSelection();
+      renderCandidates();
+      renderSelected();
+      if (showMessage) {
+        showToast(t("toastLoaded"));
+      }
     }
-    document.getElementById("refreshButton").addEventListener("click", refresh);
-    document.getElementById("initializeData").addEventListener("click", async () => { await api("/api/init", {method: "POST"}); await refresh(); });
-    document.getElementById("installSkills").addEventListener("click", async () => { await api("/api/install/skills", {method: "POST"}); });
-    document.getElementById("scanButton").addEventListener("click", async () => { await api("/api/scan", {method: "POST"}); await refresh(); });
-    document.getElementById("exportDigest").addEventListener("click", async () => { await api("/api/export/digest", {method: "POST"}); });
-    document.getElementById("exportCandidates").addEventListener("click", async () => { await api("/api/export/candidates", {method: "POST"}); });
-    document.getElementById("rebuildButton").addEventListener("click", async () => {
-      if (confirm("Backup the current SQLite database, clear active data, and rescan all historical sessions?")) {
-        await api("/api/rebuild", {method: "POST"});
-        await refresh();
+
+    async function runAction(action, successKey, options = {}) {
+      if (options.needsSelection && !window.selectedCandidateId) {
+        showToast(t("selectCandidateFirst"), "warn");
+        return;
+      }
+      if (options.confirmKey && !confirm(t(options.confirmKey))) {
+        return;
+      }
+      setBusy(true);
+      try {
+        await action();
+        if (options.refresh !== false) {
+          await refresh(false);
+        }
+        showToast(t(successKey));
+      } catch (error) {
+        console.error(error);
+        showToast(error.message || t("toastLoadFailed"), "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      const copied = document.execCommand("copy");
+      textarea.remove();
+      if (!copied) {
+        throw new Error("copy command failed");
+      }
+    }
+
+    document.querySelectorAll("#languageToggle button").forEach((button) => {
+      button.addEventListener("click", () => {
+        currentLanguage = button.dataset.lang;
+        localStorage.setItem("codexSilLanguage", currentLanguage);
+        applyLanguage();
+      });
+    });
+
+    document.querySelectorAll("[data-filter]").forEach((button) => {
+      button.addEventListener("click", () => {
+        currentFilter = button.dataset.filter;
+        document.querySelectorAll("[data-filter]").forEach((item) => item.classList.toggle("active", item === button));
+        renderCandidates();
+      });
+    });
+
+    document.getElementById("statusFilter").addEventListener("change", (event) => {
+      statusFilter = event.target.value;
+      renderCandidates();
+    });
+
+    document.getElementById("createdAtFilter").addEventListener("change", (event) => {
+      createdAtFilter = event.target.value;
+      renderCandidates();
+    });
+
+    document.getElementById("searchInput").addEventListener("input", (event) => {
+      searchTerm = event.target.value;
+      renderCandidates();
+    });
+
+    document.getElementById("refreshButton").addEventListener("click", () => refresh(true).catch((error) => showToast(error.message, "error")));
+    document.getElementById("initializeData").addEventListener("click", () => runAction(() => api("/api/init", {method: "POST"}), "toastInitialized"));
+    document.getElementById("installSkills").addEventListener("click", () => runAction(() => api("/api/install/skills", {method: "POST"}), "toastSkillsInstalled", {refresh: false}));
+    document.getElementById("scanButton").addEventListener("click", () => runAction(() => api("/api/scan", {method: "POST"}), "toastScanned"));
+    document.getElementById("exportDigest").addEventListener("click", () => runAction(() => api("/api/export/digest", {method: "POST"}), "toastDigestExported", {refresh: false}));
+    document.getElementById("exportCandidates").addEventListener("click", () => runAction(() => api("/api/export/candidates", {method: "POST"}), "toastCandidatesExported", {refresh: false}));
+    document.getElementById("rebuildButton").addEventListener("click", () => runAction(() => api("/api/rebuild", {method: "POST"}), "toastRebuilt", {confirmKey: "confirmRebuild"}));
+    document.getElementById("archiveSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/archive`, {method: "POST"}), "toastArchived", {needsSelection: true}));
+    document.getElementById("rejectSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/reject`, {method: "POST"}), "toastRejected", {needsSelection: true}));
+    document.getElementById("promoteSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote`, {method: "POST"}), "toastPromotedUser", {needsSelection: true, confirmKey: "confirmPromoteUser"}));
+    document.getElementById("promoteSkill").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-skill`, {method: "POST"}), "toastPromotedSkill", {needsSelection: true, confirmKey: "confirmPromoteSkill"}));
+    document.getElementById("promotePatch").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-patch`, {method: "POST"}), "toastPromotedPatch", {needsSelection: true, confirmKey: "confirmPromotePatch"}));
+    document.getElementById("installSchedule").addEventListener("click", () => runAction(() => api("/api/schedule/install", {method: "POST"}), "toastScheduleInstalled", {refresh: false}));
+    document.getElementById("uninstallSchedule").addEventListener("click", () => runAction(() => api("/api/schedule/uninstall", {method: "POST"}), "toastScheduleUninstalled", {refresh: false}));
+    document.getElementById("installShortcut").addEventListener("click", () => runAction(() => api("/api/shortcut/install", {method: "POST"}), "toastShortcutInstalled", {refresh: false}));
+    document.getElementById("uninstallShortcut").addEventListener("click", () => runAction(() => api("/api/shortcut/uninstall", {method: "POST"}), "toastShortcutUninstalled", {refresh: false}));
+    document.getElementById("copyRewrite").addEventListener("click", async () => {
+      if (!selectedCandidate) {
+        showToast(t("selectCandidateFirst"), "warn");
+        return;
+      }
+      try {
+        await copyText(selectedCandidate.rewrite_suggestion || selectedCandidate.text || "");
+        showToast(t("toastCopied"));
+      } catch (error) {
+        console.error(error);
+        showToast(t("toastCopyFailed"), "error");
       }
     });
-    document.getElementById("archiveSelected").addEventListener("click", async () => {
-      if (!window.selectedCandidateId) return;
-      await api(`/api/candidates/${window.selectedCandidateId}/archive`, {method: "POST"});
-      await refresh();
+
+    applyLanguage();
+    refresh(false).catch((error) => {
+      console.error(error);
+      showToast(`${t("toastLoadFailed")} ${error.message || ""}`, "error");
     });
-    document.getElementById("rejectSelected").addEventListener("click", async () => {
-      if (!window.selectedCandidateId) return;
-      await api(`/api/candidates/${window.selectedCandidateId}/reject`, {method: "POST"});
-      await refresh();
-    });
-    document.getElementById("promoteSelected").addEventListener("click", async () => {
-      if (!window.selectedCandidateId) return;
-      if (confirm("Promote this candidate into USER.md? A backup will be created first.")) {
-        await api(`/api/candidates/${window.selectedCandidateId}/promote`, {method: "POST"});
-        await refresh();
-      }
-    });
-    document.getElementById("promoteSkill").addEventListener("click", async () => {
-      if (!window.selectedCandidateId) return;
-      if (confirm("Create or update the learned-from-codex skill?")) {
-        await api(`/api/candidates/${window.selectedCandidateId}/promote-skill`, {method: "POST"});
-        await refresh();
-      }
-    });
-    document.getElementById("promotePatch").addEventListener("click", async () => {
-      if (!window.selectedCandidateId) return;
-      if (confirm("Export this candidate as a reviewed skill patch artifact?")) {
-        await api(`/api/candidates/${window.selectedCandidateId}/promote-patch`, {method: "POST"});
-        await refresh();
-      }
-    });
-    document.getElementById("installSchedule").addEventListener("click", async () => { await api("/api/schedule/install", {method: "POST"}); });
-    document.getElementById("uninstallSchedule").addEventListener("click", async () => { await api("/api/schedule/uninstall", {method: "POST"}); });
-    document.getElementById("installShortcut").addEventListener("click", async () => { await api("/api/shortcut/install", {method: "POST"}); });
-    document.getElementById("uninstallShortcut").addEventListener("click", async () => { await api("/api/shortcut/uninstall", {method: "POST"}); });
-    refresh().catch(err => console.error(err));
   </script>
 </body>
 </html>
