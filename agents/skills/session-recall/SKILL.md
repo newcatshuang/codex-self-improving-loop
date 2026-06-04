@@ -23,10 +23,10 @@ Do not use it for current repository code search; use project search or code int
 ## Workflow
 
 1. Identify 1-4 distinctive search terms from the user's request.
-2. Run the bundled search script:
+2. Use the v2 SQLite-backed recall entrypoint:
 
 ```bash
-python "$HOME/.agents/skills/session-recall/scripts/search_sessions.py" --query "keyword" --max-results 10
+python "$HOME/.agents/codex-self-improving-loop/sil.py" recall --query "keyword" --max-results 10
 ```
 
 3. Read only the redacted snippets returned by the script.
@@ -44,8 +44,8 @@ python "$HOME/.agents/skills/session-recall/scripts/search_sessions.py" --query 
 
 ```bash
 # Search a custom Codex root.
-python "$HOME/.agents/skills/session-recall/scripts/search_sessions.py" --query "GitNexus impact" --root "$HOME/.codex"
+python "$HOME/.agents/codex-self-improving-loop/sil.py" recall --query "GitNexus impact" --codex-root "$HOME/.codex"
 
 # JSON output for automation.
-python "$HOME/.agents/skills/session-recall/scripts/search_sessions.py" --query "error code" --json
+python "$HOME/.agents/codex-self-improving-loop/sil.py" recall --query "error code" --json
 ```

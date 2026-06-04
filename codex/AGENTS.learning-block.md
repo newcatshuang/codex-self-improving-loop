@@ -2,7 +2,7 @@
 
 ## Codex Self-Improving Loop
 
-A lightweight self-improving loop may be installed at `$HOME/.agents/skills` and `$HOME/.codex`.
+A local-only self-improving loop may be installed at `$HOME/.agents/codex-self-improving-loop`, `$HOME/.agents/skills`, and `$HOME/.codex/self-improving-loop`.
 
 Use `session-recall` when a new task refers to prior Codex sessions, such as "last time", "previously", "continue", "history", "上次", "之前", or a specific past error, route, or file. Search history first and bring back only short redacted snippets.
 
@@ -29,9 +29,9 @@ Safety rules:
 For substantial work, run:
 
 ```bash
-python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
+python "$HOME/.agents/codex-self-improving-loop/sil.py" scan --once
 ```
 
-This creates review artifacts only: memory candidates, skill candidates, skill patch candidates, candidate scoring, USER.md budget reports, usage metadata, a skill index, and a learning inbox summary.
+This updates the local SQLite review queue. Use `python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open` to review, promote, archive, schedule, or rebuild through the local WebUI. The backend is for this machine only and binds to `127.0.0.1`.
 
 <!-- codex-self-improving-loop:end -->

@@ -7,7 +7,7 @@ description: Use when a Codex session should preserve stable user preferences, r
 
 ## Purpose
 
-Create a safe review inbox for Codex self-improvement. This skill captures memory and skill candidates first; it does not directly rewrite stable memory or patch skills unless explicitly instructed.
+Use the local Codex Self-Improving Loop v2 control plane to capture and review durable learning candidates. Runtime data is stored in SQLite under `$HOME/.codex/self-improving-loop/`.
 
 ## When To Use
 
@@ -24,23 +24,18 @@ Do not use it for one-off task details, secrets, temporary debugging data, or ra
 ## Core Commands
 
 ```bash
-# Capture memory candidates from the latest session.
-python "$HOME/.agents/skills/memory-capture/scripts/extract_memory.py" --max-messages 40
+# Start the local-only WebUI backend and open the dashboard.
+python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open
 
-# Promote one reviewed memory into USER.md.
-python "$HOME/.agents/skills/memory-capture/scripts/promote_memory.py" --text "Use concise engineering handoffs." --approved
+# Scan new Codex sessions once. The scanner prefers Codex CLI extraction and falls back to rules when Codex is unavailable.
+python "$HOME/.agents/codex-self-improving-loop/sil.py" scan --once
 
-# Score and consolidate memory candidates without writing USER.md.
-python "$HOME/.agents/skills/memory-capture/scripts/promote_candidates.py"
+# Backup the SQLite database and rebuild it from all historical sessions.
+python "$HOME/.agents/codex-self-improving-loop/sil.py" rebuild --backup
 
-# Run the full end-of-task learning nudge in review mode.
-python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
-
-# Rebuild the shared index used by digest and dashboard renderers.
-python "$HOME/.agents/skills/memory-capture/scripts/build_learning_index.py"
-
-# Rebuild the read-only local review dashboard.
-python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
+# Install the daily 12:00 scan schedule or the desktop launcher.
+python "$HOME/.agents/codex-self-improving-loop/sil.py" schedule install
+python "$HOME/.agents/codex-self-improving-loop/sil.py" shortcut install
 ```
 
 ## Safety Rules
@@ -54,23 +49,17 @@ python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
 
 ## Output Locations
 
-- Generated review files are grouped under `YYYY/MM/DD` subdirectories.
-- Memory candidate inbox: `$HOME/.codex/memories/inbox`
+- Runtime directory: `$HOME/.codex/self-improving-loop`
+- SQLite database: `$HOME/.codex/self-improving-loop/self-improving-loop.sqlite`
+- Local WebUI HTML: `$HOME/.codex/self-improving-loop/codex-self-improving-loop.html`
+- Backups: `$HOME/.codex/self-improving-loop/backups`
+- Exports: `$HOME/.codex/self-improving-loop/exports`
 - Stable global memory: `$HOME/.codex/memories/USER.md`
-- Skill candidates: `$HOME/.codex/skill-candidates/inbox`
-- Skill patch candidates: `$HOME/.codex/skill-candidates/patches`
-- Nudge reports: `$HOME/.codex/nudge-reports`
-- Skill usage metadata: `$HOME/.codex/skill-usage.json`
-- Skill index: `$HOME/.codex/skills-index.md`
-- Shared learning index: `$HOME/.codex/learning-index.json`
-- Learning inbox summary: `$HOME/.codex/learning-inbox-summary.md`
-- Local review dashboard: `$HOME/.codex/codex-self-improving-loop-dashboard.html`
 
 ## Review Workflow
 
-1. Capture candidates with `extract_memory.py` or `codex_memory_nudge.py`.
-2. Inspect the Review Digest destination and rewrite suggestion before promotion.
-3. Run `scan_skill_candidates.py` before applying any skill candidate.
-4. Promote only reviewed global memories with `promote_memory.py --approved`; move project facts to project `AGENTS.md`.
-5. Use `promote_candidates.py --auto-promote` only for safe, short, repeated user preferences or avoidance rules.
-6. Use `promote_candidates.py --archive-processed` only after unresolved review and conflict items have been intentionally left in the inbox.
+1. Run `sil.py serve --open`.
+2. Review memory, skill, and skill patch candidates in the WebUI.
+3. Use WebUI buttons for review, archive, rebuild, scan, schedule, and promotion actions.
+4. Behavior-changing actions require confirmation; the backend backs up target files and records audit logs.
+5. Do not manually edit the SQLite database unless debugging a backup copy.

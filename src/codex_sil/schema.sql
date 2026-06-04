@@ -1,0 +1,132 @@
+pragma foreign_keys = on;
+
+create table if not exists settings (
+  key text primary key,
+  value text not null,
+  updated_at text not null default current_timestamp
+);
+
+create table if not exists sessions (
+  id integer primary key autoincrement,
+  path text not null unique,
+  rel_path text not null,
+  mtime integer not null,
+  size integer not null,
+  sha256 text not null,
+  status text not null default 'new',
+  first_seen_at text not null default current_timestamp,
+  last_processed_at text
+);
+
+create table if not exists runs (
+  id integer primary key autoincrement,
+  kind text not null,
+  status text not null,
+  started_at text not null default current_timestamp,
+  finished_at text,
+  detail text
+);
+
+create table if not exists run_steps (
+  id integer primary key autoincrement,
+  run_id integer not null references runs(id) on delete cascade,
+  name text not null,
+  status text not null,
+  started_at text not null default current_timestamp,
+  finished_at text,
+  detail text
+);
+
+create table if not exists candidates (
+  id integer primary key autoincrement,
+  type text not null,
+  title text not null,
+  text text not null,
+  normalized text not null,
+  destination text not null,
+  rewrite_suggestion text not null,
+  status text not null default 'review',
+  safety text not null default 'review',
+  confidence real not null default 0,
+  extractor text not null,
+  created_at text not null default current_timestamp,
+  updated_at text not null default current_timestamp,
+  unique(type, normalized)
+);
+
+create table if not exists candidate_sources (
+  id integer primary key autoincrement,
+  candidate_id integer not null references candidates(id) on delete cascade,
+  session_id integer not null references sessions(id) on delete cascade,
+  evidence text not null,
+  created_at text not null default current_timestamp,
+  unique(candidate_id, session_id, evidence)
+);
+
+create table if not exists candidate_fingerprints (
+  fingerprint text primary key,
+  candidate_id integer not null references candidates(id) on delete cascade,
+  created_at text not null default current_timestamp
+);
+
+create table if not exists scan_results (
+  id integer primary key autoincrement,
+  candidate_id integer references candidates(id) on delete cascade,
+  severity text not null,
+  rule text not null,
+  message text not null,
+  created_at text not null default current_timestamp
+);
+
+create table if not exists reviews (
+  id integer primary key autoincrement,
+  candidate_id integer not null references candidates(id) on delete cascade,
+  status text not null,
+  note text,
+  rewrite_text text,
+  created_at text not null default current_timestamp
+);
+
+create table if not exists promotions (
+  id integer primary key autoincrement,
+  candidate_id integer references candidates(id) on delete set null,
+  target_type text not null,
+  target_path text not null,
+  backup_path text,
+  status text not null,
+  detail text,
+  created_at text not null default current_timestamp
+);
+
+create table if not exists skills (
+  id integer primary key autoincrement,
+  name text not null unique,
+  path text not null,
+  description text,
+  updated_at text not null default current_timestamp
+);
+
+create table if not exists skill_usage (
+  id integer primary key autoincrement,
+  skill_name text not null,
+  status text not null default 'success',
+  used_at text not null default current_timestamp,
+  detail text
+);
+
+create table if not exists schedules (
+  id integer primary key autoincrement,
+  name text not null unique,
+  platform text not null,
+  command text not null,
+  status text not null,
+  updated_at text not null default current_timestamp
+);
+
+create table if not exists audit_log (
+  id integer primary key autoincrement,
+  action text not null,
+  target text,
+  detail text,
+  created_at text not null default current_timestamp
+);

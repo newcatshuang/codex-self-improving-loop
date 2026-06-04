@@ -17,6 +17,9 @@ Before handoff, run:
 
 ```bash
 python tests/verify-install.py --codex-root ./tmp/codex --agents-root ./tmp/agents
-python tests/verify-learning-extraction.py --work-root ./tmp/learning
-python -m compileall agents install.py install_watcher_schedule.py tests
+python tests/verify-v2-core.py --work-root ./tmp/v2-core
+python tests/verify-codex-runner.py --work-root ./tmp/codex-runner
+python tests/verify-v2-recall.py --work-root ./tmp/v2-recall
+python tests/verify-v2-install.py --codex-root ./tmp/codex-v2 --agents-root ./tmp/agents-v2
+python -m compileall src sil.py install.py tests
 ```

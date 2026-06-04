@@ -1,85 +1,42 @@
 # Codex Self-Improving Loop
 
-**A local, review-first self-improvement layer for Codex.**
+**A local-only SQLite and WebUI control plane for Codex self-improvement.**
 
-Codex Self-Improving Loop helps Codex recall previous sessions, capture durable preferences, propose reusable skills, detect unsafe learning candidates, and evolve through a governed learning loop.
+Codex Self-Improving Loop helps Codex recall prior sessions, extract durable memory candidates, identify reusable skill candidates, propose skill patches, and review promotions from a single local WebUI.
 
-It is designed for developers who want their coding agent to improve over time without giving it unchecked permission to rewrite its own long-term behavior.
+The v2 architecture replaces scattered Markdown/JSON outputs with one SQLite database and a temporary Python backend. The backend binds only to `127.0.0.1`, uses a per-run token, and is intended for this machine only.
 
 [中文说明](./README.zh-CN.md)
 
-![Codex Self-Improving Loop WebUI Dashboard](docs/assets/webui-dashboard.png)
-
 ## What You Get
 
-| Capability             | What it does                                                                                    | Default output                           |
-| ---------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| Session recall         | Searches previous Codex sessions and returns short redacted snippets                            | terminal output                          |
-| Memory candidates      | Extracts stable preferences, safety corrections, and durable lessons                            | `$HOME/.codex/memories/inbox`            |
-| Memory promotion       | Promotes one reviewed memory into global `USER.md`                                              | `$HOME/.codex/memories/USER.md`          |
-| Candidate scoring      | Finds repeated, short, safe memory candidates                                                   | terminal or JSON report                  |
-| Skill candidates       | Captures reusable workflows that may become future skills                                       | `$HOME/.codex/skill-candidates/inbox`    |
-| Skill patch candidates | Captures evidence that an existing skill should be upgraded                                     | `$HOME/.codex/skill-candidates/patches`  |
-| Safety scan            | Flags secrets, private URLs, redacted values, prompt injection text, and raw transcript markers | terminal or Markdown report              |
-| End-of-task nudge      | Runs the learning loop in review mode near handoff                                              | `$HOME/.codex/nudge-reports`             |
-| Session watcher        | Polls Codex session files and runs the nudge after idle periods                                 | `$HOME/.codex/memory-watcher-state.json` |
-| Usage metadata         | Tracks skill `use_count`, `last_used`, and failures                                             | `$HOME/.codex/skill-usage.json`          |
-| Learning reports       | Generates skill index and learning inbox summaries                                              | `$HOME/.codex/*.md`                      |
-| Local dashboard        | Renders a read-only single HTML page for today's records, history, summaries, and copy commands | `$HOME/.codex/codex-self-improving-loop-dashboard.html` |
+| Capability | How v2 handles it |
+| --- | --- |
+| Session recall | `sil.py recall` searches SQLite-backed session records with redacted snippets |
+| Memory capture | Daily or manual scans extract memory candidates into SQLite |
+| Skill candidates | Reusable workflows are stored as `type=skill` candidates |
+| Skill patches | Existing skill improvement ideas are stored as `type=skill_patch` candidates |
+| WebUI management | `sil.py serve --open` starts a local backend and opens the dashboard |
+| Scheduled scan | `sil.py schedule install` prepares a daily 12:00 scan command |
+| Desktop launcher | `sil.py shortcut install` prepares a one-click launcher command |
 
-## Why This Exists
+## Runtime Layout
 
-Many coding agents are strong inside one session but lose useful collaboration context across sessions. Users end up repeating preferences, project rules, verification habits, and hard-won lessons.
-
-This project turns session experience into governed assets:
+All runtime files owned by this project live under one folder:
 
 ```text
-task experience
-  -> reviewable candidates
-  -> safety scan and scoring
-  -> explicit promotion or archival
-  -> future recall and skill evolution
+$HOME/.codex/self-improving-loop/
+├─ self-improving-loop.sqlite
+├─ codex-self-improving-loop.html
+├─ self-improving-loop.log
+├─ backups/
+├─ exports/
+└─ tmp/
 ```
 
-The goal is not to dump every conversation into long-term memory. The goal is to keep a clean learning loop:
+The project no longer writes default candidate Markdown files, daily digests, `learning-index.json`, `latest-*` reports, usage JSON, or watcher state files.
 
-- Stable user preferences go into global memory.
-- Project facts stay in project-level `AGENTS.md`.
-- Reusable procedures become skill candidates.
-- Risky or ambiguous findings stay in review.
-- Secrets and redacted values are blocked.
-
-## Design Principles
-
-This project is inspired by the self-improving loop in [Hermes Agent](https://github.com/NousResearch/hermes-agent): memory, reusable skills, session search, and nudges that encourage the agent to preserve useful lessons.
-
-Codex Self-Improving Loop adapts that idea into a smaller local tool for Codex:
-
-| Principle           | Implementation                                                                  |
-| ------------------- | ------------------------------------------------------------------------------- |
-| Local first         | Files live under `$HOME/.codex` and `$HOME/.agents`; no hosted service required |
-| Review first        | Capture creates candidates; promotion is explicit                               |
-| Cross-platform      | Python standard library only, no shell-specific runtime dependency              |
-| Agent-readable      | Skills are plain `SKILL.md` files with small command scripts                    |
-| Installable by copy | `install.py` copies repository files instead of embedding generated blobs       |
-| Safe by default     | Secret-like content and redacted values are blocked from promotion              |
-
-## What This Is Not
-
-- It is not a replacement for Codex.
-- It is not a vector database or hosted memory service.
-- It does not auto-edit project code.
-- It does not automatically enable newly proposed skills.
-- It does not make unsafe memories safe; it only helps detect and quarantine them.
-
-## Requirements
-
-- Python 3.10 or newer.
-- Codex configured to discover skills from `$HOME/.agents/skills`.
-
-No third-party Python packages are required.
-
-## Quickstart
+## Install
 
 ```bash
 git clone https://github.com/newcatshuang/codex-self-improving-loop.git
@@ -87,328 +44,79 @@ cd codex-self-improving-loop
 python install.py
 ```
 
-Restart Codex or open a new session after installing so skill discovery reloads the new files.
+The installer copies:
 
-Verify the installation in temporary directories:
+- `sil.py` and `src/codex_sil` to `$HOME/.agents/codex-self-improving-loop`.
+- `session-recall` and `memory-capture` skills to `$HOME/.agents/skills`.
+- `codex/AGENTS.learning-block.md` into `$HOME/.codex/AGENTS.md`.
+- `codex/memories/USER.template.md` to `$HOME/.codex/memories/USER.md` only if missing.
 
-```bash
-python tests/verify-install.py --codex-root /tmp/codex-sil --agents-root /tmp/agents-sil
-```
+## Daily Use
 
-Windows users can use any temporary paths:
-
-```bash
-python tests/verify-install.py --codex-root C:/Temp/codex-sil --agents-root C:/Temp/agents-sil
-```
-
-## Install Details
-
-Custom install roots:
+Start the temporary local WebUI backend:
 
 ```bash
-python install.py --codex-root /tmp/codex-test --agents-root /tmp/agents-test --force
+python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open
 ```
 
-The installer:
+From the WebUI you can initialize or rebuild the database, scan sessions, install or remove the daily schedule, install the desktop shortcut, export review data, archive or reject candidates, and promote reviewed items to `USER.md`, a learned skill, or a skill patch artifact.
 
-- Copies `agents/skills/session-recall` into `$HOME/.agents/skills/session-recall`.
-- Copies `agents/skills/memory-capture` into `$HOME/.agents/skills/memory-capture`.
-- Creates learning inbox directories under `$HOME/.codex`.
-- Copies `codex/memories/USER.template.md` to `$HOME/.codex/memories/USER.md` only if it does not exist.
-- Appends `codex/AGENTS.learning-block.md` to `$HOME/.codex/AGENTS.md` using idempotent markers.
-
-## Daily Workflow
-
-Search previous sessions:
+Scan new sessions once:
 
 ```bash
-python "$HOME/.agents/skills/session-recall/scripts/search_sessions.py" --query "previous error" --max-results 10
+python "$HOME/.agents/codex-self-improving-loop/sil.py" scan --once
 ```
 
-Capture memory candidates from the latest session:
+Backup the database and rebuild from all historical sessions:
 
 ```bash
-python "$HOME/.agents/skills/memory-capture/scripts/extract_memory.py" --max-messages 40
+python "$HOME/.agents/codex-self-improving-loop/sil.py" rebuild --backup
 ```
 
-Promote one reviewed memory:
+Search prior sessions:
 
 ```bash
-python "$HOME/.agents/skills/memory-capture/scripts/promote_memory.py" \
-  --text "Prefer concise engineering handoffs with verification and residual risk." \
-  --approved
+python "$HOME/.agents/codex-self-improving-loop/sil.py" recall --query "previous error"
 ```
 
-Run the end-of-task self-improvement loop:
+Install helper commands:
 
 ```bash
-python "$HOME/.agents/skills/memory-capture/scripts/codex_memory_nudge.py"
+python "$HOME/.agents/codex-self-improving-loop/sil.py" schedule install
+python "$HOME/.agents/codex-self-improving-loop/sil.py" shortcut install
 ```
 
-Open the local review dashboard after a nudge or watcher run:
+## Extraction Strategy
+
+Scans prefer Codex CLI for higher-quality extraction:
 
 ```text
-$HOME/.codex/codex-self-improving-loop-dashboard.html
+codex exec --ephemeral --skip-git-repo-check --sandbox read-only --output-schema extraction.schema.json
 ```
 
-The dashboard defaults to today's records, lets you switch historical dates without manually choosing files, shows an all-records summary, and only copies suggested commands or rewritten text. It does not write files or execute scripts.
+If Codex is unavailable, fails, times out, or returns invalid JSON, the scanner falls back to a small rule-based extractor.
 
-## WebUI Dashboard
+`--ephemeral` prevents automated extraction runs from creating new session files that would be scanned again later.
 
-The dashboard is a local, read-only review surface for the learning inbox. It reads the shared `$HOME/.codex/learning-index.json` snapshot and embeds that data into a single HTML file, so it can be opened directly in a browser without running a web server.
+For tests or fast historical rebuilds, set `CODEX_SIL_DISABLE_CODEX=1` to force the deterministic fallback extractor. Daily scheduled scans leave this unset by default, so they still try Codex first.
 
-Use it to:
+## Local Service Boundary
 
-- Review today's memory, skill, and skill patch candidates by default.
-- Switch to historical dates from the page without manually locating candidate files.
-- See all-record summaries with color-coded destinations such as global memory, project `AGENTS.md`, skill candidates, skill patches, manual review, and blocked review.
-- Inspect the selected candidate, rewrite suggestion, source files, and promotion command in one review rail.
-- Copy suggested commands or rewritten text only; the page never writes files or executes scripts.
+- The backend binds only to `127.0.0.1`.
+- It does not support LAN or public access.
+- Each `serve` run creates a token; API requests must include it.
+- Daily scans do not require the backend to be running.
+- The WebUI is the normal place for review and promotion actions; users should not copy shell commands for normal promotion.
 
-Generate or refresh it manually:
+## Verification
 
 ```bash
-python "$HOME/.agents/skills/memory-capture/scripts/build_learning_index.py"
-python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
+python tests/verify-v2-core.py --work-root ./tmp/v2-core
+python tests/verify-codex-runner.py --work-root ./tmp/codex-runner
+python tests/verify-v2-recall.py --work-root ./tmp/v2-recall
+python tests/verify-v2-session-filter.py --work-root ./tmp/v2-filter
+python tests/verify-v2-promotion.py --work-root ./tmp/v2-promotion
+python tests/verify-v2-install.py --codex-root ./tmp/codex-v2 --agents-root ./tmp/agents-v2
+python tests/verify-install.py --codex-root ./tmp/install-codex --agents-root ./tmp/install-agents
+python -m compileall src sil.py install.py tests
 ```
-
-The daily watcher and `codex_memory_nudge.py` also refresh it automatically at:
-
-```text
-$HOME/.codex/codex-self-improving-loop-dashboard.html
-```
-
-Run the automatic session watcher. In long-running mode, it polls once per day by default and processes sessions that have been idle for at least 10 minutes:
-
-```bash
-python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py"
-```
-
-Run one watcher cycle for testing:
-
-```bash
-python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --dry-run
-```
-
-For OS schedulers such as cron, launchd, systemd timers, or Windows Task Scheduler, schedule one real cycle daily at 12:00. This default runs quietly and refreshes the WebUI dashboard for review:
-
-```bash
-python install_watcher_schedule.py
-```
-
-On Windows, use `--pause-on-exit` only when you are debugging and want the scheduled console window to stay open after the watcher finishes:
-
-```bash
-python install_watcher_schedule.py --pause-on-exit
-```
-
-Generate maintenance reports:
-
-```bash
-python "$HOME/.agents/skills/memory-capture/scripts/generate_skills_index.py"
-python "$HOME/.agents/skills/memory-capture/scripts/summarize_learning_inbox.py"
-python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
-python "$HOME/.agents/skills/memory-capture/scripts/show_skill_usage.py"
-```
-
-## Command Reference
-
-| Script                             | Purpose                                                                 |
-| ---------------------------------- | ----------------------------------------------------------------------- |
-| `search_sessions.py`               | Search local Codex session history with redaction                       |
-| `extract_memory.py`                | Create memory candidates from recent session context                    |
-| `promote_memory.py`                | Promote one reviewed memory into `USER.md`                              |
-| `promote_candidates.py`            | Score, optionally auto-promote, and archive processed memory candidates |
-| `compact_user_memory.py`           | Report global memory budget, duplicates, conflicts, and safety risks    |
-| `extract_skill_candidate.py`       | Create review-only skill candidates                                     |
-| `extract_skill_patch_candidate.py` | Create review-only skill patch candidates                               |
-| `scan_skill_candidates.py`         | Scan skill candidates and patch candidates for safety risks             |
-| `record_skill_usage.py`            | Record usage metadata for a skill                                       |
-| `show_skill_usage.py`              | Show skill usage metadata                                               |
-| `generate_skills_index.py`         | Generate a skill index from installed `SKILL.md` files                  |
-| `build_learning_index.py`          | Build the shared `learning-index.json` used by digest and dashboard renderers |
-| `summarize_learning_inbox.py`      | Generate a Review Digest with memory, skill, patch, destinations, rewrite suggestions, and promotion options |
-| `render_dashboard.py`              | Generate a read-only local HTML dashboard with today/history switching and copy commands |
-| `codex_memory_nudge.py`            | Run the full review-mode learning loop                                  |
-| `codex_session_watcher.py`         | Watch session files and run nudge after idle periods                    |
-| `install_watcher_schedule.py`      | Install a daily 12:00 OS schedule for the installed watcher              |
-
-## Repository Layout
-
-```text
-codex-self-improving-loop/
-├─ README.md
-├─ README.zh-CN.md
-├─ LICENSE
-├─ install.py
-├─ install_watcher_schedule.py
-├─ tests/
-│  └─ verify-install.py
-├─ codex/
-│  ├─ AGENTS.learning-block.md
-│  └─ memories/
-│     └─ USER.template.md
-└─ agents/
-   └─ skills/
-      ├─ session-recall/
-      │  ├─ SKILL.md
-      │  └─ scripts/
-      │     └─ search_sessions.py
-      └─ memory-capture/
-         ├─ SKILL.md
-         ├─ scripts/
-         │  ├─ codex_memory_nudge.py
-         │  ├─ codex_session_watcher.py
-         │  ├─ compact_user_memory.py
-         │  ├─ extract_memory.py
-         │  ├─ extract_skill_candidate.py
-         │  ├─ extract_skill_patch_candidate.py
-         │  ├─ generate_skills_index.py
-         │  ├─ build_learning_index.py
-         │  ├─ learning_loop_common.py
-         │  ├─ promote_candidates.py
-         │  ├─ promote_memory.py
-         │  ├─ record_skill_usage.py
-         │  ├─ render_dashboard.py
-         │  ├─ scan_skill_candidates.py
-         │  ├─ show_skill_usage.py
-         │  └─ summarize_learning_inbox.py
-         └─ templates/
-            └─ dashboard.html
-```
-
-## Runtime Outputs
-
-Default runtime outputs live under `$HOME/.codex`:
-
-```text
-.codex/
-├─ memories/
-│  ├─ USER.md
-│  ├─ inbox/
-│  └─ archive/
-├─ skill-candidates/
-│  ├─ inbox/
-│  ├─ patches/
-│  └─ archive/
-├─ daily-digests/
-├─ nudge-reports/
-├─ latest-skill-candidate-security-scan.md
-├─ latest-user-memory-budget.md
-├─ learning-index.json
-├─ codex-self-improving-loop-dashboard.html
-├─ memory-watcher-state.json
-├─ skill-usage.json
-├─ skills-index.md
-└─ learning-inbox-summary.md
-```
-
-Generated candidate files are grouped by date, for example `$HOME/.codex/memories/inbox/YYYY/MM/DD/*.md`, but empty candidate reports are skipped by default. `$HOME/.codex/learning-index.json` is overwritten on each run and acts as the shared data layer for the dashboard and lightweight daily digest. The main daily Markdown entry point is `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`. The main visual review entry point is `$HOME/.codex/codex-self-improving-loop-dashboard.html`. Security scan and memory budget reports are overwritten at `latest-*` paths to reduce file count. Detailed nudge reports are written only when candidates are found or a step fails.
-
-## Automatic Session Watcher
-
-Codex does not always expose a reliable session-end hook across every environment. The watcher provides a lightweight external trigger:
-
-```text
-poll $HOME/.codex/sessions
-  -> find idle unprocessed session files
-  -> run codex_memory_nudge.py --session-file <file>
-  -> write daily digest, latest reports, optional nudge report, and watcher state
-```
-
-Defaults:
-
-| Option                   | Default |
-| ------------------------ | ------: |
-| `--interval-seconds`     | `86400` |
-| `--idle-seconds`         |   `600` |
-| `--max-sessions-per-run` |     `0` |
-
-`--max-sessions-per-run 0` means all ready sessions in the current cycle. This is the default because the watcher is I/O-light and uses a lock plus processed-session state to avoid duplicate work.
-
-By default, the first run processes all historical session files that are idle and not already marked processed. To limit the first run and future runs to a time window, pass `--since-date YYYY-MM-DD`.
-
-The watcher is review-first. It creates candidate reports automatically, but it does not run `promote_memory.py --approved`, does not apply skill patches, and does not auto-promote candidates into `USER.md`.
-
-After each real watcher cycle, the nudge prints a Review Digest summary and writes `$HOME/.codex/learning-index.json`, `$HOME/.codex/learning-inbox-summary.md`, `$HOME/.codex/daily-digests/YYYY/MM/DD/review-digest.md`, and `$HOME/.codex/codex-self-improving-loop-dashboard.html`. The dashboard is the primary review surface. The daily digest is intentionally lightweight: it points to the dashboard and shared index, then lists a compact action queue. Destinations distinguish global `USER.md`, project `AGENTS.md`, skill candidates, skill patches, blocked review, and manual review. Memory options include explicit `promote_memory.py --approved` commands using the rewrite suggestion when a candidate can be shortened. Skill and patch options remain review-only and point you to scan and inspect the target skill before applying anything.
-
-Candidate extraction reads both user instructions and assistant outcomes. It favors durable lessons such as root causes, fixes, verification results, reusable workflows, preferences, and safety corrections. One-off task requests such as "find X", "list Y", or "only return Z" are treated as work items rather than long-term memory.
-
-Examples:
-
-```bash
-# Long-running watcher
-python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py"
-
-# One cycle without writing reports
-python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --dry-run
-
-# One real cycle
-python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once
-
-# Only process sessions on or after a date
-python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --since-date 2026-05-01
-
-# Rebuild the read-only local dashboard
-python "$HOME/.agents/skills/memory-capture/scripts/build_learning_index.py"
-python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
-
-# Install a daily 12:00 OS schedule, using the installed watcher under $HOME/.agents
-python install_watcher_schedule.py
-
-# Windows debug only: keep the scheduled console open after each run
-python install_watcher_schedule.py --pause-on-exit
-```
-
-For workstation setups, a daily OS scheduler that runs the `--once` command at 12:00 is usually more reliable than keeping a terminal process open. On Windows, the default schedule prefers a windowless Python runner when available; review results from the WebUI dashboard instead of a paused terminal. Long-running mode remains available when a persistent process manager is already in use.
-
-Schedule installer backends:
-
-| Platform | Backend                           |
-| -------- | --------------------------------- |
-| Windows  | Task Scheduler via `schtasks.exe /SC DAILY /ST 12:00` |
-| Linux    | systemd user timer with `OnCalendar=*-*-* 12:00:00` |
-| macOS    | `launchd` LaunchAgent with `Hour=12`, `Minute=0` |
-
-## Safety Model
-
-This project intentionally separates discovery from promotion.
-
-| Stage   | Behavior                                                                                    |
-| ------- | ------------------------------------------------------------------------------------------- |
-| Capture | Writes review-only candidate files                                                          |
-| Scan    | Flags secrets, redacted values, prompt injection text, private URLs, and transcript markers |
-| Score   | Identifies repeated, short, safe preference candidates                                      |
-| Promote | Requires explicit `--approved`, except conservative `--auto-promote` candidate flow         |
-| Archive | Moves only processed candidate files; unresolved review items stay visible                  |
-
-Hard rules:
-
-- Never store raw secrets in memory files.
-- Never reconstruct `[REDACTED]` values.
-- Treat `conflict_review` as a hard stop for automatic promotion.
-- Keep project facts in project-level `AGENTS.md`, not global `USER.md`.
-- Review and scan skill candidates before turning them into real skills.
-
-## Development
-
-Run local verification:
-
-```bash
-python tests/verify-install.py --codex-root ./tmp/codex --agents-root ./tmp/agents
-python tests/verify-learning-extraction.py --work-root ./tmp/learning
-```
-
-Run syntax checks:
-
-```bash
-python -m compileall agents install.py install_watcher_schedule.py tests
-```
-
-## Inspiration
-
-- [Hermes Agent](https://github.com/NousResearch/hermes-agent): the self-improving agent loop built around memory, skill creation, skill evolution, session search, and learning nudges.
-
-## License
-
-MIT

@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["memory_candidates", "skill_candidates", "skill_patch_candidates", "summary", "risks", "confidence"],
+  "properties": {
+    "memory_candidates": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/candidate"}
+    },
+    "skill_candidates": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/candidate"}
+    },
+    "skill_patch_candidates": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/candidate"}
+    },
+    "summary": {"type": "string"},
+    "risks": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "confidence": {"type": "number"}
+  },
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "text", "destination", "rewrite_suggestion", "confidence"],
+      "properties": {
+        "title": {"type": "string"},
+        "text": {"type": "string"},
+        "destination": {"type": "string"},
+        "rewrite_suggestion": {"type": "string"},
+        "confidence": {"type": "number"}
+      }
+    }
+  }
+}

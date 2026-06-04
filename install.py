@@ -35,6 +35,17 @@ def copy_file_if_missing(src: Path, dst: Path, force: bool = False) -> None:
     print(f"COPY: {src} -> {dst}")
 
 
+def install_app(repo: Path, dst: Path, force: bool) -> None:
+    if dst.exists() and force:
+        shutil.rmtree(dst)
+    ensure_dir(dst)
+    copy_file_if_missing(repo / "sil.py", dst / "sil.py", force=True)
+    copy_tree(repo / "src", dst / "src", force=True)
+    copy_tree(repo / "agents", dst / "agents", force=True)
+    copy_tree(repo / "codex", dst / "codex", force=True)
+    print(f"COPY app: {repo} -> {dst}")
+
+
 def append_learning_block(src: Path, dst: Path, force: bool) -> None:
     block = src.read_text(encoding="utf-8").strip() + "\n"
     existing = dst.read_text(encoding="utf-8") if dst.exists() else "# AGENTS.md\n\n"
@@ -66,17 +77,16 @@ def main() -> int:
     for directory in (
         codex_root,
         agents_root,
-        codex_root / "memories" / "inbox",
-        codex_root / "memories" / "archive",
-        codex_root / "skill-candidates" / "inbox",
-        codex_root / "skill-candidates" / "patches",
-        codex_root / "skill-candidates" / "archive",
-        codex_root / "nudge-reports",
+        codex_root / "self-improving-loop",
+        codex_root / "self-improving-loop" / "backups",
+        codex_root / "self-improving-loop" / "exports",
+        codex_root / "self-improving-loop" / "tmp",
     ):
         ensure_dir(directory)
 
     copy_tree(repo / "agents" / "skills" / "session-recall", agents_root / "skills" / "session-recall", args.force)
     copy_tree(repo / "agents" / "skills" / "memory-capture", agents_root / "skills" / "memory-capture", args.force)
+    install_app(repo, agents_root / "codex-self-improving-loop", args.force)
     copy_file_if_missing(repo / "codex" / "memories" / "USER.template.md", codex_root / "memories" / "USER.md", force=False)
     append_learning_block(repo / "codex" / "AGENTS.learning-block.md", codex_root / "AGENTS.md", args.force)
 
