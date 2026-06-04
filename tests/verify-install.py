@@ -121,6 +121,11 @@ def main() -> int:
         raise AssertionError(f"Windows schedule should run daily, not hourly: {windows_create}")
     if "/TR" not in windows_create or "codex_session_watcher.py" not in " ".join(windows_create):
         raise AssertionError("Windows schedule should run the installed watcher command")
+    if "codex-self-improving-loop-watcher.cmd" in " ".join(windows_create):
+        raise AssertionError(f"Windows default schedule should run silently, not use the pause wrapper: {windows_create}")
+    pythonw = Path(sys.executable).with_name("pythonw.exe")
+    if pythonw.exists() and str(pythonw) not in " ".join(windows_create):
+        raise AssertionError(f"Windows default schedule should use pythonw.exe when available: {windows_create}")
     pause_calls = []
     try:
         sys.argv = [

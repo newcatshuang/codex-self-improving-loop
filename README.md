@@ -190,13 +190,13 @@ Run one watcher cycle for testing:
 python "$HOME/.agents/skills/memory-capture/scripts/codex_session_watcher.py" --once --dry-run
 ```
 
-For OS schedulers such as cron, launchd, systemd timers, or Windows Task Scheduler, schedule one real cycle daily at 12:00:
+For OS schedulers such as cron, launchd, systemd timers, or Windows Task Scheduler, schedule one real cycle daily at 12:00. This default runs quietly and refreshes the WebUI dashboard for review:
 
 ```bash
 python install_watcher_schedule.py
 ```
 
-On Windows, if you want the scheduled console window to stay open after the watcher finishes so you can read the summary, install the task with:
+On Windows, use `--pause-on-exit` only when you are debugging and want the scheduled console window to stay open after the watcher finishes:
 
 ```bash
 python install_watcher_schedule.py --pause-on-exit
@@ -356,11 +356,11 @@ python "$HOME/.agents/skills/memory-capture/scripts/render_dashboard.py"
 # Install a daily 12:00 OS schedule, using the installed watcher under $HOME/.agents
 python install_watcher_schedule.py
 
-# Windows only: keep the scheduled console open after each run
+# Windows debug only: keep the scheduled console open after each run
 python install_watcher_schedule.py --pause-on-exit
 ```
 
-For workstation setups, a daily OS scheduler that runs the `--once` command at 12:00 is usually more reliable than keeping a terminal process open. Long-running mode remains available when a persistent process manager is already in use.
+For workstation setups, a daily OS scheduler that runs the `--once` command at 12:00 is usually more reliable than keeping a terminal process open. On Windows, the default schedule prefers a windowless Python runner when available; review results from the WebUI dashboard instead of a paused terminal. Long-running mode remains available when a persistent process manager is already in use.
 
 Schedule installer backends:
 

@@ -37,13 +37,13 @@ python -m compileall agents install.py install_watcher_schedule.py tests
 
 ## 启用定时任务
 
-安装每天 12:00 执行的系统调度：
+安装每天 12:00 执行的系统调度。默认会静默运行，并刷新本地 Dashboard：
 
 ```bash
 python install_watcher_schedule.py
 ```
 
-Windows 下如果希望计划任务执行完成后终端窗口停留，方便查看本次摘要：
+Windows 下只有在排查问题、需要终端窗口停留查看摘要时，才使用：
 
 ```bash
 python install_watcher_schedule.py --pause-on-exit

@@ -24,8 +24,16 @@ def installed_watcher(agents_root: Path) -> Path:
     return agents_root.expanduser() / "skills" / "memory-capture" / "scripts" / "codex_session_watcher.py"
 
 
-def command_parts(args: argparse.Namespace) -> list[str]:
-    command = [sys.executable, str(installed_watcher(args.agents_root)), "--once"]
+def windows_silent_python() -> str:
+    pythonw = Path(sys.executable).with_name("pythonw.exe")
+    if pythonw.exists():
+        return str(pythonw)
+    return sys.executable
+
+
+def command_parts(args: argparse.Namespace, *, windowless: bool = False) -> list[str]:
+    executable = windows_silent_python() if windowless else sys.executable
+    command = [executable, str(installed_watcher(args.agents_root)), "--once"]
     if args.since_date:
         command.extend(["--since-date", args.since_date])
     if args.max_sessions_per_run is not None:
@@ -53,7 +61,7 @@ def windows_command_line(parts: list[str]) -> str:
 def write_windows_pause_wrapper(args: argparse.Namespace) -> Path:
     wrapper = args.agents_root.expanduser() / "codex-self-improving-loop-watcher.cmd"
     ensure_dir(wrapper.parent)
-    command = windows_command_line(command_parts(args))
+    command = windows_command_line(command_parts(args, windowless=False))
     wrapper.write_text(
         "\r\n".join(
             [
@@ -76,7 +84,7 @@ def install_windows(args: argparse.Namespace) -> None:
     if args.pause_on_exit:
         task_run = windows_command_line([str(write_windows_pause_wrapper(args))])
     else:
-        task_run = windows_command_line(command_parts(args))
+        task_run = windows_command_line(command_parts(args, windowless=True))
     subprocess.run(
         [
             "schtasks.exe",
@@ -205,6 +213,8 @@ def main() -> int:
         if platform.system() == "Windows" and args.pause_on_exit:
             wrapper = args.agents_root.expanduser() / "codex-self-improving-loop-watcher.cmd"
             print(f"{windows_command_line([str(wrapper)])}  # wrapper will pause after running {windows_command_line(command_parts(args))}")
+        elif platform.system() == "Windows":
+            print(windows_command_line(command_parts(args, windowless=True)))
         else:
             print(shell_quote(command_parts(args)))
         return 0
