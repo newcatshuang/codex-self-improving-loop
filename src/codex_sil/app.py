@@ -8,7 +8,7 @@ import secrets
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 import webbrowser
 
 from .db import connect, init_db
@@ -61,18 +61,27 @@ class SilHandler(BaseHTTPRequestHandler):
         header = self.headers.get("Authorization", "")
         return header == f"Bearer {expected}"
 
+    def _query_authorized(self) -> bool:
+        expected = getattr(self.server, "token", "")
+        parsed = urlparse(self.path)
+        token = parse_qs(parsed.query).get("token", [""])[0]
+        return secrets.compare_digest(token, expected)
+
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path == "/api/health":
             self._json(200, {"ok": True, "host": LOCAL_HOST, "token_required": True})
             return
-        if not self._authorized():
-            self._json(401, {"error": "token required"})
-            return
         if parsed.path == "/api/summary":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
             self._json(200, summary_payload(getattr(self.server, "codex_root")))
             return
         if parsed.path in {"/", "/index.html"}:
+            if not (self._authorized() or self._query_authorized()):
+                self._json(401, {"error": "token required"})
+                return
             body = write_webui(getattr(self.server, "codex_root")).read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")

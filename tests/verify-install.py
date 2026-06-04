@@ -28,6 +28,7 @@ def main() -> int:
     run([sys.executable, str(repo / "tests" / "verify-v2-recall.py"), "--repo-root", str(repo), "--work-root", str(codex / "recall")], repo)
     run([sys.executable, str(repo / "tests" / "verify-v2-session-filter.py"), "--repo-root", str(repo), "--work-root", str(codex / "filter")], repo)
     run([sys.executable, str(repo / "tests" / "verify-v2-promotion.py"), "--repo-root", str(repo), "--work-root", str(codex / "promotion")], repo)
+    run([sys.executable, str(repo / "tests" / "verify-v2-scheduler.py"), "--repo-root", str(repo), "--work-root", str(codex / "scheduler")], repo)
     run(
         [
             sys.executable,

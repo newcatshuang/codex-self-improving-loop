@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import shutil
+import re
 from pathlib import Path
 
 from .db import connect, init_db
@@ -23,6 +24,13 @@ def review_candidate(root: Path, candidate_id: int, status: str, note: str | Non
 
 def archive_candidate(root: Path, candidate_id: int, note: str | None = None) -> None:
     review_candidate(root, candidate_id, "archived", note=note)
+
+
+def skill_slug(title: str, candidate_id: int) -> str:
+    base = re.sub(r"[^a-z0-9]+", "-", title.casefold()).strip("-")
+    if not base:
+        base = "learned-from-codex"
+    return f"{base[:48].strip('-')}-{candidate_id}"
 
 
 def promote_to_user_memory(root: Path, candidate_id: int, user_memory_path: Path | None = None) -> dict[str, str]:
@@ -56,14 +64,15 @@ def promote_to_user_memory(root: Path, candidate_id: int, user_memory_path: Path
 def promote_to_skill(root: Path, candidate_id: int, skills_root: Path | None = None) -> dict[str, str]:
     init_db(root)
     target_root = skills_root or Path.home() / ".agents" / "skills"
-    target = target_root / "learned-from-codex" / "SKILL.md"
-    target.parent.mkdir(parents=True, exist_ok=True)
     with connect(root) as conn:
         row = conn.execute("select title, rewrite_suggestion, text from candidates where id=?", (candidate_id,)).fetchone()
         if row is None:
             raise ValueError(f"candidate not found: {candidate_id}")
         title = str(row["title"] or "Learned From Codex")
         body = str(row["rewrite_suggestion"] or row["text"]).strip()
+    slug = skill_slug(title, candidate_id)
+    target = target_root / slug / "SKILL.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
     backup_path = ""
     if target.exists():
         backup = backups_dir(root) / f"SKILL.backup-{now_stamp()}.md"
@@ -72,11 +81,11 @@ def promote_to_skill(root: Path, candidate_id: int, skills_root: Path | None = N
     content = "\n".join(
         [
             "---",
-            "name: learned-from-codex",
+            f"name: {slug}",
             f"description: {title}",
             "---",
             "",
-            "# Learned From Codex",
+            f"# {title}",
             "",
             body,
             "",

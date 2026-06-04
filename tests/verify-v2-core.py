@@ -9,6 +9,8 @@ import os
 import sqlite3
 import subprocess
 import sys
+import threading
+import urllib.request
 from pathlib import Path
 
 
@@ -88,12 +90,32 @@ def main() -> int:
         raise AssertionError(f"serve smoke should enforce local token auth: {smoke_payload}")
     if not html_path.exists():
         raise FileNotFoundError(html_path)
+    sys.path.insert(0, str(repo / "src"))
+    from codex_sil.app import LOCAL_HOST, SilHandler
+    from http.server import ThreadingHTTPServer
+
+    server = ThreadingHTTPServer((LOCAL_HOST, 0), SilHandler)
+    server.codex_root = root
+    server.token = "test-token"
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        with urllib.request.urlopen(f"http://{LOCAL_HOST}:{server.server_port}/?token=test-token", timeout=5) as response:
+            page = response.read().decode("utf-8")
+        if "Codex Self-Improving Loop" not in page:
+            raise AssertionError("tokenized WebUI landing URL should return HTML")
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
     html = html_path.read_text(encoding="utf-8")
     for expected in (
         "Codex Self-Improving Loop",
         "Candidate Center",
         "Promotion Center",
         "Schedule Center",
+        "Rebuild Database",
+        "clear active data, and rescan all historical sessions",
         "initializeData",
         "installSchedule",
         "installShortcut",
@@ -106,6 +128,7 @@ def main() -> int:
         "/api/shortcut/install",
         "/api/install/skills",
         "/api/export/digest",
+        "/api/rebuild",
         "/api/candidates/${window.selectedCandidateId}/promote-skill",
     ):
         if expected not in html:

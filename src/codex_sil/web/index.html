@@ -137,7 +137,7 @@
     document.getElementById("exportDigest").addEventListener("click", async () => { await api("/api/export/digest", {method: "POST"}); });
     document.getElementById("exportCandidates").addEventListener("click", async () => { await api("/api/export/candidates", {method: "POST"}); });
     document.getElementById("rebuildButton").addEventListener("click", async () => {
-      if (confirm("Backup the current database and rebuild from all session history?")) {
+      if (confirm("Backup the current SQLite database, clear active data, and rescan all historical sessions?")) {
         await api("/api/rebuild", {method: "POST"});
         await refresh();
       }

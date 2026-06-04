@@ -52,6 +52,7 @@ python "$HOME/.agents/codex-self-improving-loop/sil.py" shortcut install
 - Runtime directory: `$HOME/.codex/self-improving-loop`
 - SQLite database: `$HOME/.codex/self-improving-loop/self-improving-loop.sqlite`
 - Local WebUI HTML: `$HOME/.codex/self-improving-loop/codex-self-improving-loop.html`
+- Installed app copy: `$HOME/.agents/codex-self-improving-loop`
 - Backups: `$HOME/.codex/self-improving-loop/backups`
 - Exports: `$HOME/.codex/self-improving-loop/exports`
 - Stable global memory: `$HOME/.codex/memories/USER.md`
@@ -60,6 +61,6 @@ python "$HOME/.agents/codex-self-improving-loop/sil.py" shortcut install
 
 1. Run `sil.py serve --open`.
 2. Review memory, skill, and skill patch candidates in the WebUI.
-3. Use WebUI buttons for review, archive, rebuild, scan, schedule, and promotion actions.
+3. Use WebUI buttons for review, archive, clear-and-rebuild, scan, schedule, and promotion actions.
 4. Behavior-changing actions require confirmation; the backend backs up target files and records audit logs.
 5. Do not manually edit the SQLite database unless debugging a backup copy.

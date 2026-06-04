@@ -51,6 +51,20 @@ def main() -> int:
     patch_result = promote_to_skill_patch(root, candidate_id)
     if not Path(skill_result["target_path"]).exists() or not Path(patch_result["target_path"]).exists():
         raise AssertionError("skill and patch promotions should write target artifacts")
+    second_skill = promote_to_skill(root, candidate_id, skills_root=root / "skills")
+    if Path(second_skill["target_path"]).parent.name != Path(skill_result["target_path"]).parent.name:
+        raise AssertionError("same candidate should keep a stable skill directory")
+    with sqlite3.connect(db) as conn:
+        conn.execute(
+            """
+            insert into candidates(type, title, text, normalized, destination, rewrite_suggestion, safety, confidence, extractor)
+            values('skill', 'Another Workflow', 'A second reusable workflow.', 'a second reusable workflow', 'skill_candidate', 'Use a separate skill.', 'review', 0.8, 'test')
+            """
+        )
+        second_candidate = int(conn.execute("select id from candidates where title='Another Workflow'").fetchone()[0])
+    other_skill = promote_to_skill(root, second_candidate, skills_root=root / "skills")
+    if Path(other_skill["target_path"]).parent == Path(skill_result["target_path"]).parent:
+        raise AssertionError("different skill candidates should create independent skill directories")
     digest = export_digest(root)
     candidates = export_candidates(root)
     if not digest.exists() or not candidates.exists():

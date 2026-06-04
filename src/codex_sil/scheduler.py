@@ -5,6 +5,7 @@ from __future__ import annotations
 import platform
 import subprocess
 import sys
+import os
 from pathlib import Path
 
 
@@ -18,6 +19,15 @@ def display_command(parts: list[str]) -> str:
 
 def windows_task_command(parts: list[str]) -> str:
     return subprocess.list2cmdline(parts)
+
+
+def launch_agent_path() -> Path:
+    return Path.home() / "Library" / "LaunchAgents" / "com.codex.self-improving-loop.plist"
+
+
+def systemd_user_dir() -> Path:
+    base = os.environ.get("XDG_CONFIG_HOME")
+    return (Path(base) if base else Path.home() / ".config") / "systemd" / "user"
 
 
 def schedule_command(repo_root: Path, codex_root: Path) -> str:
@@ -35,8 +45,8 @@ def install_schedule_dry_run(repo_root: Path, codex_root: Path) -> str:
     if system == "Windows":
         return f"schtasks.exe /Create /TN CodexSelfImprovingLoop /SC DAILY /ST 12:00 /TR {command} /F"
     if system == "Darwin":
-        return f"launchd daily 12:00 -> {command}"
-    return f"systemd user timer daily 12:00 -> {command}"
+        return f"launchd plist {launch_agent_path()} daily 12:00 -> {command}"
+    return f"systemd user timer {systemd_user_dir() / 'codex-self-improving-loop.timer'} daily 12:00 -> {command}"
 
 
 def install_shortcut_dry_run(repo_root: Path, codex_root: Path) -> str:
@@ -73,11 +83,81 @@ def install_schedule(repo_root: Path, codex_root: Path, dry_run: bool = False) -
             ],
             check=True,
         )
-    else:
-        # Non-Windows installation is intentionally file-based for portability in v2.
-        path = codex_root / "self-improving-loop" / "schedule-command.txt"
+    elif system == "Darwin":
+        path = launch_agent_path()
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(text + "\n", encoding="utf-8")
+        program_arguments = "\n".join(f"    <string>{part}</string>" for part in parts)
+        path.write_text(
+            "\n".join(
+                [
+                    '<?xml version="1.0" encoding="UTF-8"?>',
+                    '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">',
+                    '<plist version="1.0">',
+                    "<dict>",
+                    "  <key>Label</key>",
+                    "  <string>com.codex.self-improving-loop</string>",
+                    "  <key>ProgramArguments</key>",
+                    "  <array>",
+                    program_arguments,
+                    "  </array>",
+                    "  <key>StartCalendarInterval</key>",
+                    "  <dict>",
+                    "    <key>Hour</key>",
+                    "    <integer>12</integer>",
+                    "    <key>Minute</key>",
+                    "    <integer>0</integer>",
+                    "  </dict>",
+                    "  <key>StandardOutPath</key>",
+                    f"  <string>{codex_root / 'self-improving-loop' / 'schedule.log'}</string>",
+                    "  <key>StandardErrorPath</key>",
+                    f"  <string>{codex_root / 'self-improving-loop' / 'schedule.err.log'}</string>",
+                    "</dict>",
+                    "</plist>",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        subprocess.run(["launchctl", "unload", str(path)], check=False)
+        subprocess.run(["launchctl", "load", str(path)], check=True)
+    else:
+        user_dir = systemd_user_dir()
+        user_dir.mkdir(parents=True, exist_ok=True)
+        service = user_dir / "codex-self-improving-loop.service"
+        timer = user_dir / "codex-self-improving-loop.timer"
+        service.write_text(
+            "\n".join(
+                [
+                    "[Unit]",
+                    "Description=Codex Self-Improving Loop daily scan",
+                    "",
+                    "[Service]",
+                    "Type=oneshot",
+                    f"ExecStart={display_command(parts)}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        timer.write_text(
+            "\n".join(
+                [
+                    "[Unit]",
+                    "Description=Run Codex Self-Improving Loop daily scan at 12:00",
+                    "",
+                    "[Timer]",
+                    "OnCalendar=*-*-* 12:00:00",
+                    "Persistent=true",
+                    "",
+                    "[Install]",
+                    "WantedBy=timers.target",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
+        subprocess.run(["systemctl", "--user", "enable", "--now", "codex-self-improving-loop.timer"], check=True)
     return text
 
 
@@ -88,10 +168,23 @@ def uninstall_schedule(codex_root: Path, dry_run: bool = False) -> str:
         if not dry_run:
             subprocess.run(["schtasks.exe", "/Delete", "/TN", "CodexSelfImprovingLoop", "/F"], check=False)
         return command
-    path = codex_root / "self-improving-loop" / "schedule-command.txt"
-    if not dry_run and path.exists():
-        path.unlink()
-    return f"remove {path}"
+    if system == "Darwin":
+        path = launch_agent_path()
+        if not dry_run:
+            subprocess.run(["launchctl", "unload", str(path)], check=False)
+            if path.exists():
+                path.unlink()
+        return f"remove launchd plist {path}"
+    user_dir = systemd_user_dir()
+    service = user_dir / "codex-self-improving-loop.service"
+    timer = user_dir / "codex-self-improving-loop.timer"
+    if not dry_run:
+        subprocess.run(["systemctl", "--user", "disable", "--now", "codex-self-improving-loop.timer"], check=False)
+        for path in (service, timer):
+            if path.exists():
+                path.unlink()
+        subprocess.run(["systemctl", "--user", "daemon-reload"], check=False)
+    return f"remove systemd user timer {timer}"
 
 
 def install_shortcut(repo_root: Path, codex_root: Path, dry_run: bool = False) -> str:

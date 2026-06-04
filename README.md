@@ -51,6 +51,8 @@ The installer copies:
 - `codex/AGENTS.learning-block.md` into `$HOME/.codex/AGENTS.md`.
 - `codex/memories/USER.template.md` to `$HOME/.codex/memories/USER.md` only if missing.
 
+The `$HOME/.agents/codex-self-improving-loop` directory is the installed runtime copy used by schedules, shortcuts, and skills. Keeping this copy outside the Git checkout lets the local loop keep working even if the repository is moved, renamed, or deleted.
+
 ## Daily Use
 
 Start the temporary local WebUI backend:
@@ -59,7 +61,7 @@ Start the temporary local WebUI backend:
 python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open
 ```
 
-From the WebUI you can initialize or rebuild the database, scan sessions, install or remove the daily schedule, install the desktop shortcut, export review data, archive or reject candidates, and promote reviewed items to `USER.md`, a learned skill, or a skill patch artifact.
+From the WebUI you can initialize the database, clear current SQLite data and rebuild from all historical sessions, scan sessions, install or remove the daily schedule, install the desktop shortcut, export review data, archive or reject candidates, and promote reviewed items to `USER.md`, independent learned skills, or skill patch artifacts.
 
 Scan new sessions once:
 
@@ -85,6 +87,12 @@ Install helper commands:
 python "$HOME/.agents/codex-self-improving-loop/sil.py" schedule install
 python "$HOME/.agents/codex-self-improving-loop/sil.py" shortcut install
 ```
+
+Schedule installation is cross-platform:
+
+- Windows: creates or replaces the `CodexSelfImprovingLoop` Task Scheduler task.
+- macOS: writes and loads `~/Library/LaunchAgents/com.codex.self-improving-loop.plist`.
+- Linux: writes and enables a `systemd --user` timer at `$XDG_CONFIG_HOME/systemd/user` or `~/.config/systemd/user`.
 
 ## Extraction Strategy
 
@@ -116,6 +124,7 @@ python tests/verify-codex-runner.py --work-root ./tmp/codex-runner
 python tests/verify-v2-recall.py --work-root ./tmp/v2-recall
 python tests/verify-v2-session-filter.py --work-root ./tmp/v2-filter
 python tests/verify-v2-promotion.py --work-root ./tmp/v2-promotion
+python tests/verify-v2-scheduler.py --work-root ./tmp/v2-scheduler
 python tests/verify-v2-install.py --codex-root ./tmp/codex-v2 --agents-root ./tmp/agents-v2
 python tests/verify-install.py --codex-root ./tmp/install-codex --agents-root ./tmp/install-agents
 python -m compileall src sil.py install.py tests

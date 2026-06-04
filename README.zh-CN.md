@@ -51,6 +51,8 @@ python install.py
 - `codex/AGENTS.learning-block.md` 到 `$HOME/.codex/AGENTS.md`。
 - `codex/memories/USER.template.md` 到 `$HOME/.codex/memories/USER.md`，仅在目标不存在时复制。
 
+`$HOME/.agents/codex-self-improving-loop` 是安装后的运行副本，定时任务、桌面快捷方式和 skills 都指向这份副本。这样即使 Git 仓库目录被移动、改名或删除，本机循环仍能继续工作。
+
 ## 日常使用
 
 启动临时本地 WebUI 后端：
@@ -59,7 +61,7 @@ python install.py
 python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open
 ```
 
-在 WebUI 中可以初始化或重建数据库、扫描会话、安装或移除每日定时任务、安装桌面快捷方式、导出审阅数据、归档或拒绝候选，并将确认后的候选晋升到 `USER.md`、learned skill 或 skill patch 产物。
+在 WebUI 中可以初始化数据库、清空当前 SQLite 数据并全量重扫历史会话、扫描会话、安装或移除每日定时任务、安装桌面快捷方式、导出审阅数据、归档或拒绝候选，并将确认后的候选晋升到 `USER.md`、相互独立的 learned skills 或 skill patch 产物。
 
 扫描新增会话：
 
@@ -85,6 +87,12 @@ python "$HOME/.agents/codex-self-improving-loop/sil.py" recall --query "previous
 python "$HOME/.agents/codex-self-improving-loop/sil.py" schedule install
 python "$HOME/.agents/codex-self-improving-loop/sil.py" shortcut install
 ```
+
+定时任务安装支持跨平台：
+
+- Windows：创建或替换 `CodexSelfImprovingLoop` 计划任务。
+- macOS：写入并加载 `~/Library/LaunchAgents/com.codex.self-improving-loop.plist`。
+- Linux：写入并启用 `$XDG_CONFIG_HOME/systemd/user` 或 `~/.config/systemd/user` 下的 `systemd --user` timer。
 
 ## 提取策略
 
@@ -116,6 +124,7 @@ python tests/verify-codex-runner.py --work-root ./tmp/codex-runner
 python tests/verify-v2-recall.py --work-root ./tmp/v2-recall
 python tests/verify-v2-session-filter.py --work-root ./tmp/v2-filter
 python tests/verify-v2-promotion.py --work-root ./tmp/v2-promotion
+python tests/verify-v2-scheduler.py --work-root ./tmp/v2-scheduler
 python tests/verify-v2-install.py --codex-root ./tmp/codex-v2 --agents-root ./tmp/agents-v2
 python tests/verify-install.py --codex-root ./tmp/install-codex --agents-root ./tmp/install-agents
 python -m compileall src sil.py install.py tests
