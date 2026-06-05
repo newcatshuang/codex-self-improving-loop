@@ -308,6 +308,224 @@
       gap: 12px;
     }
 
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .task-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+      min-height: 116px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .task-card h3,
+    .operation-card h3,
+    .health-card h3 {
+      font-size: 14px;
+      line-height: 1.3;
+    }
+
+    .task-card.memory {
+      background: linear-gradient(180deg, var(--memory-bg), #ffffff);
+      border-color: var(--memory-line);
+    }
+
+    .task-card.review {
+      background: linear-gradient(180deg, var(--review-bg), #ffffff);
+      border-color: var(--review-line);
+    }
+
+    .task-card.skill {
+      background: linear-gradient(180deg, var(--skill-bg), #ffffff);
+      border-color: var(--skill-line);
+    }
+
+    .task-card.data {
+      background: linear-gradient(180deg, var(--data-bg), #ffffff);
+      border-color: var(--data-line);
+    }
+
+    .task-value {
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .task-copy {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .home-workbench {
+      display: grid;
+      gap: 12px;
+    }
+
+    .operation-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .operation-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      background: #ffffff;
+    }
+
+    .safe-operation-zone {
+      background: #f2fbf8;
+      border-color: var(--memory-line);
+    }
+
+    .danger-operation-zone {
+      background: #fff4f4;
+      border-color: var(--review-line);
+    }
+
+    .export-operation-zone {
+      background: #f3f7ff;
+      border-color: var(--skill-line);
+    }
+
+    .candidate-workspace {
+      display: grid;
+      grid-template-columns: minmax(430px, 1.25fr) minmax(330px, 0.85fr) minmax(270px, 360px);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .action-panel {
+      position: sticky;
+      top: 16px;
+    }
+
+    .action-card-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .action-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #ffffff;
+      display: grid;
+      gap: 6px;
+    }
+
+    .action-card.warning {
+      background: #fff7ed;
+      border-color: var(--patch-line);
+    }
+
+    .action-card.safe {
+      background: #effaf6;
+      border-color: var(--memory-line);
+    }
+
+    .action-card.danger {
+      background: #fff1f2;
+      border-color: var(--review-line);
+    }
+
+    .schedule-status-panel,
+    .doctor-health-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .health-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+      display: grid;
+      gap: 8px;
+      min-height: 96px;
+    }
+
+    .health-card.ok {
+      background: #f1fbf7;
+      border-color: var(--memory-line);
+    }
+
+    .health-card.warn {
+      background: #fff8ea;
+      border-color: var(--patch-line);
+    }
+
+    .health-card.error {
+      background: #fff1f2;
+      border-color: var(--review-line);
+    }
+
+    .run-workspace {
+      display: grid;
+      grid-template-columns: minmax(360px, 0.9fr) minmax(430px, 1.1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .module-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .timeline-item {
+      border-left: 3px solid var(--accent);
+      border-radius: 7px;
+      padding: 8px 10px;
+      background: #ffffff;
+      color: #2c3b36;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .change-summary {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .recall-result mark {
+      border-radius: 4px;
+      padding: 0 2px;
+      background: #fff0a8;
+      color: #17211d;
+    }
+
+    .clickable-row {
+      cursor: pointer;
+    }
+
     .panel {
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -777,11 +995,16 @@
       }
 
       .control-grid,
-      .workspace-grid {
+      .workspace-grid,
+      .candidate-workspace,
+      .run-workspace,
+      .operation-grid,
+      .task-grid {
         grid-template-columns: 1fr;
       }
 
-      .detail-panel {
+      .detail-panel,
+      .action-panel {
         position: static;
       }
 
@@ -891,6 +1114,31 @@
           </div>
         </section>
 
+        <section class="home-workbench" id="homeTaskBoard">
+          <section class="task-grid">
+            <article class="task-card review">
+              <h3 data-i18n="homeTodoTitle">Pending Workbench</h3>
+              <div class="task-value" id="homeTodoCount">0</div>
+              <p class="task-copy" id="homeTodoList" data-i18n="homeTodoEmpty">No open review work.</p>
+            </article>
+            <article class="task-card data" id="homeRiskPanel">
+              <h3 data-i18n="homeRiskTitle">Risk Watch</h3>
+              <div class="task-value" id="homeRiskCount">0</div>
+              <p class="task-copy" id="homeRiskCopy" data-i18n="homeRiskEmpty">No failed runs detected.</p>
+            </article>
+            <article class="task-card memory" id="homeRecentPromotions">
+              <h3 data-i18n="homePromotionTitle">Recent Promotions</h3>
+              <div class="task-value" id="homePromotionCount">0</div>
+              <p class="task-copy" id="homePromotionCopy" data-i18n="homePromotionEmpty">No promotions yet.</p>
+            </article>
+            <article class="task-card skill" id="homeQuickActions">
+              <h3 data-i18n="homeNextRunTitle">Next Scheduled Run</h3>
+              <div class="task-value">03:00</div>
+              <p class="task-copy" id="nextActionList" data-i18n="homeNextRunCopy">Daily local scan. Use Schedule Center to install or remove it.</p>
+            </article>
+          </section>
+        </section>
+
         <section class="control-grid">
           <section class="panel">
             <div class="panel-header">
@@ -930,14 +1178,32 @@
           </div>
           <div class="panel-body">
             <p class="panel-description" data-i18n="dataCenterDesc">Initialize, back up, rebuild, scan, or export the local SQLite learning database.</p>
-            <div class="toolbar">
-              <button id="refreshButton" data-action data-i18n="refresh">Refresh</button>
-              <button id="initializeData" data-action data-i18n="initializeData">Initialize Database</button>
-              <button class="secondary" id="backupDatabase" data-action data-i18n="backupDatabase">Backup Database</button>
-              <button class="secondary" id="rebuildButton" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
-              <button class="secondary" id="scanButton" data-action data-i18n="scanOnce">Scan Once</button>
-              <button class="secondary" id="exportDigest" data-action data-i18n="exportDigest">Export Digest</button>
-              <button class="secondary" id="exportCandidates" data-action data-i18n="exportCandidates">Export Candidates</button>
+            <div class="operation-grid">
+              <section class="operation-card safe-operation-zone" id="safeOperationZone">
+                <h3 data-i18n="safeOperationsTitle">Safe Operations</h3>
+                <p class="task-copy" data-i18n="safeOperationsDesc">Refresh, initialize, back up, or scan without clearing existing review queues.</p>
+                <div class="toolbar">
+                  <button id="refreshButton" data-action data-i18n="refresh">Refresh</button>
+                  <button id="initializeData" data-action data-i18n="initializeData">Initialize Database</button>
+                  <button class="secondary" id="backupDatabase" data-action data-i18n="backupDatabase">Backup Database</button>
+                  <button class="secondary" id="scanButton" data-action data-i18n="scanOnce">Scan Once</button>
+                </div>
+              </section>
+              <section class="operation-card danger-operation-zone" id="dangerOperationZone">
+                <h3 data-i18n="dangerOperationsTitle">Dangerous Operations</h3>
+                <p class="task-copy" data-i18n="dangerOperationsDesc">Rebuild clears active SQLite tables after creating a backup, then rescans history.</p>
+                <div class="toolbar">
+                  <button class="secondary" id="rebuildButton" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
+                </div>
+              </section>
+              <section class="operation-card export-operation-zone" id="exportOperationZone">
+                <h3 data-i18n="exportOperationsTitle">Export Operations</h3>
+                <p class="task-copy" data-i18n="exportOperationsDesc">Create review files from current data without changing candidate status.</p>
+                <div class="toolbar">
+                  <button class="secondary" id="exportDigest" data-action data-i18n="exportDigest">Export Digest</button>
+                  <button class="secondary" id="exportCandidates" data-action data-i18n="exportCandidates">Export Candidates</button>
+                </div>
+              </section>
             </div>
             <div class="progress-panel" id="progressPanel" aria-live="polite">
               <div class="progress-head">
@@ -951,7 +1217,7 @@
       </section>
 
       <section class="view-panel" data-view="candidates">
-        <section class="workspace-grid" id="candidateWorkspace">
+        <section class="candidate-workspace" id="candidateWorkspace">
         <section class="panel" id="candidateListPanel">
           <div class="panel-header">
             <h2 data-i18n="candidateCenter">Candidate Center</h2>
@@ -1069,6 +1335,29 @@
             <div class="toolbar" id="detailActions">
               <button class="secondary" id="copyRewrite" data-i18n="copyRewrite">Copy Rewrite</button>
               <button class="secondary" id="saveReview" data-action data-i18n="saveReview">Save Review</button>
+            </div>
+          </div>
+        </aside>
+
+        <aside class="panel action-panel" id="candidateActionPanel">
+          <div class="panel-header">
+            <h2 data-i18n="candidateActionsTitle">Action & Risk</h2>
+            <span class="tag status" id="candidateActionBadge" data-i18n="noneSelected">None</span>
+          </div>
+          <div class="panel-body action-card-grid">
+            <section class="action-card" id="candidateRiskSummary">
+              <div class="detail-label" data-i18n="riskSummaryTitle">Risk Summary</div>
+              <p class="task-copy" id="candidateRiskCopy" data-i18n="selectCandidateHint">Select a row to inspect the full candidate and promotion suggestion.</p>
+            </section>
+            <section class="action-card safe" id="candidateRecommendation">
+              <div class="detail-label" data-i18n="recommendedActionTitle">Recommended Action</div>
+              <p class="task-copy" id="candidateRecommendationCopy" data-i18n="selectCandidateHint">Select a row to inspect the full candidate and promotion suggestion.</p>
+            </section>
+            <section class="action-card" id="operationResult">
+              <div class="detail-label" data-i18n="operationResultTitle">Last Operation Result</div>
+              <p class="task-copy" id="operationResultCopy" data-i18n="operationResultIdle">No operation has run in this session.</p>
+            </section>
+            <div class="toolbar">
               <button class="secondary" id="archiveSelected" data-action data-i18n="archiveSelected">Archive Selected</button>
               <button class="secondary" id="rejectSelected" data-action data-i18n="rejectSelected">Reject Selected</button>
               <button id="promoteSelected" data-action data-i18n="promoteUser">Promote Selected To USER.md</button>
@@ -1113,7 +1402,25 @@
           </div>
           <div class="panel-body">
             <p class="panel-description" data-i18n="scheduleDesc">Install or remove the daily 03:00 scan and desktop WebUI launcher. The scheduled task runs <code>sil.py scan --once</code>.</p>
-            <div class="toolbar">
+            <section class="schedule-status-panel" id="scheduleStatusPanel">
+              <article class="health-card warn" id="scheduleCurrentStatusCard">
+                <h3 data-i18n="scheduleCurrentStatusTitle">Current Status</h3>
+                <p class="task-copy" id="scheduleCurrentStatus" data-i18n="scheduleStatusUnknown">Schedule status has not loaded yet.</p>
+              </article>
+              <article class="health-card ok">
+                <h3 data-i18n="scheduleTargetTitle">Schedule Target</h3>
+                <p class="task-copy" id="nextRunTime" data-i18n="nextRunTimeText">下一次运行: daily 03:00</p>
+              </article>
+              <article class="health-card" id="lastScheduledRunCard">
+                <h3 data-i18n="lastRunTitle">Last Run Result</h3>
+                <p class="task-copy" id="lastScheduledRun" data-i18n="emptyRuns">No run logs yet.</p>
+              </article>
+              <article class="health-card warn">
+                <h3 data-i18n="schedulerCommandTitle">Command Preview</h3>
+                <p class="task-copy" id="schedulerCommandPreview"><code>sil.py scan --once</code></p>
+              </article>
+            </section>
+            <div class="toolbar" id="scheduleActionZone">
               <button id="installSchedule" data-action data-i18n="installSchedule">Install Schedule</button>
               <button class="secondary" id="uninstallSchedule" data-action data-i18n="uninstallSchedule">Uninstall Schedule</button>
               <button id="installShortcut" data-action data-i18n="installShortcut">Install Desktop Shortcut</button>
@@ -1124,8 +1431,8 @@
       </section>
 
       <section class="view-panel" data-view="runs">
-        <section class="module-grid">
-          <section class="panel">
+        <section class="run-workspace" id="runWorkspace">
+          <section class="panel" id="runListPanel">
             <div class="panel-header">
               <h2 data-i18n="runLogs">Run Logs</h2>
             </div>
@@ -1146,9 +1453,10 @@
             </div>
           </section>
 
-          <section class="panel">
+          <section class="panel" id="runDetailPanel">
             <div class="panel-header">
               <h2 data-i18n="runSteps">Run Steps</h2>
+              <span class="tag status" id="selectedRunSummary" data-i18n="noneSelected">None</span>
             </div>
             <div class="table-wrap">
               <table>
@@ -1176,6 +1484,11 @@
           <div class="panel-body">
             <div class="toolbar">
               <input class="search-input" id="recallSearch" type="search" data-i18n-placeholder="recallPlaceholder" placeholder="Search sessions and candidates">
+              <select class="filter-select" id="recallTypeFilter" aria-label="Recall result type">
+                <option value="all" data-i18n="filterAll">All</option>
+                <option value="session" data-i18n="recallTypeSession">Sessions</option>
+                <option value="candidate" data-i18n="recallTypeCandidate">Candidates</option>
+              </select>
               <select class="filter-select" id="recallLimit" aria-label="Recall result limit">
                 <option value="5">5</option>
                 <option value="10" selected>10</option>
@@ -1184,6 +1497,7 @@
               </select>
               <button id="recallButton" type="button" data-i18n="recallButton">Search</button>
             </div>
+            <p class="panel-description" id="recallResultSummary" data-i18n="emptyRecall">No matching sessions or candidates.</p>
             <ul class="simple-list" id="recallResults"></ul>
           </div>
         </section>
@@ -1194,6 +1508,9 @@
           <div class="panel-header">
             <h2 data-i18n="auditCenter">Audit Center</h2>
             <button class="secondary" type="button" id="refreshAudit" data-i18n="refresh">Refresh</button>
+          </div>
+          <div class="module-toolbar" id="auditFilterBar">
+            <input class="search-input" id="auditSearch" type="search" data-i18n-placeholder="auditSearchPlaceholder" placeholder="Filter audit actions">
           </div>
           <div class="table-wrap">
             <table>
@@ -1209,6 +1526,10 @@
                 <tr><td class="empty-row" colspan="4" data-i18n="loading">Loading data...</td></tr>
               </tbody>
             </table>
+          </div>
+          <div class="panel-body">
+            <h3 data-i18n="timelineTitle">Timeline</h3>
+            <ul class="timeline" id="auditTimeline"></ul>
           </div>
         </section>
       </section>
@@ -1237,6 +1558,10 @@
                 </tbody>
               </table>
             </div>
+            <div class="panel-body">
+              <h3 data-i18n="timelineTitle">Timeline</h3>
+              <ul class="timeline" id="promotionTimeline"></ul>
+            </div>
           </section>
 
           <section class="panel">
@@ -1247,6 +1572,7 @@
             <div class="panel-body" id="rollbackPreview">
               <p class="panel-description" data-i18n="rollbackHint">Select a promotion to view the backup path and a copy-only restore command. The WebUI does not run rollback automatically.</p>
             </div>
+            <div class="panel-body change-summary" id="targetChangeSummary"></div>
             <div class="toolbar">
               <button class="secondary" type="button" id="copyRollback" data-i18n="copyRollback">Copy Rollback Command</button>
             </div>
@@ -1259,6 +1585,14 @@
           <div class="panel-header">
             <h2 data-i18n="reviewHistory">Review History</h2>
             <button class="secondary" type="button" id="refreshReviews" data-i18n="refresh">Refresh</button>
+          </div>
+          <div class="module-toolbar" id="reviewHistoryFilters">
+            <select class="filter-select" id="reviewHistoryStatusFilter" aria-label="Review history status">
+              <option value="all" data-i18n="statusAll">All Statuses</option>
+              <option value="reviewed" data-i18n="statusReviewed">Reviewed</option>
+              <option value="rejected" data-i18n="statusRejected">Rejected</option>
+            </select>
+            <input class="search-input" id="reviewHistorySearch" type="search" data-i18n-placeholder="reviewHistorySearchPlaceholder" placeholder="Filter review history">
           </div>
           <div class="table-wrap">
             <table>
@@ -1276,6 +1610,10 @@
               </tbody>
             </table>
           </div>
+          <div class="panel-body">
+            <h3 data-i18n="timelineTitle">Timeline</h3>
+            <ul class="timeline" id="reviewTimeline"></ul>
+          </div>
         </section>
       </section>
 
@@ -1283,6 +1621,13 @@
         <section class="panel">
           <div class="panel-header">
             <h2 data-i18n="doctorTitle">Doctor</h2>
+          </div>
+          <div class="panel-body">
+            <section class="doctor-health-grid" id="doctorHealthGrid"></section>
+            <div class="toolbar" id="doctorFixActions">
+              <button class="secondary" type="button" id="doctorRefresh" data-i18n="refresh">Refresh</button>
+              <button class="secondary" type="button" id="doctorOpenData" data-i18n="openDataCenter">Open Data Center</button>
+            </div>
           </div>
           <div class="table-wrap">
             <table>
@@ -1331,6 +1676,64 @@
         promotionCenterDesc: "Select a candidate in Candidate Center, then use the right-side review actions to promote it into USER.md, AGENTS.md, a skill, or a skill patch.",
         skillManagement: "Skill Management",
         skillManagementDesc: "Install local skills, inspect usage telemetry, and review skill patch candidates from the candidate queue.",
+        homeTodoTitle: "Pending Workbench",
+        homeTodoEmpty: "No open review work.",
+        homeTodoCopy: "{review} review / {blocked} blocked",
+        homeRiskTitle: "Risk Watch",
+        homeRiskEmpty: "No failed runs detected.",
+        homeRiskCopy: "{failed} failed run(s) need attention.",
+        homePromotionTitle: "Recent Promotions",
+        homePromotionEmpty: "No promotions yet.",
+        homePromotionCopy: "Latest: {item}",
+        homeNextRunTitle: "Next Scheduled Run",
+        homeNextRunCopy: "Daily local scan. Use Schedule Center to install or remove it.",
+        safeOperationsTitle: "Safe Operations",
+        safeOperationsDesc: "Refresh, initialize, back up, or scan without clearing existing review queues.",
+        dangerOperationsTitle: "Dangerous Operations",
+        dangerOperationsDesc: "Rebuild clears active SQLite tables after creating a backup, then rescans history.",
+        exportOperationsTitle: "Export Operations",
+        exportOperationsDesc: "Create review files from current data without changing candidate status.",
+        candidateActionsTitle: "Action & Risk",
+        riskSummaryTitle: "Risk Summary",
+        recommendedActionTitle: "Recommended Action",
+        operationResultTitle: "Last Operation Result",
+        operationResultIdle: "No operation has run in this session.",
+        operationResultSuccess: "Completed: {message}",
+        riskBlocked: "Blocked or unsafe. Review evidence and resolve conflicts before promotion.",
+        riskReview: "Needs human review. Check source files, rewrite, destination, and safety.",
+        riskSafe: "No blocking signal detected. Promotion is still explicit and reversible through backups where supported.",
+        recommendMemory: "Promote to USER.md only for durable global preferences; use AGENTS.md for project facts.",
+        recommendAgents: "This looks project-scoped. Prefer project AGENTS.md when the fact is not universal.",
+        recommendSkill: "Promote as an independent skill when the workflow is reusable across tasks.",
+        recommendPatch: "Export as a skill patch artifact, then review before applying it to an existing skill.",
+        scheduleTargetTitle: "Schedule Target",
+        scheduleCurrentStatusTitle: "Current Status",
+        scheduleStatusUnknown: "Schedule status has not loaded yet.",
+        scheduleStatusInstalled: "Installed on {system}.",
+        scheduleStatusNotInstalled: "Not installed on {system}.",
+        nextRunTimeText: "下一次运行: daily 03:00",
+        lastRunTitle: "Last Run Result",
+        schedulerCommandTitle: "Command Preview",
+        lastRunCopy: "{status} · {time} · {detail}",
+        recallTypeSession: "Sessions",
+        recallTypeCandidate: "Candidates",
+        recallResultCount: "{count} result(s)",
+        auditSearchPlaceholder: "Filter audit actions",
+        reviewHistorySearchPlaceholder: "Filter review history",
+        statusReviewed: "Reviewed",
+        timelineTitle: "Timeline",
+        doctorHealthTitle: "Health Check",
+        doctorRuntimeOk: "Runtime paths are available.",
+        doctorRuntimeWarn: "Runtime paths have not loaded yet.",
+        doctorDbOk: "SQLite database path is configured.",
+        doctorDbWarn: "Database path is missing.",
+        doctorHostOk: "Service is bound to 127.0.0.1.",
+        doctorHostWarn: "Service host needs review.",
+        doctorRunOk: "Latest run completed successfully.",
+        doctorRunWarn: "No successful recent run found.",
+        openDataCenter: "Open Data Center",
+        targetChangeTitle: "Target Change Summary",
+        targetChangeEmpty: "Select a promotion to see target and backup details.",
         recentRuns: "Recent Runs",
         errorAlerts: "Error Alerts",
         runLogs: "Run Logs",
@@ -1593,6 +1996,64 @@
         promotionCenterDesc: "先在候选中心选择一条记录，再使用右侧审阅操作晋升到 USER.md、AGENTS.md、技能或技能补丁。",
         skillManagement: "Skill 管理",
         skillManagementDesc: "安装本地技能，查看技能使用遥测，并从候选队列处理技能补丁。",
+        homeTodoTitle: "待处理工作台",
+        homeTodoEmpty: "暂无待处理审阅工作。",
+        homeTodoCopy: "{review} 个待审 / {blocked} 个阻断",
+        homeRiskTitle: "风险观察",
+        homeRiskEmpty: "暂无失败运行。",
+        homeRiskCopy: "{failed} 个失败运行需要关注。",
+        homePromotionTitle: "最近晋升",
+        homePromotionEmpty: "暂无晋升记录。",
+        homePromotionCopy: "最近：{item}",
+        homeNextRunTitle: "下一次运行",
+        homeNextRunCopy: "每日本地扫描。可在调度中心安装或移除。",
+        safeOperationsTitle: "安全操作",
+        safeOperationsDesc: "刷新、初始化、备份或扫描，不会清空已有审阅队列。",
+        dangerOperationsTitle: "危险操作",
+        dangerOperationsDesc: "重建会先备份，再清空当前 SQLite 表，并重新扫描历史。",
+        exportOperationsTitle: "导出操作",
+        exportOperationsDesc: "从当前数据生成审阅文件，不改变候选状态。",
+        candidateActionsTitle: "操作与风险",
+        riskSummaryTitle: "风险摘要",
+        recommendedActionTitle: "推荐动作",
+        operationResultTitle: "最近操作结果",
+        operationResultIdle: "本次页面会话尚未执行操作。",
+        operationResultSuccess: "已完成：{message}",
+        riskBlocked: "存在阻断或不安全信号。晋升前需要核对证据并处理冲突。",
+        riskReview: "需要人工审阅。请核对来源、改写、归属和安全状态。",
+        riskSafe: "未发现阻断信号。晋升仍需要明确点击，支持备份的目标可按历史回滚。",
+        recommendMemory: "只有稳定的全局偏好才晋升到 USER.md；项目事实优先放 AGENTS.md。",
+        recommendAgents: "这更像项目级事实。若不是全局规则，优先晋升到项目 AGENTS.md。",
+        recommendSkill: "当该流程可跨任务复用时，适合晋升为独立技能。",
+        recommendPatch: "导出为技能补丁产物，再人工复核后应用到已有技能。",
+        scheduleTargetTitle: "调度目标",
+        scheduleCurrentStatusTitle: "当前状态",
+        scheduleStatusUnknown: "尚未加载调度状态。",
+        scheduleStatusInstalled: "已在 {system} 安装。",
+        scheduleStatusNotInstalled: "未在 {system} 安装。",
+        nextRunTimeText: "下一次运行: daily 03:00",
+        lastRunTitle: "最近运行结果",
+        schedulerCommandTitle: "命令预览",
+        lastRunCopy: "{status} · {time} · {detail}",
+        recallTypeSession: "会话",
+        recallTypeCandidate: "候选",
+        recallResultCount: "{count} 条结果",
+        auditSearchPlaceholder: "筛选审计操作",
+        reviewHistorySearchPlaceholder: "筛选审阅历史",
+        statusReviewed: "已审阅",
+        timelineTitle: "时间线",
+        doctorHealthTitle: "健康检查",
+        doctorRuntimeOk: "运行目录已可用。",
+        doctorRuntimeWarn: "运行目录尚未加载。",
+        doctorDbOk: "SQLite 数据库路径已配置。",
+        doctorDbWarn: "数据库路径缺失。",
+        doctorHostOk: "服务绑定在 127.0.0.1。",
+        doctorHostWarn: "服务绑定地址需要检查。",
+        doctorRunOk: "最近运行已成功完成。",
+        doctorRunWarn: "暂无成功的最近运行。",
+        openDataCenter: "打开数据中心",
+        targetChangeTitle: "目标文件变更摘要",
+        targetChangeEmpty: "选择晋升记录后查看目标和备份详情。",
         recentRuns: "最近运行",
         errorAlerts: "错误提示",
         runLogs: "运行日志",
@@ -1849,12 +2310,19 @@
     let currentView = "home";
     let latestRuns = [];
     let latestRunSteps = [];
+    let selectedRunId = null;
+    let scheduleInfo = null;
     let recallMatches = [];
+    let recallTypeFilter = "all";
     let doctorInfo = {};
     let auditItems = [];
+    let auditSearch = "";
     let promotionItems = [];
     let reviewItems = [];
+    let reviewHistoryStatusFilter = "all";
+    let reviewHistorySearch = "";
     let rollbackInfo = null;
+    let lastOperationMessage = "";
     window.selectedCandidateId = null;
 
     function initialLanguage() {
@@ -1891,13 +2359,18 @@
       renderSummary(currentSummary);
       renderCandidates();
       renderSelected();
+      renderCandidateActionPanel();
       renderRuns();
       renderRecallResults();
       renderDoctor();
+      renderDoctorHealth();
       renderAudit();
       renderPromotions();
       renderReviews();
       renderRollbackPreview();
+      renderHomeTasks();
+      renderScheduleStatus();
+      refreshScheduleStatus().catch((error) => console.warn(error));
     }
 
     let currentSummary = {memory: 0, skill: 0, skill_patch: 0, review: 0};
@@ -1979,6 +2452,7 @@
         rejected: currentSummary.rejected || 0,
         archived: currentSummary.archived || 0,
       }) + " · " + t("destinationBreakdown", {items: formatDestinationSummary(currentSummary.by_destination)});
+      renderHomeTasks();
     }
 
     function renderSkillUsageList(items) {
@@ -2029,6 +2503,123 @@
         hour: "2-digit",
         minute: "2-digit",
       }).format(date);
+    }
+
+    function lastRun() {
+      return latestRuns[0] || null;
+    }
+
+    function latestFailureCount() {
+      return latestRuns.filter((run) => run.status === "failed").length;
+    }
+
+    function renderHomeTasks() {
+      const todoCount = document.getElementById("homeTodoCount");
+      const todoList = document.getElementById("homeTodoList");
+      const riskCount = document.getElementById("homeRiskCount");
+      const riskCopy = document.getElementById("homeRiskCopy");
+      const promotionCount = document.getElementById("homePromotionCount");
+      const promotionCopy = document.getElementById("homePromotionCopy");
+      if (!todoCount || !todoList || !riskCount || !riskCopy || !promotionCount || !promotionCopy) {
+        return;
+      }
+      const review = currentSummary.review || 0;
+      const blocked = currentSummary.blocked || 0;
+      todoCount.textContent = review + blocked;
+      todoList.textContent = review + blocked ? t("homeTodoCopy", {review, blocked}) : t("homeTodoEmpty");
+      const failures = latestFailureCount();
+      riskCount.textContent = failures;
+      riskCopy.textContent = failures ? t("homeRiskCopy", {failed: failures}) : t("homeRiskEmpty");
+      promotionCount.textContent = promotionItems.length;
+      const latest = promotionItems[0];
+      promotionCopy.textContent = latest
+        ? t("homePromotionCopy", {item: `${latest.target_type || "-"} · ${formatDateTime(latest.created_at)}`})
+        : t("homePromotionEmpty");
+    }
+
+    function renderScheduleStatus() {
+      const status = document.getElementById("scheduleCurrentStatus");
+      const statusCard = document.getElementById("scheduleCurrentStatusCard");
+      const last = document.getElementById("lastScheduledRun");
+      const command = document.getElementById("schedulerCommandPreview");
+      if (!last || !command) {
+        return;
+      }
+      if (status && statusCard) {
+        if (!scheduleInfo) {
+          status.textContent = t("scheduleStatusUnknown");
+          statusCard.className = "health-card warn";
+        } else {
+          status.textContent = scheduleInfo.installed
+            ? t("scheduleStatusInstalled", {system: scheduleInfo.system || "-"})
+            : t("scheduleStatusNotInstalled", {system: scheduleInfo.system || "-"});
+          statusCard.className = `health-card ${scheduleInfo.installed ? "ok" : "warn"}`;
+        }
+      }
+      const run = lastRun();
+      last.textContent = run ? t("lastRunCopy", {
+        status: run.status || "-",
+        time: formatDateTime(run.finished_at || run.started_at),
+        detail: run.detail || run.kind || "-",
+      }) : t("emptyRuns");
+      command.textContent = scheduleInfo && scheduleInfo.command ? scheduleInfo.command : "sil.py scan --once";
+    }
+
+    function candidateRisk(candidate) {
+      if (!candidate) {
+        return {className: "", text: t("selectCandidateHint")};
+      }
+      const status = String(candidate.status || "").toLowerCase();
+      const safety = String(candidate.safety || "").toLowerCase();
+      if (status === "blocked" || safety.includes("conflict") || safety.includes("unsafe")) {
+        return {className: "danger", text: t("riskBlocked")};
+      }
+      if (status === "review") {
+        return {className: "warning", text: t("riskReview")};
+      }
+      return {className: "safe", text: t("riskSafe")};
+    }
+
+    function candidateRecommendation(candidate) {
+      if (!candidate) {
+        return t("selectCandidateHint");
+      }
+      if (candidate.type === "skill") {
+        return t("recommendSkill");
+      }
+      if (candidate.type === "skill_patch") {
+        return t("recommendPatch");
+      }
+      if (String(candidate.destination || "").toLowerCase().includes("agents")) {
+        return t("recommendAgents");
+      }
+      return t("recommendMemory");
+    }
+
+    function renderCandidateActionPanel() {
+      const badge = document.getElementById("candidateActionBadge");
+      const riskPanel = document.getElementById("candidateRiskSummary");
+      const riskCopy = document.getElementById("candidateRiskCopy");
+      const recommendation = document.getElementById("candidateRecommendationCopy");
+      const result = document.getElementById("operationResultCopy");
+      if (!badge || !riskPanel || !riskCopy || !recommendation || !result) {
+        return;
+      }
+      if (!selectedCandidate) {
+        badge.textContent = t("noneSelected");
+        badge.className = "tag status";
+        riskPanel.className = "action-card";
+        riskCopy.textContent = t("selectCandidateHint");
+        recommendation.textContent = t("selectCandidateHint");
+      } else {
+        const risk = candidateRisk(selectedCandidate);
+        badge.textContent = selectedCandidate.status || t("noneSelected");
+        badge.className = `tag ${selectedCandidate.status === "blocked" ? "review" : "status"}`;
+        riskPanel.className = `action-card ${risk.className}`.trim();
+        riskCopy.textContent = risk.text;
+        recommendation.textContent = candidateRecommendation(selectedCandidate);
+      }
+      result.textContent = lastOperationMessage || t("operationResultIdle");
     }
 
     function tag(text, className = "") {
@@ -2088,6 +2679,15 @@
       }
       for (const run of runs) {
         const row = document.createElement("tr");
+        if (!compact) {
+          row.dataset.runId = run.id;
+          row.classList.add("clickable-row");
+          row.classList.toggle("selected-row", String(run.id) === String(selectedRunId));
+          row.addEventListener("click", () => {
+            selectedRunId = run.id;
+            renderRuns();
+          });
+        }
         const kind = cell();
         kind.textContent = run.kind || "-";
         row.appendChild(kind);
@@ -2108,12 +2708,19 @@
 
     function renderRunSteps() {
       const body = document.getElementById("runStepRows");
+      const summary = document.getElementById("selectedRunSummary");
       body.innerHTML = "";
-      if (!latestRunSteps.length) {
+      const run = latestRuns.find((item) => String(item.id) === String(selectedRunId)) || null;
+      const steps = selectedRunId ? latestRunSteps.filter((step) => String(step.run_id) === String(selectedRunId)) : latestRunSteps;
+      if (summary) {
+        summary.textContent = run ? `#${run.id} · ${run.status || "-"}` : t("noneSelected");
+        summary.className = `tag ${run && run.status === "failed" ? "review" : "status"}`;
+      }
+      if (!steps.length) {
         renderEmptyRow(body, 3, "emptyRuns");
         return;
       }
-      for (const step of latestRunSteps) {
+      for (const step of steps) {
         const row = document.createElement("tr");
         const status = cell();
         status.appendChild(tag(step.status || "-", step.status === "failed" ? "review" : "status"));
@@ -2148,6 +2755,9 @@
     function renderRuns() {
       const homeRows = document.getElementById("homeRunRows");
       const runRows = document.getElementById("runRows");
+      if (!selectedRunId && latestRuns.length) {
+        selectedRunId = latestRuns[0].id;
+      }
       if (homeRows) {
         renderRunRows(homeRows, latestRuns.slice(0, 5), true);
       }
@@ -2156,22 +2766,98 @@
       }
       renderRunSteps();
       renderErrors();
+      renderScheduleStatus();
+      renderHomeTasks();
     }
 
     function renderRecallResults() {
       const list = document.getElementById("recallResults");
+      const summary = document.getElementById("recallResultSummary");
+      const query = document.getElementById("recallSearch") ? document.getElementById("recallSearch").value.trim() : "";
+      const filtered = recallMatches.filter((result) => recallTypeFilter === "all" || result.kind === recallTypeFilter);
       list.innerHTML = "";
-      if (!recallMatches.length) {
+      if (summary) {
+        summary.textContent = filtered.length ? t("recallResultCount", {count: filtered.length}) : t("emptyRecall");
+      }
+      if (!filtered.length) {
         const item = document.createElement("li");
         item.textContent = t("emptyRecall");
         list.appendChild(item);
         return;
       }
-      for (const result of recallMatches) {
+      for (const result of filtered) {
         const item = document.createElement("li");
+        item.className = "recall-result";
         const label = [result.kind, result.type, result.destination].filter(Boolean).join(" / ");
-        item.textContent = `${label || "result"} · ${result.path || "-"}\n${result.snippet || ""}`;
+        const heading = document.createElement("div");
+        heading.className = "candidate-title";
+        heading.textContent = `${label || "result"} · ${result.path || "-"}`;
+        const snippet = document.createElement("div");
+        snippet.className = "candidate-snippet";
+        snippet.innerHTML = highlightText(result.snippet || "", query);
+        item.append(heading, snippet);
         list.appendChild(item);
+      }
+    }
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function highlightText(text, query) {
+      const escaped = escapeHtml(text);
+      const needle = String(query || "").trim();
+      if (!needle) {
+        return escaped;
+      }
+      const escapedNeedle = escapeHtml(needle).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return escaped.replace(new RegExp(escapedNeedle, "gi"), (match) => `<mark>${match}</mark>`);
+    }
+
+    function renderDoctorHealth() {
+      const grid = document.getElementById("doctorHealthGrid");
+      if (!grid) {
+        return;
+      }
+      grid.innerHTML = "";
+      const latest = lastRun();
+      const cards = [
+        {
+          title: "Runtime",
+          tone: doctorInfo.runtime_dir ? "ok" : "warn",
+          text: doctorInfo.runtime_dir ? t("doctorRuntimeOk") : t("doctorRuntimeWarn"),
+        },
+        {
+          title: "SQLite",
+          tone: doctorInfo.database ? "ok" : "warn",
+          text: doctorInfo.database ? t("doctorDbOk") : t("doctorDbWarn"),
+        },
+        {
+          title: "127.0.0.1",
+          tone: doctorInfo.service_host === "127.0.0.1" ? "ok" : "error",
+          text: doctorInfo.service_host === "127.0.0.1" ? t("doctorHostOk") : t("doctorHostWarn"),
+        },
+        {
+          title: t("lastRunTitle"),
+          tone: latest && latest.status === "ok" ? "ok" : "warn",
+          text: latest && latest.status === "ok" ? t("doctorRunOk") : t("doctorRunWarn"),
+        },
+      ];
+      for (const card of cards) {
+        const item = document.createElement("article");
+        item.className = `health-card ${card.tone}`;
+        const title = document.createElement("h3");
+        title.textContent = card.title;
+        const text = document.createElement("p");
+        text.className = "task-copy";
+        text.textContent = card.text;
+        item.append(title, text);
+        grid.appendChild(item);
       }
     }
 
@@ -2196,6 +2882,7 @@
         row.appendChild(valueCell);
         body.appendChild(row);
       }
+      renderDoctorHealth();
     }
 
     function renderAudit() {
@@ -2204,11 +2891,19 @@
         return;
       }
       body.innerHTML = "";
-      if (!auditItems.length) {
+      const normalized = auditSearch.trim().toLowerCase();
+      const items = auditItems.filter((item) => {
+        if (!normalized) {
+          return true;
+        }
+        return [item.action, item.target, item.detail].filter(Boolean).join(" ").toLowerCase().includes(normalized);
+      });
+      if (!items.length) {
         renderEmptyRow(body, 4, "emptyAudit");
+        renderTimeline("auditTimeline", [], "emptyAudit", (item) => item);
         return;
       }
-      for (const item of auditItems) {
+      for (const item of items) {
         const row = document.createElement("tr");
         const action = cell();
         action.textContent = item.action || "-";
@@ -2224,6 +2919,7 @@
         row.appendChild(created);
         body.appendChild(row);
       }
+      renderTimeline("auditTimeline", items.slice(0, 12), "emptyAudit", (item) => `${formatDateTime(item.created_at)} · ${item.action || "-"} · ${item.target || "-"}`);
     }
 
     function renderPromotions() {
@@ -2234,6 +2930,7 @@
       body.innerHTML = "";
       if (!promotionItems.length) {
         renderEmptyRow(body, 6, "emptyPromotions");
+        renderTimeline("promotionTimeline", [], "emptyPromotions", (item) => item);
         return;
       }
       for (const item of promotionItems) {
@@ -2274,6 +2971,7 @@
         row.appendChild(action);
         body.appendChild(row);
       }
+      renderTimeline("promotionTimeline", promotionItems.slice(0, 12), "emptyPromotions", (item) => `${formatDateTime(item.created_at)} · ${item.target_type || "-"} · ${item.candidate_title || item.detail || "-"}`);
     }
 
     function renderReviews() {
@@ -2282,11 +2980,22 @@
         return;
       }
       body.innerHTML = "";
-      if (!reviewItems.length) {
+      const normalized = reviewHistorySearch.trim().toLowerCase();
+      const items = reviewItems.filter((item) => {
+        if (reviewHistoryStatusFilter !== "all" && item.status !== reviewHistoryStatusFilter) {
+          return false;
+        }
+        if (!normalized) {
+          return true;
+        }
+        return [item.status, item.note, item.rewrite_text, item.candidate_title, item.destination].filter(Boolean).join(" ").toLowerCase().includes(normalized);
+      });
+      if (!items.length) {
         renderEmptyRow(body, 5, "emptyReviews");
+        renderTimeline("reviewTimeline", [], "emptyReviews", (item) => item);
         return;
       }
-      for (const item of reviewItems) {
+      for (const item of items) {
         const row = document.createElement("tr");
         const status = cell();
         status.appendChild(tag(item.status || "-", item.status === "rejected" ? "review" : "status"));
@@ -2304,6 +3013,62 @@
         created.textContent = formatDateTime(item.created_at);
         row.appendChild(created);
         body.appendChild(row);
+      }
+      renderTimeline("reviewTimeline", items.slice(0, 12), "emptyReviews", (item) => `${formatDateTime(item.created_at)} · ${item.status || "-"} · ${item.candidate_title || item.destination || "-"}`);
+    }
+
+    function renderTimeline(elementId, items, emptyKey, formatItem) {
+      const list = document.getElementById(elementId);
+      if (!list) {
+        return;
+      }
+      list.innerHTML = "";
+      if (!items.length) {
+        const empty = document.createElement("li");
+        empty.className = "timeline-item";
+        empty.textContent = t(emptyKey);
+        list.appendChild(empty);
+        return;
+      }
+      for (const item of items) {
+        const row = document.createElement("li");
+        row.className = "timeline-item";
+        row.textContent = formatItem(item);
+        list.appendChild(row);
+      }
+    }
+
+    function renderTargetChangeSummary() {
+      const panel = document.getElementById("targetChangeSummary");
+      if (!panel) {
+        return;
+      }
+      panel.innerHTML = "";
+      const heading = document.createElement("h3");
+      heading.textContent = t("targetChangeTitle");
+      panel.appendChild(heading);
+      if (!rollbackInfo) {
+        const empty = document.createElement("p");
+        empty.className = "task-copy";
+        empty.textContent = t("targetChangeEmpty");
+        panel.appendChild(empty);
+        return;
+      }
+      const values = [
+        [t("targetPathLabel"), rollbackInfo.target_path || "-"],
+        [t("backupPathLabel"), rollbackInfo.backup_path || "-"],
+      ];
+      for (const [label, value] of values) {
+        const block = document.createElement("div");
+        block.className = "action-card";
+        const name = document.createElement("div");
+        name.className = "detail-label";
+        name.textContent = label;
+        const text = document.createElement("p");
+        text.className = "task-copy";
+        text.textContent = value;
+        block.append(name, text);
+        panel.appendChild(block);
       }
     }
 
@@ -2323,6 +3088,7 @@
         description.className = "panel-description";
         description.textContent = t("rollbackHint");
         panel.appendChild(description);
+        renderTargetChangeSummary();
         return;
       }
       status.textContent = rollbackInfo.can_restore ? t("rollbackCanRestore") : t("rollbackUnavailable");
@@ -2345,13 +3111,22 @@
         block.append(heading, text);
         panel.appendChild(block);
       }
+      renderTargetChangeSummary();
     }
 
     async function refreshRuns() {
       const payload = await api("/api/runs");
       latestRuns = payload.runs || [];
       latestRunSteps = payload.steps || [];
+      if (selectedRunId && !latestRuns.some((run) => String(run.id) === String(selectedRunId))) {
+        selectedRunId = null;
+      }
       renderRuns();
+    }
+
+    async function refreshScheduleStatus() {
+      scheduleInfo = await api("/api/schedule/status");
+      renderScheduleStatus();
     }
 
     async function refreshDoctor() {
@@ -2371,6 +3146,7 @@
       reviewItems = payload.reviews || [];
       renderPromotions();
       renderReviews();
+      renderHomeTasks();
     }
 
     async function selectPromotion(id) {
@@ -2570,6 +3346,7 @@
       renderCandidates();
       renderSelected();
       await refreshRuns();
+      await refreshScheduleStatus();
       await refreshHistory();
       await refreshAudit();
       if (showMessage) {
@@ -2591,6 +3368,8 @@
         if (options.refresh !== false) {
           await refresh(false);
         }
+        lastOperationMessage = t("operationResultSuccess", {message: t(successKey)});
+        renderCandidateActionPanel();
         showToast(t(successKey));
       } catch (error) {
         console.error(error);
@@ -2701,6 +3480,29 @@
       renderCandidates();
     });
 
+    document.getElementById("recallTypeFilter").addEventListener("change", (event) => {
+      recallTypeFilter = event.target.value;
+      renderRecallResults();
+    });
+
+    document.getElementById("auditSearch").addEventListener("input", (event) => {
+      auditSearch = event.target.value;
+      renderAudit();
+    });
+
+    document.getElementById("reviewHistoryStatusFilter").addEventListener("change", (event) => {
+      reviewHistoryStatusFilter = event.target.value;
+      renderReviews();
+    });
+
+    document.getElementById("reviewHistorySearch").addEventListener("input", (event) => {
+      reviewHistorySearch = event.target.value;
+      renderReviews();
+    });
+
+    document.getElementById("doctorRefresh").addEventListener("click", () => refreshDoctor().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("doctorOpenData").addEventListener("click", () => setView("data"));
+
     document.getElementById("prevPage").addEventListener("click", () => {
       currentPage = Math.max(1, currentPage - 1);
       renderCandidates();
@@ -2740,8 +3542,14 @@
     document.getElementById("promoteAgents").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-agents`, {method: "POST"}), "toastPromotedAgents", {needsSelection: true, confirmKey: "confirmPromoteAgents"}));
     document.getElementById("promoteSkill").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-skill`, {method: "POST"}), "toastPromotedSkill", {needsSelection: true, confirmKey: "confirmPromoteSkill"}));
     document.getElementById("promotePatch").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-patch`, {method: "POST"}), "toastPromotedPatch", {needsSelection: true, confirmKey: "confirmPromotePatch"}));
-    document.getElementById("installSchedule").addEventListener("click", () => runAction(() => api("/api/schedule/install", {method: "POST"}), "toastScheduleInstalled", {refresh: false, confirmKey: "confirmInstallSchedule"}));
-    document.getElementById("uninstallSchedule").addEventListener("click", () => runAction(() => api("/api/schedule/uninstall", {method: "POST"}), "toastScheduleUninstalled", {refresh: false, confirmKey: "confirmUninstallSchedule"}));
+    document.getElementById("installSchedule").addEventListener("click", () => runAction(async () => {
+      await api("/api/schedule/install", {method: "POST"});
+      await refreshScheduleStatus();
+    }, "toastScheduleInstalled", {refresh: false, confirmKey: "confirmInstallSchedule"}));
+    document.getElementById("uninstallSchedule").addEventListener("click", () => runAction(async () => {
+      await api("/api/schedule/uninstall", {method: "POST"});
+      await refreshScheduleStatus();
+    }, "toastScheduleUninstalled", {refresh: false, confirmKey: "confirmUninstallSchedule"}));
     document.getElementById("installShortcut").addEventListener("click", () => runAction(() => api("/api/shortcut/install", {method: "POST"}), "toastShortcutInstalled", {refresh: false, confirmKey: "confirmInstallShortcut"}));
     document.getElementById("uninstallShortcut").addEventListener("click", () => runAction(() => api("/api/shortcut/uninstall", {method: "POST"}), "toastShortcutUninstalled", {refresh: false, confirmKey: "confirmUninstallShortcut"}));
     document.getElementById("recallButton").addEventListener("click", () => runRecallSearch().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));

@@ -7,6 +7,7 @@ import subprocess
 import sys
 import os
 from pathlib import Path
+from typing import Any
 
 
 SCHEDULE_HOUR = 3
@@ -51,6 +52,42 @@ def install_schedule_dry_run(repo_root: Path, codex_root: Path) -> str:
     if system == "Darwin":
         return f"launchd plist {launch_agent_path()} daily {SCHEDULE_TIME} -> {command}"
     return f"systemd user timer {systemd_user_dir() / 'codex-self-improving-loop.timer'} daily {SCHEDULE_TIME} -> {command}"
+
+
+def schedule_status(repo_root: Path, codex_root: Path) -> dict[str, Any]:
+    """Return a best-effort, read-only view of the local daily schedule."""
+    system = platform.system()
+    installed = False
+    detail = ""
+    if system == "Windows":
+        try:
+            result = subprocess.run(
+                ["schtasks.exe", "/Query", "/TN", "CodexSelfImprovingLoop"],
+                check=False,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                capture_output=True,
+            )
+            installed = result.returncode == 0
+            detail = (result.stdout or result.stderr or "").strip()
+        except OSError as exc:
+            detail = str(exc)
+    elif system == "Darwin":
+        path = launch_agent_path()
+        installed = path.exists()
+        detail = str(path)
+    else:
+        timer = systemd_user_dir() / "codex-self-improving-loop.timer"
+        installed = timer.exists()
+        detail = str(timer)
+    return {
+        "system": system or "Unknown",
+        "installed": installed,
+        "schedule_time": SCHEDULE_TIME,
+        "command": schedule_command(repo_root, codex_root),
+        "detail": detail[:1200],
+    }
 
 
 def install_shortcut_dry_run(repo_root: Path, codex_root: Path) -> str:

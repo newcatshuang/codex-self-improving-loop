@@ -20,7 +20,7 @@ from .paths import db_path, html_path, runtime_dir
 from .promotion import archive_candidate, promote_to_project_agents, promote_to_skill, promote_to_skill_patch, promote_to_user_memory, review_candidate
 from .recall import search as recall_search
 from .scanner import backup_db, finish_run, iter_session_files, rebuild, reset_db_for_rebuild, scan_into_run, scan_once, start_run
-from .scheduler import install_schedule, install_shortcut, uninstall_schedule, uninstall_shortcut
+from .scheduler import install_schedule, install_shortcut, schedule_status, uninstall_schedule, uninstall_shortcut
 
 
 LOCAL_HOST = "127.0.0.1"
@@ -355,6 +355,14 @@ class SilHandler(BaseHTTPRequestHandler):
                 self._json(401, {"error": "token required"})
                 return
             self._json(200, runs_payload(getattr(self.server, "codex_root")))
+            return
+        if parsed.path == "/api/schedule/status":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            root = getattr(self.server, "codex_root")
+            repo_root = Path(__file__).resolve().parents[2]
+            self._json(200, schedule_status(repo_root, root))
             return
         if parsed.path == "/api/audit":
             if not self._authorized():
