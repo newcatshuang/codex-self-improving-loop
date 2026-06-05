@@ -753,6 +753,14 @@
       vertical-align: top;
       font-size: 13px;
       line-height: 1.42;
+      min-width: 0;
+      max-width: 0;
+      overflow: hidden;
+    }
+
+    td > * {
+      min-width: 0;
+      max-width: 100%;
     }
 
     th {
@@ -798,6 +806,9 @@
     .candidate-title {
       font-weight: 700;
       margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .candidate-snippet {
@@ -806,6 +817,8 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .empty-row {
@@ -825,6 +838,16 @@
       color: #31433e;
       font-size: 12px;
       line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .col-destination .tag {
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
 

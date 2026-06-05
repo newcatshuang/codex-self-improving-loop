@@ -139,6 +139,17 @@ def main() -> int:
     js_path = repo / "src" / "codex_sil" / "web" / "app.js"
     if not css_path.exists() or not js_path.exists():
         raise FileNotFoundError("WebUI should be split into index.html, styles.css, and app.js")
+    css = css_path.read_text(encoding="utf-8")
+    required_layout_rules = (
+        "td > *",
+        ".col-destination .tag",
+        "text-overflow: ellipsis",
+        "overflow-wrap: anywhere",
+        "word-break: break-word",
+    )
+    for rule in required_layout_rules:
+        if rule not in css:
+            raise AssertionError(f"WebUI table layout should prevent long candidate text overflow: missing {rule}")
     js = js_path.read_text(encoding="utf-8")
     for marker in ("setupWizard", "dailyDigestPanel", "mergeSuggestionsPanel", "promotionPreview", "skillHealthList", "exportBundle", "importPreview"):
         if marker not in html and marker not in js:
