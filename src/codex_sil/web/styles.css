@@ -491,6 +491,47 @@
       margin-top: 10px;
     }
 
+    .skill-table-wrap {
+      margin-top: 2px;
+    }
+
+    .skill-health-table {
+      min-width: 760px;
+    }
+
+    .col-skill-name {
+      width: 24%;
+    }
+
+    .col-skill-status {
+      width: 14%;
+    }
+
+    .col-skill-usage,
+    .col-skill-patches {
+      width: 10%;
+      text-align: right;
+    }
+
+    .col-skill-last-used {
+      width: 18%;
+    }
+
+    .col-skill-action {
+      width: 24%;
+    }
+
+    .skill-name {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .numeric-cell {
+      font-variant-numeric: tabular-nums;
+    }
+
     .schedule-status-panel,
     .doctor-health-grid {
       display: grid;

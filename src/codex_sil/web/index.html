@@ -398,7 +398,23 @@
             </div>
             <section class="skill-health-panel" id="skillHealthPanel">
               <h3 data-i18n="skillHealthTitle">Skill Health</h3>
-              <ul class="simple-list" id="skillHealthList"></ul>
+              <div class="table-wrap skill-table-wrap">
+                <table class="skill-health-table" id="skillHealthTable">
+                  <thead>
+                    <tr>
+                      <th class="col-skill-name" data-i18n="skillNameHeader">Skill</th>
+                      <th class="col-skill-status" data-i18n="skillStatusHeader">Status</th>
+                      <th class="col-skill-usage" data-i18n="skillUsageHeader">Uses</th>
+                      <th class="col-skill-last-used" data-i18n="skillLastUsedHeader">Last Used</th>
+                      <th class="col-skill-patches" data-i18n="skillPatchHeader">Patches</th>
+                      <th class="col-skill-action" data-i18n="skillActionHeader">Recommended Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="skillHealthRows">
+                    <tr><td class="empty-row" colspan="6" data-i18n="emptySkillHealth">No skill health data yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </section>
           </div>
         </section>

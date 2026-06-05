@@ -345,6 +345,12 @@
         promotionPreviewEmpty: "Select a promotion action to preview the diff.",
         skillHealthTitle: "Skill Health",
         emptySkillHealth: "No skill health data yet.",
+        skillNameHeader: "Skill",
+        skillStatusHeader: "Status",
+        skillUsageHeader: "Uses",
+        skillLastUsedHeader: "Last Used",
+        skillPatchHeader: "Patches",
+        skillActionHeader: "Recommended Action",
         recommendationFromBackend: "{action}: {reason}",
         toastBundleExported: "Bundle exported.",
         toastImportPreviewed: "Import preview generated.",
@@ -709,6 +715,12 @@
         promotionPreviewEmpty: "选择晋升动作后预览 diff。",
         skillHealthTitle: "Skill 健康",
         emptySkillHealth: "暂无 skill 健康数据。",
+        skillNameHeader: "Skill",
+        skillStatusHeader: "状态",
+        skillUsageHeader: "使用次数",
+        skillLastUsedHeader: "最近使用",
+        skillPatchHeader: "补丁数",
+        skillActionHeader: "建议动作",
         recommendationFromBackend: "{action}: {reason}",
         toastBundleExported: "迁移包已导出。",
         toastImportPreviewed: "导入预览已生成。",
@@ -1166,21 +1178,51 @@
     }
 
     function renderSkillHealth() {
-      const list = document.getElementById("skillHealthList");
-      if (!list) {
+      const body = document.getElementById("skillHealthRows");
+      if (!body) {
         return;
       }
-      list.innerHTML = "";
+      body.innerHTML = "";
       if (!skillHealthItems.length) {
-        const item = document.createElement("li");
-        item.textContent = t("emptySkillHealth");
-        list.appendChild(item);
+        const row = document.createElement("tr");
+        const empty = cell("empty-row");
+        empty.colSpan = 6;
+        empty.textContent = t("emptySkillHealth");
+        row.appendChild(empty);
+        body.appendChild(row);
         return;
       }
       for (const skill of skillHealthItems.slice(0, 20)) {
-        const item = document.createElement("li");
-        item.textContent = `${skill.skill_name} · ${skill.status} · uses=${skill.usage_count || 0} · patches=${skill.patch_candidates || 0}`;
-        list.appendChild(item);
+        const row = document.createElement("tr");
+
+        const nameCell = cell("col-skill-name");
+        const name = document.createElement("strong");
+        name.className = "skill-name";
+        name.textContent = skill.skill_name || "-";
+        nameCell.appendChild(name);
+        row.appendChild(nameCell);
+
+        const statusCell = cell("col-skill-status");
+        statusCell.appendChild(tag(skill.status || "-", skill.status === "needs_patch" ? "review" : "status"));
+        row.appendChild(statusCell);
+
+        const usageCell = cell("col-skill-usage numeric-cell");
+        usageCell.textContent = String(skill.usage_count || 0);
+        row.appendChild(usageCell);
+
+        const lastUsedCell = cell("col-skill-last-used");
+        lastUsedCell.textContent = formatDateTime(skill.last_used_at);
+        row.appendChild(lastUsedCell);
+
+        const patchesCell = cell("col-skill-patches numeric-cell");
+        patchesCell.textContent = String(skill.patch_candidates || 0);
+        row.appendChild(patchesCell);
+
+        const actionCell = cell("col-skill-action");
+        actionCell.textContent = skill.recommended_action || "-";
+        row.appendChild(actionCell);
+
+        body.appendChild(row);
       }
     }
 

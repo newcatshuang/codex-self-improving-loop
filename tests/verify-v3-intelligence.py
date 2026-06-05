@@ -166,9 +166,12 @@ def main() -> int:
         if rule not in css:
             raise AssertionError(f"WebUI table layout should prevent long candidate text overflow: missing {rule}")
     js = js_path.read_text(encoding="utf-8")
-    for marker in ("setupWizard", "dailyDigestPanel", "mergeSuggestionsPanel", "promotionPreview", "skillHealthList", "exportBundle", "importPreview"):
+    for marker in ("setupWizard", "dailyDigestPanel", "mergeSuggestionsPanel", "promotionPreview", "skillHealthTable", "skillHealthRows", "exportBundle", "importPreview"):
         if marker not in html and marker not in js:
             raise AssertionError(f"WebUI missing v3 marker: {marker}")
+    for marker in ("skillNameHeader", "skillStatusHeader", "skillUsageHeader", "skillPatchHeader", "skillActionHeader"):
+        if marker not in html and marker not in js:
+            raise AssertionError(f"Skill health should render as a table with column marker: {marker}")
 
     print("verify-v3-intelligence passed")
     return 0
