@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["recommendation", "recommendation_reason", "suggested_action"],
+  "properties": {
+    "recommendation": {
+      "type": "string"
+    },
+    "recommendation_reason": {
+      "type": "string"
+    },
+    "suggested_action": {
+      "type": "string",
+      "enum": ["promote", "merge", "archive", "reject", "needs_review"]
+    }
+  }
+}

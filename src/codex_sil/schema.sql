@@ -6,6 +6,11 @@ create table if not exists settings (
   updated_at text not null default current_timestamp
 );
 
+create table if not exists schema_migrations (
+  name text primary key,
+  applied_at text not null default current_timestamp
+);
+
 create table if not exists sessions (
   id integer primary key autoincrement,
   path text not null unique,
@@ -52,6 +57,29 @@ create table if not exists candidates (
   created_at text not null default current_timestamp,
   updated_at text not null default current_timestamp,
   unique(type, normalized)
+);
+
+create table if not exists recommendations (
+  id integer primary key autoincrement,
+  candidate_id integer not null unique references candidates(id) on delete cascade,
+  recommendation text not null,
+  recommendation_reason text not null,
+  suggested_action text not null,
+  engine text not null,
+  created_at text not null default current_timestamp,
+  updated_at text not null default current_timestamp
+);
+
+create table if not exists merge_suggestions (
+  id integer primary key autoincrement,
+  group_key text not null unique,
+  primary_candidate_id integer not null references candidates(id) on delete cascade,
+  duplicate_candidate_ids text not null,
+  recommended_text text not null,
+  reason text not null,
+  status text not null default 'review',
+  created_at text not null default current_timestamp,
+  updated_at text not null default current_timestamp
 );
 
 create table if not exists candidate_sources (
@@ -128,5 +156,18 @@ create table if not exists audit_log (
   action text not null,
   target text,
   detail text,
+  created_at text not null default current_timestamp
+);
+
+create table if not exists digests (
+  id integer primary key autoincrement,
+  run_id integer references runs(id) on delete set null,
+  digest_date text not null,
+  summary text not null,
+  new_candidates integer not null default 0,
+  recommended_promotions integer not null default 0,
+  risk_items integer not null default 0,
+  skill_usage_changes integer not null default 0,
+  failed_runs integer not null default 0,
   created_at text not null default current_timestamp
 );

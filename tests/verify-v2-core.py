@@ -313,6 +313,11 @@ def main() -> int:
         server.server_close()
         thread.join(timeout=5)
     html = html_path.read_text(encoding="utf-8")
+    runtime_web = runtime / "web"
+    for asset in ("styles.css", "app.js"):
+        asset_path = runtime_web / asset
+        if asset_path.exists():
+            html += "\n" + asset_path.read_text(encoding="utf-8")
     for expected in (
         "Codex Self-Improving Loop",
         "appShell",

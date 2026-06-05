@@ -12,8 +12,13 @@ from pathlib import Path
 
 from .db import connect, init_db
 from .codex_runner import extract_with_codex
+from .digest import generate_digest
 from .fallback_extractor import ExtractedCandidate, extract_candidates, normalize
+from .merge import generate_merge_suggestions
 from .paths import backups_dir, db_path
+from .recommendations import recommend_candidate
+from .search_index import clear as clear_fts
+from .search_index import sync_candidate, sync_session
 
 
 SKILL_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9_-]*(?::[a-z][a-z0-9_-]*)?$", re.IGNORECASE)
@@ -308,7 +313,16 @@ def persist_candidate(root: Path, session_id: int, candidate: ExtractedCandidate
             "insert or ignore into candidate_fingerprints(fingerprint, candidate_id) values(?, ?)",
             (fingerprint, candidate_id),
         )
+        sync_candidate(conn, candidate_id)
         return candidate_id
+
+
+def persist_session_index(root: Path, session_id: int, text: str) -> None:
+    with connect(root) as conn:
+        row = conn.execute("select rel_path from sessions where id=?", (session_id,)).fetchone()
+        if row is None:
+            return
+        sync_session(conn, session_id, str(row["rel_path"]), text)
 
 
 def persist_skill_usage(root: Path, session_id: int, event: SkillUsageEvent) -> int:
@@ -343,13 +357,15 @@ def process_session(root: Path, run_id: int, path: Path) -> int:
         return 0
     messages = iter_session_messages(path)
     text = messages_to_text(messages)
+    persist_session_index(root, session_id, text)
     skill_usage_events = extract_skill_usage_events(messages)
     for event in skill_usage_events:
         persist_skill_usage(root, session_id, event)
     codex_candidates = extract_with_codex(text, root)
     candidates = codex_candidates if codex_candidates else extract_candidates(text)
     for candidate in candidates:
-        persist_candidate(root, session_id, candidate, text[:1000])
+        candidate_id = persist_candidate(root, session_id, candidate, text[:1000])
+        recommend_candidate(root, candidate_id)
     with connect(root) as conn:
         conn.execute("update sessions set status='processed', last_processed_at=current_timestamp where id=?", (session_id,))
     add_step(root, run_id, "session_processed", "ok", f"{path} candidates={len(candidates)} skill_usage={len(skill_usage_events)}")
@@ -369,6 +385,9 @@ def backup_db(root: Path) -> Path | None:
 def reset_db_for_rebuild(root: Path, keep_run_id: int | None = None) -> None:
     init_db(root)
     tables = (
+        "recommendations",
+        "merge_suggestions",
+        "digests",
         "candidate_sources",
         "candidate_fingerprints",
         "scan_results",
@@ -393,6 +412,7 @@ def reset_db_for_rebuild(root: Path, keep_run_id: int | None = None) -> None:
                     conn.execute(f"delete from {table}")
             placeholders = ", ".join("?" for _ in tables)
             conn.execute(f"delete from sqlite_sequence where name in ({placeholders})", tables)
+            clear_fts(conn)
         finally:
             conn.execute("pragma foreign_keys = on")
 
@@ -408,12 +428,19 @@ def scan_into_run(root: Path, run_id: int, sessions: list[Path]) -> dict[str, in
     return {"run_id": run_id, "sessions": len(sessions), "processed": processed, "candidates": candidates}
 
 
+def finalize_scan(root: Path, run_id: int) -> dict[str, object]:
+    generate_merge_suggestions(root)
+    digest = generate_digest(root, run_id=run_id)
+    return {"digest": digest}
+
+
 def scan_once(root: Path, kind: str = "scan") -> dict[str, int]:
     init_db(root)
     run_id = start_run(root, kind)
     sessions = iter_session_files(root)
     try:
         result = scan_into_run(root, run_id, sessions)
+        finalize_scan(root, run_id)
         finish_run(root, run_id, "ok", f"sessions={result['sessions']} candidates={result['candidates']}")
         return result
     except Exception as exc:

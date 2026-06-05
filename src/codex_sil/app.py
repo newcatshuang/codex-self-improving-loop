@@ -13,14 +13,27 @@ from urllib.parse import parse_qs, urlparse
 import webbrowser
 
 from . import __version__
+from .bundle import export_bundle, import_preview
 from .db import connect, init_db
+from .digest import latest_digest
 from .exporter import export_candidates, export_digest
 from .installer import install_skills
+from .merge import apply_merge_suggestion, generate_merge_suggestions, merge_suggestions_payload
 from .paths import db_path, html_path, runtime_dir
-from .promotion import archive_candidate, promote_to_project_agents, promote_to_skill, promote_to_skill_patch, promote_to_user_memory, review_candidate
+from .promotion import (
+    archive_candidate,
+    promote_to_project_agents,
+    promote_to_skill,
+    promote_to_skill_patch,
+    promote_to_user_memory,
+    promotion_preview,
+    review_candidate,
+)
 from .recall import search as recall_search
-from .scanner import backup_db, finish_run, iter_session_files, rebuild, reset_db_for_rebuild, scan_into_run, scan_once, start_run
+from .recommendations import recommend_candidate, recommendations_payload
+from .scanner import backup_db, finalize_scan, finish_run, iter_session_files, rebuild, reset_db_for_rebuild, scan_into_run, scan_once, start_run
 from .scheduler import install_schedule, install_shortcut, schedule_status, uninstall_schedule, uninstall_shortcut
+from .skills import skill_health
 
 
 LOCAL_HOST = "127.0.0.1"
@@ -37,10 +50,17 @@ def _json_group_array_values(value: str | None) -> list[str]:
 
 
 def write_webui(root: Path) -> Path:
-    source = Path(__file__).parent / "web" / "index.html"
+    web_root = Path(__file__).parent / "web"
+    source = web_root / "index.html"
     target = html_path(root)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+    runtime_web = runtime_dir(root) / "web"
+    runtime_web.mkdir(parents=True, exist_ok=True)
+    for name in ("styles.css", "app.js"):
+        asset = web_root / name
+        if asset.exists():
+            (runtime_web / name).write_text(asset.read_text(encoding="utf-8"), encoding="utf-8")
     return target
 
 
@@ -56,8 +76,32 @@ def doctor_payload(root: Path) -> dict[str, Any]:
     }
 
 
+def setup_status_payload(root: Path) -> dict[str, Any]:
+    init_db(root)
+    database = db_path(root)
+    with connect(root) as conn:
+        session_count = int(conn.execute("select count(*) from sessions").fetchone()[0])
+        candidate_count = int(conn.execute("select count(*) from candidates").fetchone()[0])
+        skill_usage_count = int(conn.execute("select count(*) from skill_usage").fetchone()[0])
+    repo_root = Path(__file__).resolve().parents[2]
+    schedule = schedule_status(repo_root, root)
+    skills_installed = (Path.home() / ".agents" / "skills" / "session-recall" / "SKILL.md").exists() and (
+        Path.home() / ".agents" / "skills" / "memory-capture" / "SKILL.md"
+    ).exists()
+    return {
+        "database_exists": database.exists(),
+        "session_count": session_count,
+        "candidate_count": candidate_count,
+        "skill_usage_count": skill_usage_count,
+        "schedule_installed": bool(schedule.get("installed")),
+        "skills_installed": skills_installed,
+        "ready": database.exists() and session_count > 0 and candidate_count > 0,
+    }
+
+
 def summary_payload(root: Path) -> dict[str, Any]:
     init_db(root)
+    generate_merge_suggestions(root)
     with connect(root) as conn:
         rows = conn.execute("select type, count(*) as count from candidates group by type").fetchall()
         status_rows = conn.execute("select status, count(*) as count from candidates group by status").fetchall()
@@ -90,11 +134,15 @@ def summary_payload(root: Path) -> dict[str, Any]:
               c.confidence,
               c.created_at,
               c.updated_at,
+              r.recommendation,
+              r.recommendation_reason,
+              r.suggested_action,
               count(distinct cs.session_id) as source_count,
               json_group_array(distinct s.rel_path) as source_files
             from candidates c
             left join candidate_sources cs on cs.candidate_id=c.id
             left join sessions s on s.id=cs.session_id
+            left join recommendations r on r.candidate_id=c.id
             group by c.id
             order by c.updated_at desc, c.id desc
             limit 200
@@ -281,6 +329,7 @@ def run_rebuild_background(root: Path, run_id: int, backup_path: Path | None) ->
         reset_db_for_rebuild(root, keep_run_id=run_id)
         sessions = iter_session_files(root)
         result = scan_into_run(root, run_id, sessions)
+        finalize_scan(root, run_id)
         detail = f"sessions={result['sessions']} candidates={result['candidates']}"
         if backup_path:
             detail += f" backup={backup_path}"
@@ -344,6 +393,12 @@ class SilHandler(BaseHTTPRequestHandler):
                 return
             self._json(200, summary_payload(getattr(self.server, "codex_root")))
             return
+        if parsed.path == "/api/setup/status":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            self._json(200, setup_status_payload(getattr(self.server, "codex_root")))
+            return
         if parsed.path == "/api/doctor":
             if not self._authorized():
                 self._json(401, {"error": "token required"})
@@ -376,6 +431,30 @@ class SilHandler(BaseHTTPRequestHandler):
                 return
             self._json(200, history_payload(getattr(self.server, "codex_root")))
             return
+        if parsed.path == "/api/recommendations":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            self._json(200, recommendations_payload(getattr(self.server, "codex_root")))
+            return
+        if parsed.path == "/api/merge-suggestions":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            self._json(200, generate_merge_suggestions(getattr(self.server, "codex_root")))
+            return
+        if parsed.path == "/api/digests/latest":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            self._json(200, latest_digest(getattr(self.server, "codex_root")))
+            return
+        if parsed.path == "/api/skills/health":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            self._json(200, skill_health(getattr(self.server, "codex_root")))
+            return
         run_match = re.fullmatch(r"/api/runs/(\d+)", parsed.path)
         if run_match:
             if not self._authorized():
@@ -391,6 +470,20 @@ class SilHandler(BaseHTTPRequestHandler):
                 return
             payload = rollback_preview_payload(getattr(self.server, "codex_root"), int(rollback_match.group(1)))
             self._json(404 if "error" in payload else 200, payload)
+            return
+        preview_match = re.fullmatch(r"/api/candidates/(\d+)/promotion-preview", parsed.path)
+        if preview_match:
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            query_params = parse_qs(parsed.query)
+            target = query_params.get("target", ["user"])[0]
+            try:
+                payload = promotion_preview(getattr(self.server, "codex_root"), int(preview_match.group(1)), target)
+            except ValueError as exc:
+                self._json(404, {"error": str(exc)})
+                return
+            self._json(200, payload)
             return
         if parsed.path == "/api/recall":
             if not self._authorized():
@@ -416,6 +509,20 @@ class SilHandler(BaseHTTPRequestHandler):
             body = write_webui(getattr(self.server, "codex_root")).read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        if parsed.path in {"/styles.css", "/app.js"}:
+            asset_name = parsed.path.lstrip("/")
+            asset = Path(__file__).parent / "web" / asset_name
+            if not asset.exists():
+                self._json(404, {"error": "not found"})
+                return
+            body = asset.read_bytes()
+            content_type = "text/css; charset=utf-8" if asset_name.endswith(".css") else "application/javascript; charset=utf-8"
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
@@ -456,6 +563,20 @@ class SilHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/install/skills":
             self._json(200, install_skills(repo_root, root))
+            return
+        recommend_match = re.fullmatch(r"/api/candidates/(\d+)/recommend", parsed.path)
+        if recommend_match:
+            try:
+                self._json(200, recommend_candidate(root, int(recommend_match.group(1))))
+            except ValueError as exc:
+                self._json(404, {"error": str(exc)})
+            return
+        merge_apply_match = re.fullmatch(r"/api/merge-suggestions/(\d+)/apply", parsed.path)
+        if merge_apply_match:
+            try:
+                self._json(200, apply_merge_suggestion(root, int(merge_apply_match.group(1))))
+            except ValueError as exc:
+                self._json(404, {"error": str(exc)})
             return
         review_match = re.fullmatch(r"/api/candidates/(\d+)/review", parsed.path)
         archive_match = re.fullmatch(r"/api/candidates/(\d+)/archive", parsed.path)
@@ -503,6 +624,14 @@ class SilHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/export/candidates":
             self._json(200, {"path": str(export_candidates(root))})
+            return
+        if parsed.path == "/api/export/bundle":
+            self._json(200, {"path": str(export_bundle(root))})
+            return
+        if parsed.path == "/api/import/preview":
+            payload = self._read_json_body()
+            path = Path(str(payload.get("path") or ""))
+            self._json(200, import_preview(path, root))
             return
         self._json(404, {"error": "not found"})
 

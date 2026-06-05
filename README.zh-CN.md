@@ -4,19 +4,25 @@
 
 Codex Self-Improving Loop 帮助 Codex 跨会话检索、提取长期记忆候选、识别可复用 skill 候选、提出 skill patch，并通过一个本地 WebUI 完成审阅和晋升管理。
 
-v2 架构不再生成大量 Markdown/JSON 产物，而是使用一个 SQLite 数据库和一个临时 Python 后端。后端只绑定 `127.0.0.1`，启动时生成 token，只允许本机访问。
+v3 架构不再生成大量 Markdown/JSON 产物，而是使用一个 SQLite 数据库和一个临时 Python 后端。后端只绑定 `127.0.0.1`，启动时生成 token，只允许本机访问。
 
 [English README](./README.md)
 
 ## 你会得到什么
 
-| 能力 | v2 实现方式 |
+| 能力 | v3 实现方式 |
 | --- | --- |
-| 跨会话检索 | `sil.py recall` 搜索 SQLite 入库会话，并返回脱敏短片段 |
+| 跨会话检索 | `sil.py recall` 优先使用 SQLite FTS 搜索会话和候选，并返回脱敏短片段；不可用时回退到普通搜索 |
 | 记忆候选 | 每日或手动扫描提取 memory candidate，写入 SQLite |
 | 技能候选 | 可复用流程写入 `type=skill` 候选 |
 | 技能补丁 | 已有 skill 改进建议写入 `type=skill_patch` 候选 |
 | WebUI 管理 | `sil.py serve --open` 启动本地后端并打开控制台 |
+| 审阅建议 | 每条候选生成确定性的审阅建议，并保留后续接入 Codex 审阅的扩展点 |
+| 候选合并 | 相似候选会聚合成合并建议；应用合并只更新状态，原始 evidence 仍保留 |
+| 晋升预览 | 写入 USER.md、AGENTS.md、skill、skill patch 前先展示 diff |
+| 每日 digest | scan/rebuild 后写入一条 SQLite digest，包含候选、风险、skill 使用和失败运行统计 |
+| 备份迁移包 | 可导出 SQLite、记忆文件、skills、审计历史；导入前支持 dry-run 预览 |
+| Skill 健康 | 基于使用记录和补丁候选生成 `active`、`cold`、`needs_patch`、`duplicate_suspected` 状态 |
 | 审计与历史 | WebUI 可查看审计日志、审阅历史、晋升历史和回滚预览 |
 | 每日扫描 | `sil.py schedule install` 准备每天 03:00 扫描 |
 | 桌面快捷方式 | `sil.py shortcut install` 准备一键启动入口 |
@@ -32,10 +38,13 @@ $HOME/.codex/self-improving-loop/
 ├─ self-improving-loop.log
 ├─ backups/
 ├─ exports/
+├─ web/
+│  ├─ styles.css
+│  └─ app.js
 └─ tmp/
 ```
 
-v2 默认不再生成候选 Markdown、daily digest、`learning-index.json`、`latest-*` 报告、usage JSON 或 watcher state。
+v3 默认不再生成候选 Markdown、`learning-index.json`、`latest-*` 报告、usage JSON 或 watcher state。每日审阅摘要会作为一条 SQLite digest 记录保存，需要时再从 WebUI 导出 Markdown。
 
 ## 安装
 
@@ -62,9 +71,9 @@ python install.py
 python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open
 ```
 
-在 WebUI 中可以初始化数据库、清空当前 SQLite 数据并全量重扫历史会话、扫描会话、安装或移除每日定时任务、安装桌面快捷方式、导出审阅数据、归档或拒绝候选，并将确认后的候选晋升到 `USER.md`、项目 `AGENTS.md`、相互独立的 learned skills 或 skill patch 产物。
+在 WebUI 中可以初始化数据库、清空当前 SQLite 数据并全量重扫历史会话、扫描会话、安装或移除每日定时任务、安装桌面快捷方式、导出审阅数据或迁移包、归档或拒绝候选、合并重复候选，并将确认后的候选晋升到 `USER.md`、项目 `AGENTS.md`、相互独立的 learned skills 或 skill patch 产物。
 
-WebUI 还包含治理视图：审计日志、审阅历史、晋升历史和回滚预览。回滚只做预览，不会自动覆盖文件；页面会展示目标路径、备份路径，以及可复制的 Python 恢复命令。
+WebUI 还包含首次运行向导、每日 digest、候选合并建议、晋升 diff 预览、Skill 健康、审计日志、审阅历史、晋升历史和回滚预览。回滚只做预览，不会自动覆盖文件；页面会展示目标路径、备份路径，以及可复制的 Python 恢复命令。
 
 扫描新增会话：
 
@@ -119,6 +128,21 @@ codex exec --ephemeral --skip-git-repo-check --sandbox read-only --output-schema
 - 每日扫描不依赖后端常驻。
 - WebUI 是日常审阅和晋升入口；正常流程不需要复制命令手动晋升。
 
+## API 能力
+
+除已有 scan、rebuild、schedule、review、promotion 接口外，WebUI 还使用这些仅本机可访问的 JSON API：
+
+- `GET /api/setup/status`
+- `GET /api/recommendations`
+- `POST /api/candidates/{id}/recommend`
+- `GET /api/merge-suggestions`
+- `POST /api/merge-suggestions/{id}/apply`
+- `GET /api/candidates/{id}/promotion-preview?target=user|agents|skill|patch`
+- `GET /api/digests/latest`
+- `GET /api/skills/health`
+- `POST /api/export/bundle`
+- `POST /api/import/preview`
+
 ## 验证
 
 ```bash
@@ -128,6 +152,8 @@ python tests/verify-v2-recall.py --work-root ./tmp/v2-recall
 python tests/verify-v2-session-filter.py --work-root ./tmp/v2-filter
 python tests/verify-v2-promotion.py --work-root ./tmp/v2-promotion
 python tests/verify-v2-scheduler.py --work-root ./tmp/v2-scheduler
+python tests/verify-v3-migration.py --work-root ./tmp/v3-migration
+python tests/verify-v3-intelligence.py --work-root ./tmp/v3-intelligence
 python tests/verify-v2-install.py --codex-root ./tmp/codex-v2 --agents-root ./tmp/agents-v2
 python tests/verify-install.py --codex-root ./tmp/install-codex --agents-root ./tmp/install-agents
 python -m compileall src sil.py install.py tests

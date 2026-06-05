@@ -1,4 +1,4 @@
-"""SQLite storage for Codex Self-Improving Loop v2."""
+"""SQLite storage for Codex Self-Improving Loop."""
 
 from __future__ import annotations
 
@@ -10,6 +10,47 @@ from .paths import db_path, ensure_runtime
 
 
 SCHEMA_PATH = Path(__file__).with_name("schema.sql")
+SCHEMA_VERSION = __version__
+MIGRATIONS: tuple[tuple[str, str], ...] = (
+    (
+        "0001_v3_control_plane",
+        """
+        create table if not exists recommendations (
+          id integer primary key autoincrement,
+          candidate_id integer not null unique references candidates(id) on delete cascade,
+          recommendation text not null,
+          recommendation_reason text not null,
+          suggested_action text not null,
+          engine text not null,
+          created_at text not null default current_timestamp,
+          updated_at text not null default current_timestamp
+        );
+        create table if not exists merge_suggestions (
+          id integer primary key autoincrement,
+          group_key text not null unique,
+          primary_candidate_id integer not null references candidates(id) on delete cascade,
+          duplicate_candidate_ids text not null,
+          recommended_text text not null,
+          reason text not null,
+          status text not null default 'review',
+          created_at text not null default current_timestamp,
+          updated_at text not null default current_timestamp
+        );
+        create table if not exists digests (
+          id integer primary key autoincrement,
+          run_id integer references runs(id) on delete set null,
+          digest_date text not null,
+          summary text not null,
+          new_candidates integer not null default 0,
+          recommended_promotions integer not null default 0,
+          risk_items integer not null default 0,
+          skill_usage_changes integer not null default 0,
+          failed_runs integer not null default 0,
+          created_at text not null default current_timestamp
+        );
+        """,
+    ),
+)
 
 
 def connect(root: Path | None = None) -> sqlite3.Connection:
@@ -20,14 +61,51 @@ def connect(root: Path | None = None) -> sqlite3.Connection:
     return conn
 
 
+def apply_migrations(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        """
+        create table if not exists schema_migrations (
+          name text primary key,
+          applied_at text not null default current_timestamp
+        )
+        """
+    )
+    for name, sql in MIGRATIONS:
+        existing = conn.execute("select 1 from schema_migrations where name=?", (name,)).fetchone()
+        if existing:
+            continue
+        conn.executescript(sql)
+        conn.execute("insert into schema_migrations(name) values(?)", (name,))
+    ensure_fts_tables(conn)
+    conn.execute(
+        "insert into settings(key, value) values('schema_version', ?) "
+        "on conflict(key) do update set value=excluded.value, updated_at=current_timestamp",
+        (SCHEMA_VERSION,),
+    )
+
+
+def ensure_fts_tables(conn: sqlite3.Connection) -> None:
+    try:
+        conn.execute("create virtual table if not exists sessions_fts using fts5(session_id unindexed, rel_path, body)")
+        conn.execute(
+            "create virtual table if not exists candidates_fts using fts5(candidate_id unindexed, type unindexed, destination, title, body, rewrite)"
+        )
+    except sqlite3.DatabaseError:
+        conn.execute(
+            "insert into settings(key, value) values('fts5_available', '0') "
+            "on conflict(key) do update set value='0', updated_at=current_timestamp"
+        )
+    else:
+        conn.execute(
+            "insert into settings(key, value) values('fts5_available', '1') "
+            "on conflict(key) do update set value='1', updated_at=current_timestamp"
+        )
+
+
 def init_db(root: Path | None = None) -> Path:
     ensure_runtime(root)
     path = db_path(root)
     with connect(root) as conn:
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
-        conn.execute(
-            "insert into settings(key, value) values('schema_version', ?) "
-            "on conflict(key) do update set value=excluded.value, updated_at=current_timestamp",
-            (__version__,),
-        )
+        apply_migrations(conn)
     return path

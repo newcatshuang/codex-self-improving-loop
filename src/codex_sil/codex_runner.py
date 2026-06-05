@@ -15,6 +15,7 @@ from .paths import tmp_dir
 
 
 SCHEMA_PATH = Path(__file__).with_name("extraction.schema.json")
+RECOMMENDATION_SCHEMA_PATH = Path(__file__).with_name("recommendation.schema.json")
 SELF_REFERENCE_PATTERNS = (
     "codex self-improving loop",
     "durable learning extraction",
@@ -139,3 +140,70 @@ def extract_with_codex(session_text: str, cwd: Path, timeout: int = 120) -> list
         return [candidate for candidate in candidates if evidence_supported(candidate, session_text)]
     except (json.JSONDecodeError, ValueError):
         return None
+
+
+def build_recommendation_prompt(candidate: dict[str, object]) -> str:
+    safe_candidate = {
+        "id": candidate.get("id"),
+        "type": candidate.get("type"),
+        "title": candidate.get("title"),
+        "text": candidate.get("text"),
+        "destination": candidate.get("destination"),
+        "rewrite_suggestion": candidate.get("rewrite_suggestion"),
+        "status": candidate.get("status"),
+        "safety": candidate.get("safety"),
+        "confidence": candidate.get("confidence"),
+        "source_count": candidate.get("source_count"),
+    }
+    return (
+        "You are reviewing a Codex Self-Improving Loop candidate.\n"
+        "Return only JSON matching the provided schema.\n"
+        "Choose exactly one suggested_action from: promote, merge, archive, reject, needs_review.\n"
+        "Be conservative: unsafe, conflict, broad, project-specific, or skill-changing items should need review.\n\n"
+        f"{json.dumps(safe_candidate, ensure_ascii=False)}"
+    )
+
+
+def recommend_with_codex(candidate: dict[str, object], cwd: Path, timeout: int = 75) -> dict[str, str] | None:
+    if not codex_available():
+        return None
+    workdir = tmp_dir(cwd) / "codex-review-workdir"
+    workdir.mkdir(parents=True, exist_ok=True)
+    command = codex_command(
+        [
+            "exec",
+            "--ephemeral",
+            "--skip-git-repo-check",
+            "--sandbox",
+            "read-only",
+            "--output-schema",
+            str(RECOMMENDATION_SCHEMA_PATH),
+            "-C",
+            str(workdir),
+            build_recommendation_prompt(candidate),
+        ]
+    )
+    try:
+        completed = subprocess.run(command, text=True, encoding="utf-8", errors="replace", capture_output=True, timeout=timeout)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if completed.returncode != 0:
+        return None
+    try:
+        data = json.loads((completed.stdout or "").strip())
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, dict):
+        return None
+    action = str(data.get("suggested_action") or "").strip()
+    if action not in {"promote", "merge", "archive", "reject", "needs_review"}:
+        return None
+    recommendation = str(data.get("recommendation") or "").strip()
+    reason = str(data.get("recommendation_reason") or "").strip()
+    if not recommendation or not reason:
+        return None
+    return {
+        "recommendation": recommendation[:800],
+        "recommendation_reason": reason[:1200],
+        "suggested_action": action,
+    }
