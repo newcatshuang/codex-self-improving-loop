@@ -27,6 +27,13 @@ def write_session(path: Path) -> None:
             [
                 '{"type":"message","role":"user","content":"请记住：SQL 查询必须先确认字段，避免 SELECT *。"}',
                 '{"type":"message","role":"assistant","content":"已完成验证，并发现可以沉淀为数据库查询偏好。"}',
+                '{"type":"message","role":"user","content":"$grill-me 我想优化整体流程和输出。路径里有 $HOME，不应该当成 skill。"}',
+                '{"type":"message","role":"user","content":"代码变量 $i 和 $entry 只是普通文本，不是用户指定的 skill。"}',
+                '{"type":"message","role":"user","content":"$entry=@\\"code\\" 是脚本变量赋值，不是 skill。"}',
+                '{"type":"message","role":"user","content":"$imagegen 生成一张项目配图。"}',
+                '{"type":"message","role":"assistant","content":"Using `using-superpowers / brainstorming` to clarify the workflow before implementation."}',
+                '{"type":"message","role":"assistant","content":"我会用 `verification-before-completion` 来做完成前校验。"}',
+                '{"type":"message","role":"assistant","content":"Using `python` to run the verifier should not be counted as skill usage."}',
                 '{"type":"message","role":"user","content":"这个流程可以做成 skill：先跑 doctor，再 rebuild，再 scan --once。"}',
                 '{"type":"message","role":"assistant","content":"记录为可复用工作流，并建议补充 memory-capture skill。"}',
             ]
@@ -41,7 +48,13 @@ def table_count(db_path: Path, table: str) -> int:
         return int(conn.execute(f"select count(*) from {table}").fetchone()[0])
 
 
+def skill_usage_names(db_path: Path) -> set[str]:
+    with sqlite3.connect(db_path) as conn:
+        return {str(row[0]) for row in conn.execute("select skill_name from skill_usage")}
+
+
 def main() -> int:
+    os.environ["CODEX_SIL_DISABLE_CODEX"] = "1"
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parent.parent)
     parser.add_argument("--work-root", type=Path, required=True)
@@ -77,12 +90,26 @@ def main() -> int:
         raise AssertionError("rebuild should extract memory and skill candidates into SQLite")
     if table_count(db_path, "runs") < 1 or table_count(db_path, "run_steps") < 1:
         raise AssertionError("rebuild should record runs and run steps")
+    expected_skill_usage = {"grill-me", "imagegen", "using-superpowers", "brainstorming", "verification-before-completion"}
+    actual_skill_usage = skill_usage_names(db_path)
+    if not expected_skill_usage.issubset(actual_skill_usage):
+        raise AssertionError(f"rebuild should record explicit skill usage: {actual_skill_usage}")
+    if "home" in actual_skill_usage:
+        raise AssertionError("$HOME should be treated as environment text, not skill usage")
+    if {"i", "entry"} & actual_skill_usage:
+        raise AssertionError("ordinary dollar-prefixed variables should not be counted as skill usage")
+    if "python" in actual_skill_usage:
+        raise AssertionError("generic tools inside assistant messages should not be counted as skill usage")
 
     before = table_count(db_path, "candidates")
+    before_skill_usage = table_count(db_path, "skill_usage")
     run([sys.executable, str(sil), "scan", "--codex-root", str(root), "--once"], repo)
     after = table_count(db_path, "candidates")
     if after != before:
         raise AssertionError("scan should be idempotent for already processed sessions")
+    after_skill_usage = table_count(db_path, "skill_usage")
+    if after_skill_usage != before_skill_usage:
+        raise AssertionError("scan should not duplicate skill usage for already processed sessions")
 
     serve_smoke = run([sys.executable, str(sil), "serve", "--codex-root", str(root), "--smoke-test"], repo)
     smoke_payload = json.loads(serve_smoke.stdout)
@@ -110,6 +137,20 @@ def main() -> int:
         )
         with urllib.request.urlopen(request, timeout=5) as response:
             summary_api = json.loads(response.read().decode("utf-8"))
+        held_connection = sqlite3.connect(db_path)
+        try:
+            held_connection.execute("select count(*) from sessions").fetchone()
+            rebuild_request = urllib.request.Request(
+                f"http://{LOCAL_HOST}:{server.server_port}/api/rebuild",
+                method="POST",
+                headers={"Authorization": "Bearer test-token"},
+            )
+            with urllib.request.urlopen(rebuild_request, timeout=15) as response:
+                rebuild_api = json.loads(response.read().decode("utf-8"))
+            if rebuild_api["sessions"] != 1 or table_count(db_path, "sessions") != 1:
+                raise AssertionError(f"WebUI rebuild should rescan sessions while SQLite is open: {rebuild_api}")
+        finally:
+            held_connection.close()
         if summary_api["candidates"]:
             candidate_keys = set(summary_api["candidates"][0])
             required_detail_keys = {
@@ -146,6 +187,9 @@ def main() -> int:
         }
         if not required_summary_keys.issubset(summary_keys):
             raise AssertionError(f"summary API should expose dashboard metrics: {summary_keys}")
+        summary_usage_names = {item["skill_name"] for item in summary_api["summary"]["skill_usage_by_skill"]}
+        if not expected_skill_usage.issubset(summary_usage_names):
+            raise AssertionError(f"summary API should expose recorded skill usage: {summary_usage_names}")
     finally:
         server.shutdown()
         server.server_close()
