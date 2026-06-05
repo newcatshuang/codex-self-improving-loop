@@ -10,6 +10,7 @@ import sqlite3
 import subprocess
 import sys
 import threading
+import time
 import urllib.request
 from pathlib import Path
 
@@ -147,7 +148,23 @@ def main() -> int:
             )
             with urllib.request.urlopen(rebuild_request, timeout=15) as response:
                 rebuild_api = json.loads(response.read().decode("utf-8"))
-            if rebuild_api["sessions"] != 1 or table_count(db_path, "sessions") != 1:
+            if not rebuild_api.get("async") or not rebuild_api.get("run_id"):
+                raise AssertionError(f"WebUI rebuild should start an async tracked run: {rebuild_api}")
+            status_request = urllib.request.Request(
+                f"http://{LOCAL_HOST}:{server.server_port}/api/runs/{rebuild_api['run_id']}",
+                headers={"Authorization": "Bearer test-token"},
+            )
+            run_status = {}
+            deadline = time.time() + 15
+            while time.time() < deadline:
+                with urllib.request.urlopen(status_request, timeout=5) as response:
+                    run_status = json.loads(response.read().decode("utf-8"))
+                if run_status["status"] != "running":
+                    break
+                time.sleep(0.2)
+            if run_status["status"] != "ok" or run_status["processed"] != 1 or run_status["total"] != 1:
+                raise AssertionError(f"WebUI rebuild progress should report completion: {run_status}")
+            if table_count(db_path, "sessions") != 1:
                 raise AssertionError(f"WebUI rebuild should rescan sessions while SQLite is open: {rebuild_api}")
         finally:
             held_connection.close()
@@ -190,6 +207,40 @@ def main() -> int:
         summary_usage_names = {item["skill_name"] for item in summary_api["summary"]["skill_usage_by_skill"]}
         if not expected_skill_usage.issubset(summary_usage_names):
             raise AssertionError(f"summary API should expose recorded skill usage: {summary_usage_names}")
+        request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/runs",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(request, timeout=5) as response:
+            runs_api = json.loads(response.read().decode("utf-8"))
+        if not runs_api.get("runs") or "steps" not in runs_api:
+            raise AssertionError(f"runs API should expose recent runs and steps: {runs_api}")
+        request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/recall?q=SQL",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(request, timeout=5) as response:
+            recall_api = json.loads(response.read().decode("utf-8"))
+        if recall_api["query"] != "SQL" or not recall_api["results"]:
+            raise AssertionError(f"recall API should search sessions and candidates: {recall_api}")
+        backup_request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/backup",
+            method="POST",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(backup_request, timeout=5) as response:
+            backup_api = json.loads(response.read().decode("utf-8"))
+        if not backup_api.get("backup"):
+            raise AssertionError(f"backup API should create a backup path: {backup_api}")
+        promote_agents_request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/candidates/{summary_api['candidates'][0]['id']}/promote-agents",
+            method="POST",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(promote_agents_request, timeout=5) as response:
+            agents_api = json.loads(response.read().decode("utf-8"))
+        if agents_api["status"] != "ok" or not agents_api["target_path"].endswith("AGENTS.md"):
+            raise AssertionError(f"project AGENTS promotion should be available: {agents_api}")
     finally:
         server.shutdown()
         server.server_close()
@@ -197,6 +248,26 @@ def main() -> int:
     html = html_path.read_text(encoding="utf-8")
     for expected in (
         "Codex Self-Improving Loop",
+        "appShell",
+        "sideNav",
+        "tab-home",
+        "tab-data",
+        "tab-candidates",
+        "tab-review",
+        "tab-promotion",
+        "tab-skills",
+        "tab-schedule",
+        "tab-runs",
+        "tab-recall",
+        "data-view=\"home\"",
+        "data-view=\"data\"",
+        "data-view=\"candidates\"",
+        "data-view=\"review\"",
+        "data-view=\"promotion\"",
+        "data-view=\"skills\"",
+        "data-view=\"schedule\"",
+        "data-view=\"runs\"",
+        "data-view=\"recall\"",
         "Candidate Center",
         "候选中心",
         "Schedule Center",
@@ -236,21 +307,33 @@ def main() -> int:
         "installShortcut",
         "installSkills",
         "exportDigest",
+        "backupDatabase",
+        "runRows",
+        "runStepRows",
+        "recallSearch",
+        "recallResults",
         "promoteSkill",
         "promotePatch",
+        "promoteAgents",
         "/api/init",
+        "/api/backup",
         "/api/schedule/install",
         "/api/shortcut/install",
         "/api/install/skills",
         "/api/export/digest",
         "/api/rebuild",
+        "/api/runs/${runId}",
+        "/api/runs",
+        "/api/recall?q=",
+        "/promote-agents",
+        "progressPanel",
+        "progressText",
+        "progressFill",
+        "rebuildInProgress",
         "/api/candidates/${window.selectedCandidateId}/promote-skill",
     ):
         if expected not in html:
             raise AssertionError(f"WebUI missing {expected}")
-    if "promotion-panel" in html or 'data-i18n="promotionCenter"' in html:
-        raise AssertionError("promotion actions should live inside selected record details, not a separate promotion panel")
-
     schedule = run([sys.executable, str(sil), "schedule", "install", "--codex-root", str(root), "--dry-run"], repo)
     if "sil.py scan --once" not in schedule.stdout:
         raise AssertionError("schedule dry-run should invoke sil.py scan --once")

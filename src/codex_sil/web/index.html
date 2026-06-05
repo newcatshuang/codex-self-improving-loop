@@ -170,12 +170,64 @@
       color: #0d3b35;
     }
 
-    main {
+    .app-shell {
       width: min(100%, 1840px);
       margin: 0 auto;
       padding: 14px 24px 24px;
       display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .side-nav {
+      position: sticky;
+      top: 14px;
+      display: grid;
+      gap: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      background: #ffffff;
+      box-shadow: 0 12px 28px rgba(25, 40, 54, 0.07);
+    }
+
+    .nav-button {
+      justify-content: flex-start;
+      min-height: 32px;
+      border-color: transparent;
+      padding: 7px 10px;
+      background: transparent;
+      color: #2b3f39;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .nav-button:hover {
+      border-color: #cddbd6;
+      background: #f5faf8;
+    }
+
+    .nav-button.active {
+      border-color: var(--accent);
+      background: #0b8173;
+      color: #ffffff;
+    }
+
+    .view-stack {
+      min-width: 0;
+      display: grid;
       gap: 12px;
+    }
+
+    .view-panel {
+      display: none;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .view-panel.active {
+      display: grid;
     }
 
     .summary-grid {
@@ -250,6 +302,12 @@
       gap: 12px;
     }
 
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
     .panel {
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -299,11 +357,56 @@
       gap: 6px;
     }
 
+    .progress-panel {
+      display: none;
+      margin-top: 10px;
+      border: 1px solid #cddbd6;
+      border-radius: 8px;
+      padding: 10px;
+      background: #f8fbfd;
+    }
+
+    .progress-panel.active {
+      display: block;
+    }
+
+    .progress-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      color: #31433e;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .progress-track {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #dbe5e0;
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), #7da2ea);
+      transition: width 180ms ease;
+    }
+
     .workspace-grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(330px, 430px);
       gap: 16px;
       align-items: start;
+    }
+
+    .full-width-grid {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
     }
 
     .filters {
@@ -591,6 +694,24 @@
       overflow-wrap: anywhere;
     }
 
+    .simple-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .simple-list li {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px;
+      background: #ffffff;
+      color: #2c3b36;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
     code {
       border: 1px solid #d4e2dd;
       background: #eef6f3;
@@ -633,9 +754,18 @@
 
     @media (max-width: 1120px) {
       .header-inner,
-      main {
+      .app-shell {
         padding-left: 18px;
         padding-right: 18px;
+      }
+
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .side-nav {
+        position: static;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
       .control-grid,
@@ -664,6 +794,10 @@
 
       .summary-grid {
         grid-template-columns: 1fr 1fr;
+      }
+
+      .side-nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .panel-header {
@@ -701,190 +835,334 @@
     </div>
   </header>
 
-  <main>
-    <section class="summary-grid" aria-label="Summary">
-      <div class="summary-card memory">
-        <div class="summary-label" data-i18n="memoryCandidates">Memory Candidates</div>
-        <div class="summary-value" id="memoryCount">0</div>
-      </div>
-      <div class="summary-card skill">
-        <div class="summary-label" data-i18n="skillCandidates">Skill Candidates</div>
-        <div class="summary-value" id="skillCount">0</div>
-      </div>
-      <div class="summary-card patch">
-        <div class="summary-label" data-i18n="skillPatchCandidates">Skill Patch Candidates</div>
-        <div class="summary-value" id="patchCount">0</div>
-      </div>
-      <div class="summary-card review">
-        <div class="summary-label" data-i18n="openReviewItems">Open Review Items</div>
-        <div class="summary-value" id="reviewCount">0</div>
-      </div>
-      <div class="summary-card data">
-        <div class="summary-label" data-i18n="skillUsage">Skill Usage</div>
-        <div class="summary-value" id="skillUsageCount">0</div>
-        <div class="summary-subvalue" id="skillUsageBreakdown">0 success / 0 failed</div>
-        <ol class="skill-usage-list" id="skillUsageList"></ol>
-      </div>
-      <div class="summary-card status">
-        <div class="summary-label" data-i18n="statusSummary">Status Summary</div>
-        <div class="summary-value" id="promotedCount">0</div>
-        <div class="summary-subvalue" id="statusBreakdown">0 promoted / 0 rejected / 0 archived</div>
-      </div>
-    </section>
+  <main class="app-shell" id="appShell">
+    <nav class="side-nav" id="sideNav" aria-label="Workspace sections">
+      <button class="nav-button active" id="tab-home" type="button" data-nav="home" data-i18n="navHome">Home</button>
+      <button class="nav-button" id="tab-data" type="button" data-nav="data" data-i18n="navData">Data Center</button>
+      <button class="nav-button" id="tab-candidates" type="button" data-nav="candidates" data-i18n="navCandidates">Candidates</button>
+      <button class="nav-button" id="tab-review" type="button" data-nav="review" data-i18n="navReview">Review</button>
+      <button class="nav-button" id="tab-promotion" type="button" data-nav="promotion" data-i18n="navPromotion">Promotion</button>
+      <button class="nav-button" id="tab-skills" type="button" data-nav="skills" data-i18n="navSkills">Skills</button>
+      <button class="nav-button" id="tab-schedule" type="button" data-nav="schedule" data-i18n="navSchedule">Schedule</button>
+      <button class="nav-button" id="tab-runs" type="button" data-nav="runs" data-i18n="navRuns">Run Logs</button>
+      <button class="nav-button" id="tab-recall" type="button" data-nav="recall" data-i18n="navRecall">Session Recall</button>
+    </nav>
 
-    <section class="control-grid" aria-label="Actions">
-      <section class="panel data-panel">
-        <div class="panel-header">
-          <h2 data-i18n="candidateCenter">Candidate Center</h2>
-        </div>
-        <div class="panel-body">
-          <p class="panel-description" data-i18n="candidateCenterDesc">Refresh, initialize, scan, rebuild, or export the local SQLite learning database.</p>
-          <div class="toolbar">
-            <button id="refreshButton" data-action data-i18n="refresh">Refresh</button>
-            <button id="initializeData" data-action data-i18n="initializeData">Initialize Database</button>
-            <button id="installSkills" data-action data-i18n="installSkills">Install / Update Skills</button>
-            <button class="secondary" id="rebuildButton" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
-            <button class="secondary" id="scanButton" data-action data-i18n="scanOnce">Scan Once</button>
-            <button class="secondary" id="exportDigest" data-action data-i18n="exportDigest">Export Digest</button>
-            <button class="secondary" id="exportCandidates" data-action data-i18n="exportCandidates">Export Candidates</button>
+    <div class="view-stack">
+      <section class="view-panel active" data-view="home">
+        <section class="summary-grid" aria-label="Summary">
+          <div class="summary-card memory">
+            <div class="summary-label" data-i18n="memoryCandidates">Memory Candidates</div>
+            <div class="summary-value" id="memoryCount">0</div>
           </div>
-        </div>
+          <div class="summary-card skill">
+            <div class="summary-label" data-i18n="skillCandidates">Skill Candidates</div>
+            <div class="summary-value" id="skillCount">0</div>
+          </div>
+          <div class="summary-card patch">
+            <div class="summary-label" data-i18n="skillPatchCandidates">Skill Patch Candidates</div>
+            <div class="summary-value" id="patchCount">0</div>
+          </div>
+          <div class="summary-card review">
+            <div class="summary-label" data-i18n="openReviewItems">Open Review Items</div>
+            <div class="summary-value" id="reviewCount">0</div>
+          </div>
+          <div class="summary-card data">
+            <div class="summary-label" data-i18n="skillUsage">Skill Usage</div>
+            <div class="summary-value" id="skillUsageCount">0</div>
+            <div class="summary-subvalue" id="skillUsageBreakdown">0 success / 0 failed</div>
+            <ol class="skill-usage-list" id="skillUsageList"></ol>
+          </div>
+          <div class="summary-card status">
+            <div class="summary-label" data-i18n="statusSummary">Status Summary</div>
+            <div class="summary-value" id="promotedCount">0</div>
+            <div class="summary-subvalue" id="statusBreakdown">0 promoted / 0 rejected / 0 archived</div>
+          </div>
+        </section>
+
+        <section class="control-grid">
+          <section class="panel">
+            <div class="panel-header">
+              <h2 data-i18n="recentRuns">Recent Runs</h2>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="runKindHeader">Kind</th>
+                    <th data-i18n="statusHeader">Status</th>
+                    <th data-i18n="updatedAtHeader">Updated</th>
+                  </tr>
+                </thead>
+                <tbody id="homeRunRows">
+                  <tr><td class="empty-row" colspan="3" data-i18n="loading">Loading data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2 data-i18n="errorAlerts">Error Alerts</h2>
+            </div>
+            <div class="panel-body">
+              <ul class="simple-list" id="errorAlerts"></ul>
+            </div>
+          </section>
+        </section>
       </section>
 
-      <section class="panel schedule-panel">
-        <div class="panel-header">
-          <h2 data-i18n="scheduleCenter">Schedule Center</h2>
-        </div>
-        <div class="panel-body">
-          <p class="panel-description" data-i18n="scheduleDesc">Install or remove the daily 12:00 scan and desktop WebUI launcher. The scheduled task runs <code>sil.py scan --once</code>.</p>
-          <div class="toolbar">
-            <button id="installSchedule" data-action data-i18n="installSchedule">Install Schedule</button>
-            <button class="secondary" id="uninstallSchedule" data-action data-i18n="uninstallSchedule">Uninstall Schedule</button>
-            <button id="installShortcut" data-action data-i18n="installShortcut">Install Desktop Shortcut</button>
-            <button class="secondary" id="uninstallShortcut" data-action data-i18n="uninstallShortcut">Uninstall Desktop Shortcut</button>
+      <section class="view-panel" data-view="data">
+        <section class="panel data-panel">
+          <div class="panel-header">
+            <h2 data-i18n="dataCenter">Data Center</h2>
           </div>
-        </div>
+          <div class="panel-body">
+            <p class="panel-description" data-i18n="dataCenterDesc">Initialize, back up, rebuild, scan, or export the local SQLite learning database.</p>
+            <div class="toolbar">
+              <button id="refreshButton" data-action data-i18n="refresh">Refresh</button>
+              <button id="initializeData" data-action data-i18n="initializeData">Initialize Database</button>
+              <button class="secondary" id="backupDatabase" data-action data-i18n="backupDatabase">Backup Database</button>
+              <button class="secondary" id="rebuildButton" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
+              <button class="secondary" id="scanButton" data-action data-i18n="scanOnce">Scan Once</button>
+              <button class="secondary" id="exportDigest" data-action data-i18n="exportDigest">Export Digest</button>
+              <button class="secondary" id="exportCandidates" data-action data-i18n="exportCandidates">Export Candidates</button>
+            </div>
+            <div class="progress-panel" id="progressPanel" aria-live="polite">
+              <div class="progress-head">
+                <span id="progressText" data-i18n="progressIdle">No active job.</span>
+                <span id="progressCount">0 / 0</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+          </div>
+        </section>
       </section>
-    </section>
 
-    <section class="workspace-grid">
-      <section class="panel">
-        <div class="panel-header">
-          <h2 data-i18n="recordsTitle">Candidate Records</h2>
-          <span class="tag status" id="visibleCount">0</span>
-        </div>
-        <div class="filters">
-          <button class="filter-button active" type="button" data-filter="all" data-i18n="filterAll">All</button>
-          <button class="filter-button" type="button" data-filter="memory" data-i18n="filterMemory">Memory</button>
-          <button class="filter-button" type="button" data-filter="skill" data-i18n="filterSkill">Skill</button>
-          <button class="filter-button" type="button" data-filter="skill_patch" data-i18n="filterPatch">Skill Patch</button>
-          <select class="filter-select" id="statusFilter" aria-label="Status">
-            <option value="all" data-i18n="statusAll">All Statuses</option>
-            <option value="review" data-i18n="statusReview">Review</option>
-            <option value="promoted" data-i18n="statusPromoted">Promoted</option>
-            <option value="rejected" data-i18n="statusRejected">Rejected</option>
-            <option value="archived" data-i18n="statusArchived">Archived</option>
-            <option value="blocked" data-i18n="statusBlocked">Blocked</option>
-          </select>
-          <input class="filter-date" id="createdAtFilter" type="date" aria-label="Created date">
-          <input class="search-input" id="searchInput" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search candidates">
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th class="col-type" data-i18n="typeHeader">Type</th>
-                <th class="col-destination" data-i18n="destinationHeader">Destination</th>
-                <th data-i18n="candidateHeader">Candidate</th>
-                <th class="col-status" data-i18n="statusHeader">Status</th>
-                <th class="col-time" id="createdAtHeader" data-i18n="createdAtHeader">Created</th>
-                <th class="col-time" id="updatedAtHeader" data-i18n="updatedAtHeader">Updated</th>
-              </tr>
-            </thead>
-            <tbody id="candidateRows">
-              <tr><td class="empty-row" colspan="6" data-i18n="loading">Loading data...</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="pagination" id="paginationControls">
-          <div class="pagination-group">
-            <button class="secondary" type="button" id="prevPage" data-i18n="prevPage">Previous</button>
-            <span class="tag status" id="currentPageLabel">1 / 1</span>
-            <button class="secondary" type="button" id="nextPage" data-i18n="nextPage">Next</button>
+      <section class="view-panel" data-view="candidates">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 data-i18n="candidateCenter">Candidate Center</h2>
+            <span class="tag status" id="visibleCount">0</span>
           </div>
-          <div class="pagination-group">
-            <span class="summary-subvalue" data-i18n="pageSizeLabel">Rows per page</span>
-            <select id="pageSizeSelect" aria-label="Rows per page">
-              <option value="10">10</option>
-              <option value="20" selected>20</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
+          <div class="filters">
+            <button class="filter-button active" type="button" data-filter="all" data-i18n="filterAll">All</button>
+            <button class="filter-button" type="button" data-filter="memory" data-i18n="filterMemory">Memory</button>
+            <button class="filter-button" type="button" data-filter="skill" data-i18n="filterSkill">Skill</button>
+            <button class="filter-button" type="button" data-filter="skill_patch" data-i18n="filterPatch">Skill Patch</button>
+            <select class="filter-select" id="statusFilter" aria-label="Status">
+              <option value="all" data-i18n="statusAll">All Statuses</option>
+              <option value="review" data-i18n="statusReview">Review</option>
+              <option value="promoted" data-i18n="statusPromoted">Promoted</option>
+              <option value="rejected" data-i18n="statusRejected">Rejected</option>
+              <option value="archived" data-i18n="statusArchived">Archived</option>
+              <option value="blocked" data-i18n="statusBlocked">Blocked</option>
             </select>
+            <input class="filter-date" id="createdAtFilter" type="date" aria-label="Created date">
+            <input class="search-input" id="searchInput" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search candidates">
           </div>
-        </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="col-type" data-i18n="typeHeader">Type</th>
+                  <th class="col-destination" data-i18n="destinationHeader">Destination</th>
+                  <th data-i18n="candidateHeader">Candidate</th>
+                  <th class="col-status" data-i18n="statusHeader">Status</th>
+                  <th class="col-time" id="createdAtHeader" data-i18n="createdAtHeader">Created</th>
+                  <th class="col-time" id="updatedAtHeader" data-i18n="updatedAtHeader">Updated</th>
+                </tr>
+              </thead>
+              <tbody id="candidateRows">
+                <tr><td class="empty-row" colspan="6" data-i18n="loading">Loading data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="paginationControls">
+            <div class="pagination-group">
+              <button class="secondary" type="button" id="prevPage" data-i18n="prevPage">Previous</button>
+              <span class="tag status" id="currentPageLabel">1 / 1</span>
+              <button class="secondary" type="button" id="nextPage" data-i18n="nextPage">Next</button>
+            </div>
+            <div class="pagination-group">
+              <span class="summary-subvalue" data-i18n="pageSizeLabel">Rows per page</span>
+              <select id="pageSizeSelect" aria-label="Rows per page">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+        </section>
       </section>
 
-      <aside class="panel detail-panel">
-        <div class="panel-header">
-          <h2 data-i18n="selectedRecord">Selected Record</h2>
-          <span class="tag status" id="selectedBadge" data-i18n="noneSelected">None</span>
-        </div>
-        <div class="detail-empty" id="selectedEmpty" data-i18n="selectCandidateHint">Select a row to inspect the full candidate and promotion suggestion.</div>
-        <div class="detail-content" id="selectedContent" hidden>
-          <h3 id="selectedTitle"></h3>
-          <dl class="detail-meta" id="selectedMeta">
-            <div>
-              <dt data-i18n="destinationLabel">Destination</dt>
-              <dd id="selectedDestination"></dd>
-            </div>
-            <div>
-              <dt data-i18n="statusLabel">Status</dt>
-              <dd id="selectedStatus"></dd>
-            </div>
-            <div>
-              <dt data-i18n="safetyLabel">Safety</dt>
-              <dd id="selectedSafety"></dd>
-            </div>
-            <div>
-              <dt data-i18n="confidenceLabel">Confidence</dt>
-              <dd id="selectedConfidence"></dd>
-            </div>
-            <div>
-              <dt data-i18n="sourceCountLabel">Sources</dt>
-              <dd id="selectedSources"></dd>
-            </div>
-            <div>
-              <dt data-i18n="createdAtLabel">Created</dt>
-              <dd id="selectedCreatedAt"></dd>
-            </div>
-            <div>
-              <dt data-i18n="updatedAtLabel">Updated</dt>
-              <dd id="selectedUpdatedAt"></dd>
-            </div>
-          </dl>
-          <div class="detail-block">
-            <div class="detail-label" data-i18n="candidateTextLabel">Candidate</div>
-            <div class="detail-text" id="selectedText"></div>
+      <section class="view-panel" data-view="review">
+        <aside class="panel detail-panel">
+          <div class="panel-header">
+            <h2 data-i18n="reviewCenter">Review Center</h2>
+            <span class="tag status" id="selectedBadge" data-i18n="noneSelected">None</span>
           </div>
-          <div class="detail-block">
-            <div class="detail-label" data-i18n="rewriteSuggestionLabel">Rewrite Suggestion</div>
-            <div class="detail-text" id="selectedRewrite"></div>
+          <div class="detail-empty" id="selectedEmpty" data-i18n="selectCandidateHint">Select a row to inspect the full candidate and promotion suggestion.</div>
+          <div class="detail-content" id="selectedContent" hidden>
+            <h3 id="selectedTitle"></h3>
+            <dl class="detail-meta" id="selectedMeta">
+              <div>
+                <dt data-i18n="destinationLabel">Destination</dt>
+                <dd id="selectedDestination"></dd>
+              </div>
+              <div>
+                <dt data-i18n="statusLabel">Status</dt>
+                <dd id="selectedStatus"></dd>
+              </div>
+              <div>
+                <dt data-i18n="safetyLabel">Safety</dt>
+                <dd id="selectedSafety"></dd>
+              </div>
+              <div>
+                <dt data-i18n="confidenceLabel">Confidence</dt>
+                <dd id="selectedConfidence"></dd>
+              </div>
+              <div>
+                <dt data-i18n="sourceCountLabel">Sources</dt>
+                <dd id="selectedSources"></dd>
+              </div>
+              <div>
+                <dt data-i18n="createdAtLabel">Created</dt>
+                <dd id="selectedCreatedAt"></dd>
+              </div>
+              <div>
+                <dt data-i18n="updatedAtLabel">Updated</dt>
+                <dd id="selectedUpdatedAt"></dd>
+              </div>
+            </dl>
+            <div class="detail-block">
+              <div class="detail-label" data-i18n="candidateTextLabel">Candidate</div>
+              <div class="detail-text" id="selectedText"></div>
+            </div>
+            <div class="detail-block">
+              <div class="detail-label" data-i18n="rewriteSuggestionLabel">Rewrite Suggestion</div>
+              <div class="detail-text" id="selectedRewrite"></div>
+            </div>
+            <div class="detail-block">
+              <div class="detail-label" data-i18n="sourceFilesLabel">Source Files</div>
+              <ul class="source-list" id="selectedSourceFiles"></ul>
+            </div>
+            <div class="toolbar" id="detailActions">
+              <button class="secondary" id="copyRewrite" data-i18n="copyRewrite">Copy Rewrite</button>
+              <button class="secondary" id="archiveSelected" data-action data-i18n="archiveSelected">Archive Selected</button>
+              <button class="secondary" id="rejectSelected" data-action data-i18n="rejectSelected">Reject Selected</button>
+              <button id="promoteSelected" data-action data-i18n="promoteUser">Promote Selected To USER.md</button>
+              <button id="promoteAgents" data-action data-i18n="promoteAgents">Promote To Project AGENTS.md</button>
+              <button id="promoteSkill" data-action data-i18n="promoteSkill">Promote As Skill</button>
+              <button id="promotePatch" data-action data-i18n="promotePatch">Promote As Skill Patch</button>
+            </div>
           </div>
-          <div class="detail-block">
-            <div class="detail-label" data-i18n="sourceFilesLabel">Source Files</div>
-            <ul class="source-list" id="selectedSourceFiles"></ul>
+        </aside>
+      </section>
+
+      <section class="view-panel" data-view="promotion">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 data-i18n="promotionCenter">Promotion Center</h2>
           </div>
-          <div class="toolbar" id="detailActions">
-            <button class="secondary" id="copyRewrite" data-i18n="copyRewrite">Copy Rewrite</button>
-            <button class="secondary" id="archiveSelected" data-action data-i18n="archiveSelected">Archive Selected</button>
-            <button class="secondary" id="rejectSelected" data-action data-i18n="rejectSelected">Reject Selected</button>
-            <button id="promoteSelected" data-action data-i18n="promoteUser">Promote Selected To USER.md</button>
-            <button id="promoteSkill" data-action data-i18n="promoteSkill">Promote As Skill</button>
-            <button id="promotePatch" data-action data-i18n="promotePatch">Promote As Skill Patch</button>
+          <div class="panel-body">
+            <p class="panel-description" data-i18n="promotionCenterDesc">Select a candidate in Candidate Center, then use the selected record actions in Review Center to promote it into USER.md, AGENTS.md, a skill, or a skill patch.</p>
           </div>
-        </div>
-      </aside>
-    </section>
+        </section>
+      </section>
+
+      <section class="view-panel" data-view="skills">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 data-i18n="skillManagement">Skill Management</h2>
+          </div>
+          <div class="panel-body">
+            <p class="panel-description" data-i18n="skillManagementDesc">Install local skills, inspect usage telemetry, and review skill patch candidates from the candidate queue.</p>
+            <div class="toolbar">
+              <button id="installSkills" data-action data-i18n="installSkills">Install / Update Skills</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="view-panel" data-view="schedule">
+        <section class="panel schedule-panel">
+          <div class="panel-header">
+            <h2 data-i18n="scheduleCenter">Schedule Center</h2>
+          </div>
+          <div class="panel-body">
+            <p class="panel-description" data-i18n="scheduleDesc">Install or remove the daily 12:00 scan and desktop WebUI launcher. The scheduled task runs <code>sil.py scan --once</code>.</p>
+            <div class="toolbar">
+              <button id="installSchedule" data-action data-i18n="installSchedule">Install Schedule</button>
+              <button class="secondary" id="uninstallSchedule" data-action data-i18n="uninstallSchedule">Uninstall Schedule</button>
+              <button id="installShortcut" data-action data-i18n="installShortcut">Install Desktop Shortcut</button>
+              <button class="secondary" id="uninstallShortcut" data-action data-i18n="uninstallShortcut">Uninstall Desktop Shortcut</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="view-panel" data-view="runs">
+        <section class="module-grid">
+          <section class="panel">
+            <div class="panel-header">
+              <h2 data-i18n="runLogs">Run Logs</h2>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="runKindHeader">Kind</th>
+                    <th data-i18n="statusHeader">Status</th>
+                    <th data-i18n="runReasonHeader">Reason</th>
+                    <th data-i18n="updatedAtHeader">Updated</th>
+                  </tr>
+                </thead>
+                <tbody id="runRows">
+                  <tr><td class="empty-row" colspan="4" data-i18n="loading">Loading data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2 data-i18n="runSteps">Run Steps</h2>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="statusHeader">Status</th>
+                    <th data-i18n="candidateHeader">Detail</th>
+                    <th data-i18n="updatedAtHeader">Updated</th>
+                  </tr>
+                </thead>
+                <tbody id="runStepRows">
+                  <tr><td class="empty-row" colspan="3" data-i18n="loading">Loading data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <section class="view-panel" data-view="recall">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 data-i18n="recallTitle">Cross-Session Recall</h2>
+          </div>
+          <div class="panel-body">
+            <div class="toolbar">
+              <input class="search-input" id="recallSearch" type="search" data-i18n-placeholder="recallPlaceholder" placeholder="Search sessions and candidates">
+              <button id="recallButton" type="button" data-i18n="recallButton">Search</button>
+            </div>
+            <ul class="simple-list" id="recallResults"></ul>
+          </div>
+        </section>
+      </section>
+    </div>
   </main>
 
   <div class="toast" id="statusToast" role="status" aria-live="polite"></div>
@@ -897,6 +1175,27 @@
         localOnly: "Local-only control plane",
         subtitle: "Review memory, skill, and skill patch candidates from a token-protected local service. All promotion actions run through this WebUI.",
         tokenProtected: "127.0.0.1 only, token protected",
+        navHome: "Home",
+        navData: "Data Center",
+        navCandidates: "Candidates",
+        navReview: "Review",
+        navPromotion: "Promotion",
+        navSkills: "Skills",
+        navSchedule: "Schedule",
+        navRuns: "Run Logs",
+        navRecall: "Session Recall",
+        dataCenter: "Data Center",
+        dataCenterDesc: "Initialize, back up, rebuild, scan, or export the local SQLite learning database.",
+        reviewCenter: "Review Center",
+        promotionCenter: "Promotion Center",
+        promotionCenterDesc: "Select a candidate in Candidate Center, then use the selected record actions in Review Center to promote it into USER.md, AGENTS.md, a skill, or a skill patch.",
+        skillManagement: "Skill Management",
+        skillManagementDesc: "Install local skills, inspect usage telemetry, and review skill patch candidates from the candidate queue.",
+        recentRuns: "Recent Runs",
+        errorAlerts: "Error Alerts",
+        runLogs: "Run Logs",
+        runSteps: "Run Steps",
+        recallTitle: "Cross-Session Recall",
         memoryCandidates: "Memory Candidates",
         skillCandidates: "Skill Candidates",
         skillPatchCandidates: "Skill Patch Candidates",
@@ -912,6 +1211,7 @@
         candidateCenterDesc: "Refresh, initialize, scan, rebuild, or export the local SQLite learning database.",
         refresh: "Refresh",
         initializeData: "Initialize Database",
+        backupDatabase: "Backup Database",
         installSkills: "Install / Update Skills",
         rebuildDatabase: "Rebuild Database",
         scanOnce: "Scan Once",
@@ -920,8 +1220,11 @@
         archiveSelected: "Archive Selected",
         rejectSelected: "Reject Selected",
         promoteUser: "Promote Selected To USER.md",
+        promoteAgents: "Promote To Project AGENTS.md",
         promoteSkill: "Promote As Skill",
         promotePatch: "Promote As Skill Patch",
+        recallPlaceholder: "Search sessions and candidates",
+        recallButton: "Search",
         scheduleCenter: "Schedule Center",
         scheduleDesc: "Install or remove the daily 12:00 scan and desktop WebUI launcher. The scheduled task runs sil.py scan --once.",
         installSchedule: "Install Schedule",
@@ -946,8 +1249,13 @@
         statusHeader: "Status",
         createdAtHeader: "Created",
         updatedAtHeader: "Updated",
+        runKindHeader: "Kind",
+        runReasonHeader: "Reason",
         loading: "Loading data...",
         emptyCandidates: "No candidates match the current view.",
+        emptyRuns: "No run logs yet.",
+        emptyErrors: "No failed runs.",
+        emptyRecall: "No matching sessions or candidates.",
         prevPage: "Previous",
         nextPage: "Next",
         pageSizeLabel: "Rows per page",
@@ -969,14 +1277,17 @@
         visibleItems: "{count} visible",
         toastLoaded: "Dashboard refreshed.",
         toastInitialized: "Database initialized.",
+        toastBackupCreated: "Database backup created.",
         toastSkillsInstalled: "Skills installed or updated.",
         toastScanned: "Scan completed.",
         toastRebuilt: "Database rebuilt from historical sessions.",
+        toastRebuildStarted: "Database rebuild started.",
         toastDigestExported: "Digest exported.",
         toastCandidatesExported: "Candidates exported.",
         toastArchived: "Candidate archived.",
         toastRejected: "Candidate rejected.",
         toastPromotedUser: "Candidate promoted to USER.md.",
+        toastPromotedAgents: "Candidate promoted to AGENTS.md.",
         toastPromotedSkill: "Skill created from selected candidate.",
         toastPromotedPatch: "Skill patch artifact exported.",
         toastScheduleInstalled: "Schedule installed.",
@@ -987,8 +1298,14 @@
         toastCopyFailed: "Copy failed. Select and copy the rewrite text manually.",
         toastLoadFailed: "Failed to load dashboard data.",
         selectCandidateFirst: "Select a candidate first.",
+        progressIdle: "No active job.",
+        rebuildInProgress: "Rebuilding database...",
+        rebuildCompleted: "Rebuild completed.",
+        rebuildFailed: "Rebuild failed.",
+        progressLatest: "Latest: {detail}",
         confirmRebuild: "Backup the current SQLite database, clear active data, and rescan all historical sessions?",
         confirmPromoteUser: "Promote this candidate into USER.md? A backup will be created first.",
+        confirmPromoteAgents: "Promote this candidate into AGENTS.md? A backup will be created first.",
         confirmPromoteSkill: "Create an independent skill from this candidate?",
         confirmPromotePatch: "Export this candidate as a reviewed skill patch artifact?",
         type_memory: "Memory",
@@ -1000,6 +1317,27 @@
         localOnly: "本机专用控制台",
         subtitle: "从受令牌保护的本地服务中审阅记忆、技能和技能补丁候选；所有晋升操作都可以在 WebUI 中点击完成。",
         tokenProtected: "仅绑定 127.0.0.1，并启用令牌保护",
+        navHome: "首页",
+        navData: "数据中心",
+        navCandidates: "候选中心",
+        navReview: "审阅中心",
+        navPromotion: "晋升中心",
+        navSkills: "Skill 管理",
+        navSchedule: "调度中心",
+        navRuns: "运行日志",
+        navRecall: "跨会话检索",
+        dataCenter: "数据中心",
+        dataCenterDesc: "初始化、备份、重建、扫描或导出本地 SQLite 学习数据库。",
+        reviewCenter: "审阅中心",
+        promotionCenter: "晋升中心",
+        promotionCenterDesc: "先在候选中心选择一条记录，再到审阅中心通过所选记录操作晋升到 USER.md、AGENTS.md、技能或技能补丁。",
+        skillManagement: "Skill 管理",
+        skillManagementDesc: "安装本地技能，查看技能使用遥测，并从候选队列处理技能补丁。",
+        recentRuns: "最近运行",
+        errorAlerts: "错误提示",
+        runLogs: "运行日志",
+        runSteps: "运行步骤",
+        recallTitle: "跨会话检索",
         memoryCandidates: "记忆候选",
         skillCandidates: "技能候选",
         skillPatchCandidates: "技能补丁候选",
@@ -1015,6 +1353,7 @@
         candidateCenterDesc: "刷新、初始化、扫描、重建或导出本地 SQLite 学习数据库。",
         refresh: "刷新",
         initializeData: "初始化数据库",
+        backupDatabase: "备份数据库",
         installSkills: "安装 / 更新技能",
         rebuildDatabase: "重建数据库",
         scanOnce: "扫描一次",
@@ -1023,8 +1362,11 @@
         archiveSelected: "归档所选",
         rejectSelected: "拒绝所选",
         promoteUser: "晋升到 USER.md",
+        promoteAgents: "晋升到项目 AGENTS.md",
         promoteSkill: "晋升为技能",
         promotePatch: "晋升为技能补丁",
+        recallPlaceholder: "搜索历史会话和已入库候选",
+        recallButton: "搜索",
         scheduleCenter: "调度中心",
         scheduleDesc: "安装或移除每天 12:00 的扫描任务和桌面 WebUI 快捷方式。定时任务会运行 sil.py scan --once。",
         installSchedule: "安装定时任务",
@@ -1049,8 +1391,13 @@
         statusHeader: "状态",
         createdAtHeader: "落库时间",
         updatedAtHeader: "更新时间",
+        runKindHeader: "类型",
+        runReasonHeader: "原因",
         loading: "正在加载数据...",
         emptyCandidates: "当前视图没有匹配的候选。",
+        emptyRuns: "暂无运行日志。",
+        emptyErrors: "暂无失败运行。",
+        emptyRecall: "没有匹配的历史会话或候选。",
         prevPage: "上一页",
         nextPage: "下一页",
         pageSizeLabel: "每页条数",
@@ -1072,14 +1419,17 @@
         visibleItems: "当前显示 {count} 条",
         toastLoaded: "控制台已刷新。",
         toastInitialized: "数据库已初始化。",
+        toastBackupCreated: "数据库备份已创建。",
         toastSkillsInstalled: "技能已安装或更新。",
         toastScanned: "扫描已完成。",
         toastRebuilt: "数据库已按历史会话重建。",
+        toastRebuildStarted: "数据库重建已启动。",
         toastDigestExported: "摘要已导出。",
         toastCandidatesExported: "候选已导出。",
         toastArchived: "候选已归档。",
         toastRejected: "候选已拒绝。",
         toastPromotedUser: "候选已晋升到 USER.md。",
+        toastPromotedAgents: "候选已晋升到 AGENTS.md。",
         toastPromotedSkill: "已基于候选创建独立技能。",
         toastPromotedPatch: "技能补丁产物已导出。",
         toastScheduleInstalled: "定时任务已安装。",
@@ -1090,8 +1440,14 @@
         toastCopyFailed: "复制失败，请手动选择改写建议文本。",
         toastLoadFailed: "加载控制台数据失败。",
         selectCandidateFirst: "请先选择一个候选。",
+        progressIdle: "当前没有运行中的任务。",
+        rebuildInProgress: "正在重建数据库...",
+        rebuildCompleted: "重建已完成。",
+        rebuildFailed: "重建失败。",
+        progressLatest: "最新步骤：{detail}",
         confirmRebuild: "将先备份当前 SQLite 数据库，然后清空当前数据并全量重扫历史会话。是否继续？",
         confirmPromoteUser: "确认将此候选晋升到 USER.md？系统会先创建备份。",
+        confirmPromoteAgents: "确认将此候选晋升到 AGENTS.md？系统会先创建备份。",
         confirmPromoteSkill: "确认将此候选创建为一个独立技能？",
         confirmPromotePatch: "确认将此候选导出为已审阅的技能补丁产物？",
         type_memory: "记忆",
@@ -1111,6 +1467,12 @@
     let currentPage = 1;
     let pageSize = 20;
     let toastTimer = null;
+    let activeRunId = null;
+    let activeRunTimer = null;
+    let currentView = "home";
+    let latestRuns = [];
+    let latestRunSteps = [];
+    let recallMatches = [];
     window.selectedCandidateId = null;
 
     function initialLanguage() {
@@ -1147,6 +1509,8 @@
       renderSummary(currentSummary);
       renderCandidates();
       renderSelected();
+      renderRuns();
+      renderRecallResults();
     }
 
     let currentSummary = {memory: 0, skill: 0, skill_patch: 0, review: 0};
@@ -1174,6 +1538,29 @@
       document.querySelectorAll("[data-action]").forEach((button) => {
         button.disabled = isBusy;
       });
+    }
+
+    function updateProgress(status) {
+      const panel = document.getElementById("progressPanel");
+      const text = document.getElementById("progressText");
+      const count = document.getElementById("progressCount");
+      const fill = document.getElementById("progressFill");
+      if (!status) {
+        panel.classList.remove("active");
+        text.textContent = t("progressIdle");
+        count.textContent = "0 / 0";
+        fill.style.width = "0%";
+        return;
+      }
+      panel.classList.add("active");
+      const total = Number(status.total || 0);
+      const done = Number(status.processed || 0) + Number(status.skipped || 0);
+      const percent = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : status.status === "ok" ? 100 : 8;
+      const latest = status.latest_step && status.latest_step.detail ? ` · ${t("progressLatest", {detail: status.latest_step.detail})}` : "";
+      const label = status.status === "ok" ? t("rebuildCompleted") : status.status === "failed" ? t("rebuildFailed") : t("rebuildInProgress");
+      text.textContent = `${label}${latest}`;
+      count.textContent = `${done} / ${total || "?"}`;
+      fill.style.width = `${percent}%`;
     }
 
     function renderSummary(summary) {
@@ -1259,6 +1646,146 @@
         td.className = className;
       }
       return td;
+    }
+
+    function setView(view) {
+      currentView = view;
+      document.querySelectorAll("[data-nav]").forEach((button) => {
+        const active = button.dataset.nav === view;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-current", active ? "page" : "false");
+      });
+      document.querySelectorAll("[data-view]").forEach((panel) => {
+        panel.classList.toggle("active", panel.dataset.view === view);
+      });
+      if (view === "runs") {
+        refreshRuns().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
+      }
+    }
+
+    function renderEmptyRow(body, colspan, messageKey) {
+      body.innerHTML = "";
+      const row = document.createElement("tr");
+      const empty = cell("empty-row");
+      empty.colSpan = colspan;
+      empty.textContent = t(messageKey);
+      row.appendChild(empty);
+      body.appendChild(row);
+    }
+
+    function renderRunRows(body, runs, compact = false) {
+      body.innerHTML = "";
+      if (!runs.length) {
+        renderEmptyRow(body, compact ? 3 : 4, "emptyRuns");
+        return;
+      }
+      for (const run of runs) {
+        const row = document.createElement("tr");
+        const kind = cell();
+        kind.textContent = run.kind || "-";
+        row.appendChild(kind);
+        const status = cell();
+        status.appendChild(tag(run.status || "-", run.status === "failed" ? "review" : "status"));
+        row.appendChild(status);
+        if (!compact) {
+          const reason = cell();
+          reason.textContent = run.detail || "-";
+          row.appendChild(reason);
+        }
+        const updated = cell();
+        updated.textContent = formatDateTime(run.finished_at || run.started_at);
+        row.appendChild(updated);
+        body.appendChild(row);
+      }
+    }
+
+    function renderRunSteps() {
+      const body = document.getElementById("runStepRows");
+      body.innerHTML = "";
+      if (!latestRunSteps.length) {
+        renderEmptyRow(body, 3, "emptyRuns");
+        return;
+      }
+      for (const step of latestRunSteps) {
+        const row = document.createElement("tr");
+        const status = cell();
+        status.appendChild(tag(step.status || "-", step.status === "failed" ? "review" : "status"));
+        row.appendChild(status);
+        const detail = cell();
+        detail.textContent = step.detail || step.name || "-";
+        row.appendChild(detail);
+        const updated = cell();
+        updated.textContent = formatDateTime(step.finished_at || step.started_at);
+        row.appendChild(updated);
+        body.appendChild(row);
+      }
+    }
+
+    function renderErrors() {
+      const list = document.getElementById("errorAlerts");
+      list.innerHTML = "";
+      const failures = latestRuns.filter((run) => run.status === "failed").slice(0, 5);
+      if (!failures.length) {
+        const item = document.createElement("li");
+        item.textContent = t("emptyErrors");
+        list.appendChild(item);
+        return;
+      }
+      for (const run of failures) {
+        const item = document.createElement("li");
+        item.textContent = `${run.kind || "-"} · ${formatDateTime(run.finished_at || run.started_at)} · ${run.detail || run.status}`;
+        list.appendChild(item);
+      }
+    }
+
+    function renderRuns() {
+      const homeRows = document.getElementById("homeRunRows");
+      const runRows = document.getElementById("runRows");
+      if (homeRows) {
+        renderRunRows(homeRows, latestRuns.slice(0, 5), true);
+      }
+      if (runRows) {
+        renderRunRows(runRows, latestRuns, false);
+      }
+      renderRunSteps();
+      renderErrors();
+    }
+
+    function renderRecallResults() {
+      const list = document.getElementById("recallResults");
+      list.innerHTML = "";
+      if (!recallMatches.length) {
+        const item = document.createElement("li");
+        item.textContent = t("emptyRecall");
+        list.appendChild(item);
+        return;
+      }
+      for (const result of recallMatches) {
+        const item = document.createElement("li");
+        const label = [result.kind, result.type, result.destination].filter(Boolean).join(" / ");
+        item.textContent = `${label || "result"} · ${result.path || "-"}\n${result.snippet || ""}`;
+        list.appendChild(item);
+      }
+    }
+
+    async function refreshRuns() {
+      const payload = await api("/api/runs");
+      latestRuns = payload.runs || [];
+      latestRunSteps = payload.steps || [];
+      renderRuns();
+    }
+
+    async function runRecallSearch() {
+      const input = document.getElementById("recallSearch");
+      const query = input.value.trim();
+      if (!query) {
+        recallMatches = [];
+        renderRecallResults();
+        return;
+      }
+      const payload = await api(`/api/recall?q=${encodeURIComponent(query)}`);
+      recallMatches = payload.results || [];
+      renderRecallResults();
     }
 
     function visibleCandidates() {
@@ -1435,6 +1962,7 @@
       hydrateSelection();
       renderCandidates();
       renderSelected();
+      await refreshRuns();
       if (showMessage) {
         showToast(t("toastLoaded"));
       }
@@ -1459,6 +1987,49 @@
         console.error(error);
         showToast(error.message || t("toastLoadFailed"), "error");
       } finally {
+        setBusy(false);
+      }
+    }
+
+    async function pollRun(runId) {
+      const status = await api(`/api/runs/${runId}`);
+      updateProgress(status);
+      if (status.status === "running") {
+        activeRunTimer = setTimeout(() => pollRun(runId).catch((error) => {
+          console.error(error);
+          showToast(error.message || t("toastLoadFailed"), "error");
+          setBusy(false);
+        }), 1000);
+        return;
+      }
+      activeRunId = null;
+      clearTimeout(activeRunTimer);
+      activeRunTimer = null;
+      setBusy(false);
+      if (status.status === "ok") {
+        await refresh(false);
+        await refreshRuns();
+        showToast(t("toastRebuilt"));
+      } else {
+        showToast(`${t("rebuildFailed")} ${status.detail || ""}`, "error");
+      }
+    }
+
+    async function runRebuild() {
+      if (!confirm(t("confirmRebuild"))) {
+        return;
+      }
+      clearTimeout(activeRunTimer);
+      setBusy(true);
+      try {
+        const started = await api("/api/rebuild", {method: "POST"});
+        activeRunId = started.run_id;
+        updateProgress({status: "running", processed: 0, skipped: 0, total: 0, latest_step: null});
+        showToast(t("toastRebuildStarted"));
+        await pollRun(activeRunId);
+      } catch (error) {
+        console.error(error);
+        showToast(error.message || t("toastLoadFailed"), "error");
         setBusy(false);
       }
     }
@@ -1488,6 +2059,10 @@
         localStorage.setItem("codexSilLanguage", currentLanguage);
         applyLanguage();
       });
+    });
+
+    document.querySelectorAll("[data-nav]").forEach((button) => {
+      button.addEventListener("click", () => setView(button.dataset.nav));
     });
 
     document.querySelectorAll("[data-filter]").forEach((button) => {
@@ -1535,20 +2110,29 @@
 
     document.getElementById("refreshButton").addEventListener("click", () => refresh(true).catch((error) => showToast(error.message, "error")));
     document.getElementById("initializeData").addEventListener("click", () => runAction(() => api("/api/init", {method: "POST"}), "toastInitialized"));
+    document.getElementById("backupDatabase").addEventListener("click", () => runAction(() => api("/api/backup", {method: "POST"}), "toastBackupCreated", {refresh: false}));
     document.getElementById("installSkills").addEventListener("click", () => runAction(() => api("/api/install/skills", {method: "POST"}), "toastSkillsInstalled", {refresh: false}));
     document.getElementById("scanButton").addEventListener("click", () => runAction(() => api("/api/scan", {method: "POST"}), "toastScanned"));
     document.getElementById("exportDigest").addEventListener("click", () => runAction(() => api("/api/export/digest", {method: "POST"}), "toastDigestExported", {refresh: false}));
     document.getElementById("exportCandidates").addEventListener("click", () => runAction(() => api("/api/export/candidates", {method: "POST"}), "toastCandidatesExported", {refresh: false}));
-    document.getElementById("rebuildButton").addEventListener("click", () => runAction(() => api("/api/rebuild", {method: "POST"}), "toastRebuilt", {confirmKey: "confirmRebuild"}));
+    document.getElementById("rebuildButton").addEventListener("click", () => runRebuild());
     document.getElementById("archiveSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/archive`, {method: "POST"}), "toastArchived", {needsSelection: true}));
     document.getElementById("rejectSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/reject`, {method: "POST"}), "toastRejected", {needsSelection: true}));
     document.getElementById("promoteSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote`, {method: "POST"}), "toastPromotedUser", {needsSelection: true, confirmKey: "confirmPromoteUser"}));
+    document.getElementById("promoteAgents").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-agents`, {method: "POST"}), "toastPromotedAgents", {needsSelection: true, confirmKey: "confirmPromoteAgents"}));
     document.getElementById("promoteSkill").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-skill`, {method: "POST"}), "toastPromotedSkill", {needsSelection: true, confirmKey: "confirmPromoteSkill"}));
     document.getElementById("promotePatch").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-patch`, {method: "POST"}), "toastPromotedPatch", {needsSelection: true, confirmKey: "confirmPromotePatch"}));
     document.getElementById("installSchedule").addEventListener("click", () => runAction(() => api("/api/schedule/install", {method: "POST"}), "toastScheduleInstalled", {refresh: false}));
     document.getElementById("uninstallSchedule").addEventListener("click", () => runAction(() => api("/api/schedule/uninstall", {method: "POST"}), "toastScheduleUninstalled", {refresh: false}));
     document.getElementById("installShortcut").addEventListener("click", () => runAction(() => api("/api/shortcut/install", {method: "POST"}), "toastShortcutInstalled", {refresh: false}));
     document.getElementById("uninstallShortcut").addEventListener("click", () => runAction(() => api("/api/shortcut/uninstall", {method: "POST"}), "toastShortcutUninstalled", {refresh: false}));
+    document.getElementById("recallButton").addEventListener("click", () => runRecallSearch().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("recallSearch").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        runRecallSearch().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
+      }
+    });
     document.getElementById("copyRewrite").addEventListener("click", async () => {
       if (!selectedCandidate) {
         showToast(t("selectCandidateFirst"), "warn");

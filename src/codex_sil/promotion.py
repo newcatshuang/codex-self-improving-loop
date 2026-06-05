@@ -61,6 +61,37 @@ def promote_to_user_memory(root: Path, candidate_id: int, user_memory_path: Path
     return {"target_path": str(user_memory), "backup_path": backup_path, "status": "ok"}
 
 
+def promote_to_project_agents(root: Path, candidate_id: int, agents_path: Path | None = None) -> dict[str, str]:
+    init_db(root)
+    target = agents_path or root / "AGENTS.md"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with connect(root) as conn:
+        row = conn.execute("select rewrite_suggestion, text from candidates where id=?", (candidate_id,)).fetchone()
+        if row is None:
+            raise ValueError(f"candidate not found: {candidate_id}")
+        text = str(row["rewrite_suggestion"] or row["text"]).strip()
+    backup_path = ""
+    if target.exists():
+        backup = backups_dir(root) / f"AGENTS.backup-{now_stamp()}.md"
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(target, backup)
+        backup_path = str(backup)
+    existing = target.read_text(encoding="utf-8") if target.exists() else "# AGENTS.md\n"
+    section = "## Project Learned Facts"
+    if text not in existing:
+        if section not in existing:
+            existing = existing.rstrip() + f"\n\n{section}\n"
+        target.write_text(existing.rstrip() + "\n\n- " + text + "\n", encoding="utf-8")
+    with connect(root) as conn:
+        conn.execute("update candidates set status='promoted', updated_at=current_timestamp where id=?", (candidate_id,))
+        conn.execute(
+            "insert into promotions(candidate_id, target_type, target_path, backup_path, status, detail) values(?, 'AGENTS.md', ?, ?, 'ok', ?)",
+            (candidate_id, str(target), backup_path, text),
+        )
+        conn.execute("insert into audit_log(action, target, detail) values('promote_project_agents', ?, ?)", (str(target), text))
+    return {"target_path": str(target), "backup_path": backup_path, "status": "ok"}
+
+
 def promote_to_skill(root: Path, candidate_id: int, skills_root: Path | None = None) -> dict[str, str]:
     init_db(root)
     target_root = skills_root or Path.home() / ".agents" / "skills"

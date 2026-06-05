@@ -366,7 +366,7 @@ def backup_db(root: Path) -> Path | None:
     return target
 
 
-def reset_db_for_rebuild(root: Path) -> None:
+def reset_db_for_rebuild(root: Path, keep_run_id: int | None = None) -> None:
     init_db(root)
     tables = (
         "candidate_sources",
@@ -387,27 +387,35 @@ def reset_db_for_rebuild(root: Path) -> None:
         conn.execute("pragma foreign_keys = off")
         try:
             for table in tables:
-                conn.execute(f"delete from {table}")
+                if table == "runs" and keep_run_id is not None:
+                    conn.execute("delete from runs where id<>?", (keep_run_id,))
+                else:
+                    conn.execute(f"delete from {table}")
             placeholders = ", ".join("?" for _ in tables)
             conn.execute(f"delete from sqlite_sequence where name in ({placeholders})", tables)
         finally:
             conn.execute("pragma foreign_keys = on")
 
 
+def scan_into_run(root: Path, run_id: int, sessions: list[Path]) -> dict[str, int]:
+    processed = 0
+    candidates = 0
+    for path in sessions:
+        before = candidates
+        candidates += process_session(root, run_id, path)
+        if candidates != before:
+            processed += 1
+    return {"run_id": run_id, "sessions": len(sessions), "processed": processed, "candidates": candidates}
+
+
 def scan_once(root: Path, kind: str = "scan") -> dict[str, int]:
     init_db(root)
     run_id = start_run(root, kind)
     sessions = iter_session_files(root)
-    processed = 0
-    candidates = 0
     try:
-        for path in sessions:
-            before = candidates
-            candidates += process_session(root, run_id, path)
-            if candidates != before:
-                processed += 1
-        finish_run(root, run_id, "ok", f"sessions={len(sessions)} candidates={candidates}")
-        return {"run_id": run_id, "sessions": len(sessions), "processed": processed, "candidates": candidates}
+        result = scan_into_run(root, run_id, sessions)
+        finish_run(root, run_id, "ok", f"sessions={result['sessions']} candidates={result['candidates']}")
+        return result
     except Exception as exc:
         finish_run(root, run_id, "failed", str(exc))
         raise

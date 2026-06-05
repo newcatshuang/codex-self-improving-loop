@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import secrets
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -15,8 +16,9 @@ from .db import connect, init_db
 from .exporter import export_candidates, export_digest
 from .installer import install_skills
 from .paths import html_path
-from .promotion import archive_candidate, promote_to_skill, promote_to_skill_patch, promote_to_user_memory, review_candidate
-from .scanner import rebuild, scan_once
+from .promotion import archive_candidate, promote_to_project_agents, promote_to_skill, promote_to_skill_patch, promote_to_user_memory, review_candidate
+from .recall import search as recall_search
+from .scanner import backup_db, finish_run, iter_session_files, rebuild, reset_db_for_rebuild, scan_into_run, scan_once, start_run
 from .scheduler import install_schedule, install_shortcut, uninstall_schedule, uninstall_shortcut
 
 
@@ -124,6 +126,83 @@ def summary_payload(root: Path) -> dict[str, Any]:
     return {"summary": summary, "candidates": candidate_items}
 
 
+def run_status_payload(root: Path, run_id: int) -> dict[str, Any]:
+    init_db(root)
+    with connect(root) as conn:
+        run = conn.execute("select * from runs where id=?", (run_id,)).fetchone()
+        if not run:
+            return {"error": "run not found"}
+        total = conn.execute(
+            "select count(*) as count from run_steps where run_id=? and name in ('session_processed', 'session_skipped')",
+            (run_id,),
+        ).fetchone()["count"]
+        processed = conn.execute(
+            "select count(*) as count from run_steps where run_id=? and name='session_processed'",
+            (run_id,),
+        ).fetchone()["count"]
+        skipped = conn.execute(
+            "select count(*) as count from run_steps where run_id=? and name='session_skipped'",
+            (run_id,),
+        ).fetchone()["count"]
+        latest = conn.execute(
+            "select name, status, detail, finished_at from run_steps where run_id=? order by id desc limit 1",
+            (run_id,),
+        ).fetchone()
+    return {
+        "run_id": int(run["id"]),
+        "kind": str(run["kind"]),
+        "status": str(run["status"]),
+        "started_at": str(run["started_at"]),
+        "finished_at": str(run["finished_at"] or ""),
+        "detail": str(run["detail"] or ""),
+        "processed": int(processed),
+        "skipped": int(skipped),
+        "total": int(total),
+        "latest_step": dict(latest) if latest else None,
+    }
+
+
+def runs_payload(root: Path) -> dict[str, Any]:
+    init_db(root)
+    with connect(root) as conn:
+        runs = [dict(row) for row in conn.execute("select * from runs order by id desc limit 25")]
+        steps = [
+            dict(row)
+            for row in conn.execute(
+                """
+                select rs.*
+                from run_steps rs
+                join runs r on r.id=rs.run_id
+                order by rs.id desc
+                limit 80
+                """
+            )
+        ]
+    return {"runs": runs, "steps": steps}
+
+
+def run_rebuild_background(root: Path, run_id: int, backup_path: Path | None) -> None:
+    try:
+        reset_db_for_rebuild(root, keep_run_id=run_id)
+        sessions = iter_session_files(root)
+        result = scan_into_run(root, run_id, sessions)
+        detail = f"sessions={result['sessions']} candidates={result['candidates']}"
+        if backup_path:
+            detail += f" backup={backup_path}"
+        finish_run(root, run_id, "ok", detail)
+    except Exception as exc:
+        finish_run(root, run_id, "failed", str(exc))
+
+
+def start_background_rebuild(root: Path) -> dict[str, Any]:
+    init_db(root)
+    backup_path = backup_db(root)
+    run_id = start_run(root, "rebuild", f"backup={backup_path}" if backup_path else None)
+    worker = threading.Thread(target=run_rebuild_background, args=(root, run_id, backup_path), daemon=True)
+    worker.start()
+    return {"async": True, "run_id": run_id, "status": "running", "backup": str(backup_path) if backup_path else None}
+
+
 class SilHandler(BaseHTTPRequestHandler):
     server_version = "CodexSIL/2"
 
@@ -157,6 +236,27 @@ class SilHandler(BaseHTTPRequestHandler):
                 return
             self._json(200, summary_payload(getattr(self.server, "codex_root")))
             return
+        if parsed.path == "/api/runs":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            self._json(200, runs_payload(getattr(self.server, "codex_root")))
+            return
+        run_match = re.fullmatch(r"/api/runs/(\d+)", parsed.path)
+        if run_match:
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            payload = run_status_payload(getattr(self.server, "codex_root"), int(run_match.group(1)))
+            self._json(404 if "error" in payload else 200, payload)
+            return
+        if parsed.path == "/api/recall":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            query = parse_qs(parsed.query).get("q", [""])[0].strip()
+            self._json(200, recall_search(getattr(self.server, "codex_root"), query) if query else {"query": query, "results": []})
+            return
         if parsed.path in {"/", "/index.html"}:
             if not (self._authorized() or self._query_authorized()):
                 self._json(401, {"error": "token required"})
@@ -183,7 +283,11 @@ class SilHandler(BaseHTTPRequestHandler):
             self._json(200, scan_once(root))
             return
         if parsed.path == "/api/rebuild":
-            self._json(200, rebuild(root, backup=True))
+            self._json(200, start_background_rebuild(root))
+            return
+        if parsed.path == "/api/backup":
+            backup = backup_db(root)
+            self._json(200, {"backup": str(backup) if backup else None})
             return
         repo_root = Path(__file__).resolve().parents[2]
         if parsed.path == "/api/schedule/install":
@@ -217,12 +321,16 @@ class SilHandler(BaseHTTPRequestHandler):
             return
         skill_match = re.fullmatch(r"/api/candidates/(\d+)/promote-skill", parsed.path)
         patch_match = re.fullmatch(r"/api/candidates/(\d+)/promote-patch", parsed.path)
+        agents_match = re.fullmatch(r"/api/candidates/(\d+)/promote-agents", parsed.path)
         reject_match = re.fullmatch(r"/api/candidates/(\d+)/reject", parsed.path)
         if skill_match:
             self._json(200, promote_to_skill(root, int(skill_match.group(1))))
             return
         if patch_match:
             self._json(200, promote_to_skill_patch(root, int(patch_match.group(1))))
+            return
+        if agents_match:
+            self._json(200, promote_to_project_agents(root, int(agents_match.group(1))))
             return
         if reject_match:
             review_candidate(root, int(reject_match.group(1)), "rejected")
