@@ -194,6 +194,88 @@ def runs_payload(root: Path) -> dict[str, Any]:
     return {"runs": runs, "steps": steps}
 
 
+def audit_payload(root: Path) -> dict[str, Any]:
+    init_db(root)
+    with connect(root) as conn:
+        rows = [
+            dict(row)
+            for row in conn.execute(
+                "select id, action, target, detail, created_at from audit_log order by id desc limit 200"
+            )
+        ]
+    return {"audit": rows}
+
+
+def history_payload(root: Path) -> dict[str, Any]:
+    init_db(root)
+    with connect(root) as conn:
+        promotions = [
+            dict(row)
+            for row in conn.execute(
+                """
+                select
+                  p.id,
+                  p.candidate_id,
+                  p.target_type,
+                  p.target_path,
+                  p.backup_path,
+                  p.status,
+                  p.detail,
+                  p.created_at,
+                  c.type as candidate_type,
+                  c.title as candidate_title
+                from promotions p
+                left join candidates c on c.id=p.candidate_id
+                order by p.id desc
+                limit 200
+                """
+            )
+        ]
+        reviews = [
+            dict(row)
+            for row in conn.execute(
+                """
+                select
+                  r.id,
+                  r.candidate_id,
+                  r.status,
+                  r.note,
+                  r.rewrite_text,
+                  r.created_at,
+                  c.type as candidate_type,
+                  c.destination,
+                  c.title as candidate_title
+                from reviews r
+                left join candidates c on c.id=r.candidate_id
+                order by r.id desc
+                limit 200
+                """
+            )
+        ]
+    return {"promotions": promotions, "reviews": reviews}
+
+
+def rollback_preview_payload(root: Path, promotion_id: int) -> dict[str, Any]:
+    init_db(root)
+    with connect(root) as conn:
+        row = conn.execute("select * from promotions where id=?", (promotion_id,)).fetchone()
+    if row is None:
+        return {"error": "promotion not found"}
+    promotion = dict(row)
+    backup = Path(str(promotion.get("backup_path") or ""))
+    target = Path(str(promotion.get("target_path") or ""))
+    can_restore = bool(str(promotion.get("backup_path") or "").strip()) and backup.exists()
+    script = f"import shutil; shutil.copy2({json.dumps(str(backup))}, {json.dumps(str(target))})"
+    return {
+        "promotion": promotion,
+        "can_restore": can_restore,
+        "backup_path": str(backup) if promotion.get("backup_path") else "",
+        "target_path": str(target) if promotion.get("target_path") else "",
+        "restore_command": f"python -c {json.dumps(script)}",
+        "restore_script": script,
+    }
+
+
 def run_rebuild_background(root: Path, run_id: int, backup_path: Path | None) -> None:
     try:
         reset_db_for_rebuild(root, keep_run_id=run_id)
@@ -274,12 +356,32 @@ class SilHandler(BaseHTTPRequestHandler):
                 return
             self._json(200, runs_payload(getattr(self.server, "codex_root")))
             return
+        if parsed.path == "/api/audit":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            self._json(200, audit_payload(getattr(self.server, "codex_root")))
+            return
+        if parsed.path == "/api/history":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            self._json(200, history_payload(getattr(self.server, "codex_root")))
+            return
         run_match = re.fullmatch(r"/api/runs/(\d+)", parsed.path)
         if run_match:
             if not self._authorized():
                 self._json(401, {"error": "token required"})
                 return
             payload = run_status_payload(getattr(self.server, "codex_root"), int(run_match.group(1)))
+            self._json(404 if "error" in payload else 200, payload)
+            return
+        rollback_match = re.fullmatch(r"/api/promotions/(\d+)/rollback-preview", parsed.path)
+        if rollback_match:
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            payload = rollback_preview_payload(getattr(self.server, "codex_root"), int(rollback_match.group(1)))
             self._json(404 if "error" in payload else 200, payload)
             return
         if parsed.path == "/api/recall":

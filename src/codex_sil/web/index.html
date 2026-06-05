@@ -848,12 +848,14 @@
       <button class="nav-button active" id="tab-home" type="button" data-nav="home" data-i18n="navHome">Home</button>
       <button class="nav-button" id="tab-data" type="button" data-nav="data" data-i18n="navData">Data Center</button>
       <button class="nav-button" id="tab-candidates" type="button" data-nav="candidates" data-i18n="navCandidates">Candidates</button>
-      <button class="nav-button" id="tab-review" type="button" data-nav="review" data-i18n="navReview">Review</button>
       <button class="nav-button" id="tab-promotion" type="button" data-nav="promotion" data-i18n="navPromotion">Promotion</button>
       <button class="nav-button" id="tab-skills" type="button" data-nav="skills" data-i18n="navSkills">Skills</button>
       <button class="nav-button" id="tab-schedule" type="button" data-nav="schedule" data-i18n="navSchedule">Schedule</button>
       <button class="nav-button" id="tab-runs" type="button" data-nav="runs" data-i18n="navRuns">Run Logs</button>
       <button class="nav-button" id="tab-recall" type="button" data-nav="recall" data-i18n="navRecall">Session Recall</button>
+      <button class="nav-button" id="tab-audit" type="button" data-nav="audit" data-i18n="navAudit">Audit</button>
+      <button class="nav-button" id="tab-promotions" type="button" data-nav="promotions" data-i18n="navPromotions">Promotions</button>
+      <button class="nav-button" id="tab-reviews" type="button" data-nav="reviews" data-i18n="navReviews">Reviews</button>
       <button class="nav-button" id="tab-doctor" type="button" data-nav="doctor" data-i18n="navDoctor">Doctor</button>
     </nav>
 
@@ -949,7 +951,8 @@
       </section>
 
       <section class="view-panel" data-view="candidates">
-        <section class="panel">
+        <section class="workspace-grid" id="candidateWorkspace">
+        <section class="panel" id="candidateListPanel">
           <div class="panel-header">
             <h2 data-i18n="candidateCenter">Candidate Center</h2>
             <span class="tag status" id="visibleCount">0</span>
@@ -1004,10 +1007,8 @@
             </div>
           </div>
         </section>
-      </section>
 
-      <section class="view-panel" data-view="review">
-        <aside class="panel detail-panel">
+        <aside class="panel detail-panel" id="candidateDetailPanel">
           <div class="panel-header">
             <h2 data-i18n="reviewCenter">Review Center</h2>
             <span class="tag status" id="selectedBadge" data-i18n="noneSelected">None</span>
@@ -1077,6 +1078,7 @@
             </div>
           </div>
         </aside>
+        </section>
       </section>
 
       <section class="view-panel" data-view="promotion">
@@ -1187,6 +1189,96 @@
         </section>
       </section>
 
+      <section class="view-panel" data-view="audit">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 data-i18n="auditCenter">Audit Center</h2>
+            <button class="secondary" type="button" id="refreshAudit" data-i18n="refresh">Refresh</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="actionHeader">Action</th>
+                  <th data-i18n="targetHeader">Target</th>
+                  <th data-i18n="detailHeader">Detail</th>
+                  <th data-i18n="createdAtHeader">Created</th>
+                </tr>
+              </thead>
+              <tbody id="auditRows">
+                <tr><td class="empty-row" colspan="4" data-i18n="loading">Loading data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="view-panel" data-view="promotions">
+        <section class="module-grid">
+          <section class="panel">
+            <div class="panel-header">
+              <h2 data-i18n="promotionHistory">Promotion History</h2>
+              <button class="secondary" type="button" id="refreshPromotions" data-i18n="refresh">Refresh</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="typeHeader">Type</th>
+                    <th data-i18n="candidateHeader">Candidate</th>
+                    <th data-i18n="targetHeader">Target</th>
+                    <th data-i18n="backupHeader">Backup</th>
+                    <th data-i18n="createdAtHeader">Created</th>
+                    <th data-i18n="actionHeader">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="promotionRows">
+                  <tr><td class="empty-row" colspan="6" data-i18n="loading">Loading data...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <h2 data-i18n="rollbackPreview">Rollback Preview</h2>
+              <span class="tag status" id="rollbackStatus" data-i18n="noneSelected">None</span>
+            </div>
+            <div class="panel-body" id="rollbackPreview">
+              <p class="panel-description" data-i18n="rollbackHint">Select a promotion to view the backup path and a copy-only restore command. The WebUI does not run rollback automatically.</p>
+            </div>
+            <div class="toolbar">
+              <button class="secondary" type="button" id="copyRollback" data-i18n="copyRollback">Copy Rollback Command</button>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <section class="view-panel" data-view="reviews">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 data-i18n="reviewHistory">Review History</h2>
+            <button class="secondary" type="button" id="refreshReviews" data-i18n="refresh">Refresh</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="statusHeader">Status</th>
+                  <th data-i18n="candidateHeader">Candidate</th>
+                  <th data-i18n="reviewNoteLabel">Review Note</th>
+                  <th data-i18n="reviewRewriteLabel">Reviewed Rewrite</th>
+                  <th data-i18n="createdAtHeader">Created</th>
+                </tr>
+              </thead>
+              <tbody id="reviewRows">
+                <tr><td class="empty-row" colspan="5" data-i18n="loading">Loading data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
       <section class="view-panel" data-view="doctor">
         <section class="panel">
           <div class="panel-header">
@@ -1223,18 +1315,20 @@
         navHome: "Home",
         navData: "Data Center",
         navCandidates: "Candidates",
-        navReview: "Review",
         navPromotion: "Promotion",
         navSkills: "Skills",
         navSchedule: "Schedule",
         navRuns: "Run Logs",
         navRecall: "Session Recall",
+        navAudit: "Audit",
+        navPromotions: "Promotions",
+        navReviews: "Reviews",
         navDoctor: "Doctor",
         dataCenter: "Data Center",
         dataCenterDesc: "Initialize, back up, rebuild, scan, or export the local SQLite learning database.",
         reviewCenter: "Review Center",
         promotionCenter: "Promotion Center",
-        promotionCenterDesc: "Select a candidate in Candidate Center, then use the selected record actions in Review Center to promote it into USER.md, AGENTS.md, a skill, or a skill patch.",
+        promotionCenterDesc: "Select a candidate in Candidate Center, then use the right-side review actions to promote it into USER.md, AGENTS.md, a skill, or a skill patch.",
         skillManagement: "Skill Management",
         skillManagementDesc: "Install local skills, inspect usage telemetry, and review skill patch candidates from the candidate queue.",
         recentRuns: "Recent Runs",
@@ -1242,6 +1336,11 @@
         runLogs: "Run Logs",
         runSteps: "Run Steps",
         recallTitle: "Cross-Session Recall",
+        auditCenter: "Audit Center",
+        promotionHistory: "Promotion History",
+        reviewHistory: "Review History",
+        rollbackPreview: "Rollback Preview",
+        rollbackHint: "Select a promotion to view the backup path and a copy-only restore command. The WebUI does not run rollback automatically.",
         doctorTitle: "Doctor",
         doctorKeyHeader: "Key",
         doctorValueHeader: "Value",
@@ -1300,11 +1399,18 @@
         updatedAtHeader: "Updated",
         runKindHeader: "Kind",
         runReasonHeader: "Reason",
+        actionHeader: "Action",
+        targetHeader: "Target",
+        detailHeader: "Detail",
+        backupHeader: "Backup",
         loading: "Loading data...",
         emptyCandidates: "No candidates match the current view.",
         emptyRuns: "No run logs yet.",
         emptyErrors: "No failed runs.",
         emptyRecall: "No matching sessions or candidates.",
+        emptyAudit: "No audit records yet.",
+        emptyPromotions: "No promotions yet.",
+        emptyReviews: "No review history yet.",
         prevPage: "Previous",
         nextPage: "Next",
         pageSizeLabel: "Rows per page",
@@ -1327,6 +1433,13 @@
         reviewRewriteLabel: "Reviewed Rewrite",
         reviewRewritePlaceholder: "Optional reviewed rewrite",
         copyRewrite: "Copy Rewrite",
+        copyRollback: "Copy Rollback Command",
+        previewRollback: "Preview",
+        rollbackUnavailable: "No backup is available for this promotion.",
+        rollbackCanRestore: "Backup exists and can be restored manually.",
+        rollbackCommandLabel: "Restore command",
+        backupPathLabel: "Backup path",
+        targetPathLabel: "Target path",
         saveReview: "Save Review",
         visibleItems: "{count} visible",
         toastLoaded: "Dashboard refreshed.",
@@ -1350,6 +1463,7 @@
         toastShortcutInstalled: "Desktop shortcut installed.",
         toastShortcutUninstalled: "Desktop shortcut uninstalled.",
         toastCopied: "Rewrite suggestion copied.",
+        toastRollbackCopied: "Rollback command copied.",
         toastCopyFailed: "Copy failed. Select and copy the rewrite text manually.",
         toastLoadFailed: "Failed to load dashboard data.",
         selectCandidateFirst: "Select a candidate first.",
@@ -1358,11 +1472,99 @@
         rebuildCompleted: "Rebuild completed.",
         rebuildFailed: "Rebuild failed.",
         progressLatest: "Latest: {detail}",
-        confirmRebuild: "Backup the current SQLite database, clear active data, and rescan all historical sessions?",
-        confirmPromoteUser: "Promote this candidate into USER.md? A backup will be created first.",
-        confirmPromoteAgents: "Promote this candidate into AGENTS.md? A backup will be created first.",
-        confirmPromoteSkill: "Create an independent skill from this candidate?",
-        confirmPromotePatch: "Export this candidate as a reviewed skill patch artifact?",
+        confirmActionLabel: "Action",
+        confirmFilesLabel: "Files",
+        confirmResultLabel: "Result",
+        confirmInitializeData: {
+          action: "Initialize the local SQLite database and refresh the WebUI file.",
+          files: "$HOME/.codex/self-improving-loop/self-improving-loop.sqlite and codex-self-improving-loop.html may be created or updated.",
+          result: "The dashboard becomes ready for scans and review. Existing candidate data is preserved.",
+        },
+        confirmBackupDatabase: {
+          action: "Create a timestamped backup of the current SQLite database.",
+          files: "Writes a copy under $HOME/.codex/self-improving-loop/backups/.",
+          result: "No candidate data changes. You get a restore point before risky operations.",
+        },
+        confirmScanOnce: {
+          action: "Scan local Codex sessions once and extract new memory, skill, and skill patch candidates.",
+          files: "Updates $HOME/.codex/self-improving-loop/self-improving-loop.sqlite.",
+          result: "New candidates, run logs, and skill usage records may appear in the WebUI.",
+        },
+        confirmRebuildDatabase: {
+          action: "Backup the current database, clear active SQLite tables, and rescan all historical sessions.",
+          files: "Updates self-improving-loop.sqlite and writes a backup under $HOME/.codex/self-improving-loop/backups/.",
+          result: "Current review queues are rebuilt from history. Existing manual review state inside SQLite can be replaced by the rebuild.",
+        },
+        confirmExportDigest: {
+          action: "Export a review digest from current SQLite data.",
+          files: "Writes a Markdown export under $HOME/.codex/self-improving-loop/exports/.",
+          result: "No candidates are promoted or changed.",
+        },
+        confirmExportCandidates: {
+          action: "Export current candidates from SQLite.",
+          files: "Writes an export file under $HOME/.codex/self-improving-loop/exports/.",
+          result: "No candidates are promoted or changed.",
+        },
+        confirmInstallSkills: {
+          action: "Install or update the bundled session-recall and memory-capture skills.",
+          files: "Writes under $HOME/.agents/skills/ and uses the installed app copy under $HOME/.agents/codex-self-improving-loop/.",
+          result: "New Codex sessions can discover the updated skills after restart or reload.",
+        },
+        confirmSaveReview: {
+          action: "Save the selected candidate review status, note, and reviewed rewrite text.",
+          files: "Updates the reviews and candidates tables in self-improving-loop.sqlite.",
+          result: "The candidate is marked reviewed and appears in Review History.",
+        },
+        confirmArchiveSelected: {
+          action: "Archive the selected candidate.",
+          files: "Updates the candidate status and audit tables in self-improving-loop.sqlite.",
+          result: "The candidate leaves the active review queue but remains visible in history.",
+        },
+        confirmRejectSelected: {
+          action: "Reject the selected candidate.",
+          files: "Updates the candidate status and audit tables in self-improving-loop.sqlite.",
+          result: "The candidate is marked rejected and will not be promoted unless reviewed again manually.",
+        },
+        confirmPromoteUser: {
+          action: "Promote the selected candidate into global USER.md memory.",
+          files: "Writes $HOME/.codex/memories/USER.md and creates a backup first when the file already exists.",
+          result: "Future Codex sessions may load this as a global memory rule.",
+        },
+        confirmPromoteAgents: {
+          action: "Promote the selected candidate into the current project's AGENTS.md.",
+          files: "Writes AGENTS.md under the active Codex root and creates a backup first when the file already exists.",
+          result: "Future work in that project may follow this project-level learned fact.",
+        },
+        confirmPromoteSkill: {
+          action: "Create an independent learned skill from the selected candidate.",
+          files: "Writes a SKILL.md under $HOME/.agents/skills/.",
+          result: "New Codex sessions may discover and use the generated skill after restart or reload.",
+        },
+        confirmPromotePatch: {
+          action: "Export the selected candidate as a reviewed skill patch artifact.",
+          files: "Writes a Markdown patch under $HOME/.codex/self-improving-loop/exports/.",
+          result: "No existing skill is patched automatically; the artifact is ready for manual review.",
+        },
+        confirmInstallSchedule: {
+          action: "Install or replace the daily 03:00 self-improvement scan schedule.",
+          files: "Writes the OS scheduler entry for this user and points it at $HOME/.agents/codex-self-improving-loop/sil.py scan --once.",
+          result: "The scan will run automatically each day at 03:00 without keeping the WebUI open.",
+        },
+        confirmUninstallSchedule: {
+          action: "Remove the installed daily self-improvement scan schedule.",
+          files: "Deletes or disables the OS scheduler entry for this user.",
+          result: "Automatic daily scanning stops. Manual scans and WebUI use still work.",
+        },
+        confirmInstallShortcut: {
+          action: "Install a desktop shortcut that starts the temporary local WebUI service.",
+          files: "Writes or replaces the desktop launcher for the current user.",
+          result: "Opening the shortcut starts a fresh tokenized 127.0.0.1 WebUI session.",
+        },
+        confirmUninstallShortcut: {
+          action: "Remove the desktop WebUI launcher.",
+          files: "Deletes the desktop shortcut for the current user.",
+          result: "The WebUI can still be started from the command line.",
+        },
         type_memory: "Memory",
         type_skill: "Skill",
         type_skill_patch: "Skill Patch",
@@ -1375,18 +1577,20 @@
         navHome: "首页",
         navData: "数据中心",
         navCandidates: "候选中心",
-        navReview: "审阅中心",
         navPromotion: "晋升中心",
         navSkills: "Skill 管理",
         navSchedule: "调度中心",
         navRuns: "运行日志",
         navRecall: "跨会话检索",
+        navAudit: "审计",
+        navPromotions: "晋升历史",
+        navReviews: "审阅历史",
         navDoctor: "诊断",
         dataCenter: "数据中心",
         dataCenterDesc: "初始化、备份、重建、扫描或导出本地 SQLite 学习数据库。",
         reviewCenter: "审阅中心",
         promotionCenter: "晋升中心",
-        promotionCenterDesc: "先在候选中心选择一条记录，再到审阅中心通过所选记录操作晋升到 USER.md、AGENTS.md、技能或技能补丁。",
+        promotionCenterDesc: "先在候选中心选择一条记录，再使用右侧审阅操作晋升到 USER.md、AGENTS.md、技能或技能补丁。",
         skillManagement: "Skill 管理",
         skillManagementDesc: "安装本地技能，查看技能使用遥测，并从候选队列处理技能补丁。",
         recentRuns: "最近运行",
@@ -1394,6 +1598,11 @@
         runLogs: "运行日志",
         runSteps: "运行步骤",
         recallTitle: "跨会话检索",
+        auditCenter: "审计中心",
+        promotionHistory: "晋升历史",
+        reviewHistory: "审阅历史",
+        rollbackPreview: "回滚预览",
+        rollbackHint: "选择一条晋升记录后，可查看备份路径和仅复制用途的恢复命令。WebUI 不会自动执行回滚。",
         doctorTitle: "诊断",
         doctorKeyHeader: "项目",
         doctorValueHeader: "值",
@@ -1452,11 +1661,18 @@
         updatedAtHeader: "更新时间",
         runKindHeader: "类型",
         runReasonHeader: "原因",
+        actionHeader: "操作",
+        targetHeader: "目标",
+        detailHeader: "详情",
+        backupHeader: "备份",
         loading: "正在加载数据...",
         emptyCandidates: "当前视图没有匹配的候选。",
         emptyRuns: "暂无运行日志。",
         emptyErrors: "暂无失败运行。",
         emptyRecall: "没有匹配的历史会话或候选。",
+        emptyAudit: "暂无审计记录。",
+        emptyPromotions: "暂无晋升记录。",
+        emptyReviews: "暂无审阅历史。",
         prevPage: "上一页",
         nextPage: "下一页",
         pageSizeLabel: "每页条数",
@@ -1479,6 +1695,13 @@
         reviewRewriteLabel: "审阅后改写",
         reviewRewritePlaceholder: "可选审阅后改写",
         copyRewrite: "复制改写建议",
+        copyRollback: "复制回滚命令",
+        previewRollback: "预览",
+        rollbackUnavailable: "这条晋升记录没有可用备份。",
+        rollbackCanRestore: "备份存在，可手动恢复。",
+        rollbackCommandLabel: "恢复命令",
+        backupPathLabel: "备份路径",
+        targetPathLabel: "目标路径",
         saveReview: "保存审阅",
         visibleItems: "当前显示 {count} 条",
         toastLoaded: "控制台已刷新。",
@@ -1502,6 +1725,7 @@
         toastShortcutInstalled: "桌面快捷方式已安装。",
         toastShortcutUninstalled: "桌面快捷方式已卸载。",
         toastCopied: "改写建议已复制。",
+        toastRollbackCopied: "回滚命令已复制。",
         toastCopyFailed: "复制失败，请手动选择改写建议文本。",
         toastLoadFailed: "加载控制台数据失败。",
         selectCandidateFirst: "请先选择一个候选。",
@@ -1510,11 +1734,99 @@
         rebuildCompleted: "重建已完成。",
         rebuildFailed: "重建失败。",
         progressLatest: "最新步骤：{detail}",
-        confirmRebuild: "将先备份当前 SQLite 数据库，然后清空当前数据并全量重扫历史会话。是否继续？",
-        confirmPromoteUser: "确认将此候选晋升到 USER.md？系统会先创建备份。",
-        confirmPromoteAgents: "确认将此候选晋升到 AGENTS.md？系统会先创建备份。",
-        confirmPromoteSkill: "确认将此候选创建为一个独立技能？",
-        confirmPromotePatch: "确认将此候选导出为已审阅的技能补丁产物？",
+        confirmActionLabel: "将执行",
+        confirmFilesLabel: "会修改",
+        confirmResultLabel: "执行结果",
+        confirmInitializeData: {
+          action: "初始化本地 SQLite 数据库，并刷新 WebUI 文件。",
+          files: "可能创建或更新 $HOME/.codex/self-improving-loop/self-improving-loop.sqlite 和 codex-self-improving-loop.html。",
+          result: "控制台可用于扫描和审阅；已有候选数据会保留。",
+        },
+        confirmBackupDatabase: {
+          action: "为当前 SQLite 数据库创建带时间戳的备份。",
+          files: "在 $HOME/.codex/self-improving-loop/backups/ 下写入一份副本。",
+          result: "候选数据不会变化；会得到一个可恢复点。",
+        },
+        confirmScanOnce: {
+          action: "扫描一次本地 Codex 会话，并提取新的记忆、技能、技能补丁候选。",
+          files: "更新 $HOME/.codex/self-improving-loop/self-improving-loop.sqlite。",
+          result: "WebUI 中可能新增候选、运行日志和 skill 使用记录。",
+        },
+        confirmRebuildDatabase: {
+          action: "先备份当前数据库，再清空当前 SQLite 表，并全量重扫历史会话。",
+          files: "更新 self-improving-loop.sqlite，并在 $HOME/.codex/self-improving-loop/backups/ 下写入备份。",
+          result: "当前审阅队列会按历史会话重建；SQLite 内已有人工审阅状态可能被重建结果替换。",
+        },
+        confirmExportDigest: {
+          action: "从当前 SQLite 数据导出审阅摘要。",
+          files: "在 $HOME/.codex/self-improving-loop/exports/ 下写入 Markdown 导出文件。",
+          result: "不会晋升或修改候选。",
+        },
+        confirmExportCandidates: {
+          action: "导出当前候选数据。",
+          files: "在 $HOME/.codex/self-improving-loop/exports/ 下写入导出文件。",
+          result: "不会晋升或修改候选。",
+        },
+        confirmInstallSkills: {
+          action: "安装或更新内置的 session-recall 和 memory-capture 技能。",
+          files: "写入 $HOME/.agents/skills/，并使用 $HOME/.agents/codex-self-improving-loop/ 下的安装副本。",
+          result: "重启或重新加载后，新 Codex 会话可以发现更新后的技能。",
+        },
+        confirmSaveReview: {
+          action: "保存所选候选的审阅状态、备注和审阅后改写内容。",
+          files: "更新 self-improving-loop.sqlite 中的 reviews 和 candidates 表。",
+          result: "候选会标记为已审阅，并出现在审阅历史中。",
+        },
+        confirmArchiveSelected: {
+          action: "归档所选候选。",
+          files: "更新 self-improving-loop.sqlite 中的候选状态和审计表。",
+          result: "候选会离开活跃审阅队列，但仍可在历史中查看。",
+        },
+        confirmRejectSelected: {
+          action: "拒绝所选候选。",
+          files: "更新 self-improving-loop.sqlite 中的候选状态和审计表。",
+          result: "候选会标记为已拒绝，除非再次人工审阅，否则不会被晋升。",
+        },
+        confirmPromoteUser: {
+          action: "将所选候选晋升到全局 USER.md 记忆。",
+          files: "写入 $HOME/.codex/memories/USER.md；如果文件已存在，会先创建备份。",
+          result: "后续 Codex 会话可能把它作为全局记忆规则加载。",
+        },
+        confirmPromoteAgents: {
+          action: "将所选候选晋升到当前项目的 AGENTS.md。",
+          files: "写入当前 Codex root 下的 AGENTS.md；如果文件已存在，会先创建备份。",
+          result: "后续在该项目工作时，可能遵循这条项目级学习事实。",
+        },
+        confirmPromoteSkill: {
+          action: "基于所选候选创建一个独立 learned skill。",
+          files: "在 $HOME/.agents/skills/ 下写入一个 SKILL.md。",
+          result: "重启或重新加载后，新 Codex 会话可能发现并使用该技能。",
+        },
+        confirmPromotePatch: {
+          action: "将所选候选导出为已审阅的 skill patch 产物。",
+          files: "在 $HOME/.codex/self-improving-loop/exports/ 下写入 Markdown patch。",
+          result: "不会自动修改已有 skill；该产物供人工复核。",
+        },
+        confirmInstallSchedule: {
+          action: "安装或替换每天 03:00 的自改进扫描定时任务。",
+          files: "写入当前用户的系统调度项，并指向 $HOME/.agents/codex-self-improving-loop/sil.py scan --once。",
+          result: "无需打开 WebUI，系统每天 03:00 自动扫描一次。",
+        },
+        confirmUninstallSchedule: {
+          action: "移除已安装的每日自改进扫描定时任务。",
+          files: "删除或禁用当前用户的系统调度项。",
+          result: "自动每日扫描停止；手动扫描和 WebUI 仍可使用。",
+        },
+        confirmInstallShortcut: {
+          action: "安装一个桌面快捷方式，用于启动临时本地 WebUI 服务。",
+          files: "写入或替换当前用户桌面启动器。",
+          result: "点击快捷方式会启动新的 127.0.0.1 token 化 WebUI 会话。",
+        },
+        confirmUninstallShortcut: {
+          action: "移除桌面 WebUI 快捷方式。",
+          files: "删除当前用户桌面快捷方式。",
+          result: "仍可通过命令行启动 WebUI。",
+        },
         type_memory: "记忆",
         type_skill: "技能",
         type_skill_patch: "技能补丁",
@@ -1539,6 +1851,10 @@
     let latestRunSteps = [];
     let recallMatches = [];
     let doctorInfo = {};
+    let auditItems = [];
+    let promotionItems = [];
+    let reviewItems = [];
+    let rollbackInfo = null;
     window.selectedCandidateId = null;
 
     function initialLanguage() {
@@ -1578,6 +1894,10 @@
       renderRuns();
       renderRecallResults();
       renderDoctor();
+      renderAudit();
+      renderPromotions();
+      renderReviews();
+      renderRollbackPreview();
     }
 
     let currentSummary = {memory: 0, skill: 0, skill_patch: 0, review: 0};
@@ -1605,6 +1925,17 @@
       document.querySelectorAll("[data-action]").forEach((button) => {
         button.disabled = isBusy;
       });
+    }
+
+    function confirmAction(confirmKey) {
+      if (!confirmKey) {
+        return true;
+      }
+      const detail = t(confirmKey);
+      const message = typeof detail === "object"
+        ? `${t("confirmActionLabel")}: ${detail.action}\n\n${t("confirmFilesLabel")}: ${detail.files}\n\n${t("confirmResultLabel")}: ${detail.result}`
+        : String(detail);
+      return confirm(message);
     }
 
     function updateProgress(status) {
@@ -1730,6 +2061,12 @@
       }
       if (view === "doctor") {
         refreshDoctor().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
+      }
+      if (view === "audit") {
+        refreshAudit().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
+      }
+      if (view === "promotions" || view === "reviews") {
+        refreshHistory().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
       }
     }
 
@@ -1861,6 +2198,155 @@
       }
     }
 
+    function renderAudit() {
+      const body = document.getElementById("auditRows");
+      if (!body) {
+        return;
+      }
+      body.innerHTML = "";
+      if (!auditItems.length) {
+        renderEmptyRow(body, 4, "emptyAudit");
+        return;
+      }
+      for (const item of auditItems) {
+        const row = document.createElement("tr");
+        const action = cell();
+        action.textContent = item.action || "-";
+        row.appendChild(action);
+        const target = cell();
+        target.textContent = item.target || "-";
+        row.appendChild(target);
+        const detail = cell();
+        detail.textContent = item.detail || "-";
+        row.appendChild(detail);
+        const created = cell();
+        created.textContent = formatDateTime(item.created_at);
+        row.appendChild(created);
+        body.appendChild(row);
+      }
+    }
+
+    function renderPromotions() {
+      const body = document.getElementById("promotionRows");
+      if (!body) {
+        return;
+      }
+      body.innerHTML = "";
+      if (!promotionItems.length) {
+        renderEmptyRow(body, 6, "emptyPromotions");
+        return;
+      }
+      for (const item of promotionItems) {
+        const row = document.createElement("tr");
+        row.dataset.promotionId = item.id;
+        row.tabIndex = 0;
+        row.classList.toggle("selected-row", rollbackInfo && rollbackInfo.promotion && String(rollbackInfo.promotion.id) === String(item.id));
+        row.addEventListener("click", () => selectPromotion(item.id));
+        row.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectPromotion(item.id);
+          }
+        });
+
+        const type = cell();
+        type.appendChild(tag(item.target_type || "-", "status"));
+        row.appendChild(type);
+        const candidate = cell();
+        candidate.textContent = item.candidate_title || item.detail || "-";
+        row.appendChild(candidate);
+        const target = cell();
+        target.textContent = item.target_path || "-";
+        row.appendChild(target);
+        const backup = cell();
+        backup.textContent = item.backup_path || "-";
+        row.appendChild(backup);
+        const created = cell();
+        created.textContent = formatDateTime(item.created_at);
+        row.appendChild(created);
+        const action = cell();
+        const preview = document.createElement("button");
+        preview.className = "secondary";
+        preview.type = "button";
+        preview.dataset.previewPromotion = item.id;
+        preview.textContent = t("previewRollback");
+        action.appendChild(preview);
+        row.appendChild(action);
+        body.appendChild(row);
+      }
+    }
+
+    function renderReviews() {
+      const body = document.getElementById("reviewRows");
+      if (!body) {
+        return;
+      }
+      body.innerHTML = "";
+      if (!reviewItems.length) {
+        renderEmptyRow(body, 5, "emptyReviews");
+        return;
+      }
+      for (const item of reviewItems) {
+        const row = document.createElement("tr");
+        const status = cell();
+        status.appendChild(tag(item.status || "-", item.status === "rejected" ? "review" : "status"));
+        row.appendChild(status);
+        const candidate = cell();
+        candidate.textContent = item.candidate_title || item.destination || "-";
+        row.appendChild(candidate);
+        const note = cell();
+        note.textContent = item.note || "-";
+        row.appendChild(note);
+        const rewrite = cell();
+        rewrite.textContent = item.rewrite_text || "-";
+        row.appendChild(rewrite);
+        const created = cell();
+        created.textContent = formatDateTime(item.created_at);
+        row.appendChild(created);
+        body.appendChild(row);
+      }
+    }
+
+    function renderRollbackPreview() {
+      const panel = document.getElementById("rollbackPreview");
+      const status = document.getElementById("rollbackStatus");
+      const copyButton = document.getElementById("copyRollback");
+      if (!panel || !status || !copyButton) {
+        return;
+      }
+      panel.innerHTML = "";
+      if (!rollbackInfo) {
+        status.textContent = t("noneSelected");
+        status.className = "tag status";
+        copyButton.disabled = true;
+        const description = document.createElement("p");
+        description.className = "panel-description";
+        description.textContent = t("rollbackHint");
+        panel.appendChild(description);
+        return;
+      }
+      status.textContent = rollbackInfo.can_restore ? t("rollbackCanRestore") : t("rollbackUnavailable");
+      status.className = `tag ${rollbackInfo.can_restore ? "status" : "review"}`;
+      copyButton.disabled = !rollbackInfo.restore_command;
+      const fields = [
+        [t("targetPathLabel"), rollbackInfo.target_path || "-"],
+        [t("backupPathLabel"), rollbackInfo.backup_path || "-"],
+        [t("rollbackCommandLabel"), rollbackInfo.restore_command || "-"],
+      ];
+      for (const [label, value] of fields) {
+        const block = document.createElement("div");
+        block.className = "detail-block";
+        const heading = document.createElement("div");
+        heading.className = "detail-label";
+        heading.textContent = label;
+        const text = document.createElement("div");
+        text.className = "detail-text";
+        text.textContent = value;
+        block.append(heading, text);
+        panel.appendChild(block);
+      }
+    }
+
     async function refreshRuns() {
       const payload = await api("/api/runs");
       latestRuns = payload.runs || [];
@@ -1871,6 +2357,26 @@
     async function refreshDoctor() {
       doctorInfo = await api("/api/doctor");
       renderDoctor();
+    }
+
+    async function refreshAudit() {
+      const payload = await api("/api/audit");
+      auditItems = payload.audit || [];
+      renderAudit();
+    }
+
+    async function refreshHistory() {
+      const payload = await api("/api/history");
+      promotionItems = payload.promotions || [];
+      reviewItems = payload.reviews || [];
+      renderPromotions();
+      renderReviews();
+    }
+
+    async function selectPromotion(id) {
+      rollbackInfo = await api(`/api/promotions/${id}/rollback-preview`);
+      renderPromotions();
+      renderRollbackPreview();
     }
 
     async function runRecallSearch() {
@@ -2064,6 +2570,8 @@
       renderCandidates();
       renderSelected();
       await refreshRuns();
+      await refreshHistory();
+      await refreshAudit();
       if (showMessage) {
         showToast(t("toastLoaded"));
       }
@@ -2074,7 +2582,7 @@
         showToast(t("selectCandidateFirst"), "warn");
         return;
       }
-      if (options.confirmKey && !confirm(t(options.confirmKey))) {
+      if (!confirmAction(options.confirmKey)) {
         return;
       }
       setBusy(true);
@@ -2117,7 +2625,7 @@
     }
 
     async function runRebuild() {
-      if (!confirm(t("confirmRebuild"))) {
+      if (!confirmAction("confirmRebuildDatabase")) {
         return;
       }
       clearTimeout(activeRunTimer);
@@ -2210,12 +2718,12 @@
     });
 
     document.getElementById("refreshButton").addEventListener("click", () => refresh(true).catch((error) => showToast(error.message, "error")));
-    document.getElementById("initializeData").addEventListener("click", () => runAction(() => api("/api/init", {method: "POST"}), "toastInitialized"));
-    document.getElementById("backupDatabase").addEventListener("click", () => runAction(() => api("/api/backup", {method: "POST"}), "toastBackupCreated", {refresh: false}));
-    document.getElementById("installSkills").addEventListener("click", () => runAction(() => api("/api/install/skills", {method: "POST"}), "toastSkillsInstalled", {refresh: false}));
-    document.getElementById("scanButton").addEventListener("click", () => runAction(() => api("/api/scan", {method: "POST"}), "toastScanned"));
-    document.getElementById("exportDigest").addEventListener("click", () => runAction(() => api("/api/export/digest", {method: "POST"}), "toastDigestExported", {refresh: false}));
-    document.getElementById("exportCandidates").addEventListener("click", () => runAction(() => api("/api/export/candidates", {method: "POST"}), "toastCandidatesExported", {refresh: false}));
+    document.getElementById("initializeData").addEventListener("click", () => runAction(() => api("/api/init", {method: "POST"}), "toastInitialized", {confirmKey: "confirmInitializeData"}));
+    document.getElementById("backupDatabase").addEventListener("click", () => runAction(() => api("/api/backup", {method: "POST"}), "toastBackupCreated", {refresh: false, confirmKey: "confirmBackupDatabase"}));
+    document.getElementById("installSkills").addEventListener("click", () => runAction(() => api("/api/install/skills", {method: "POST"}), "toastSkillsInstalled", {refresh: false, confirmKey: "confirmInstallSkills"}));
+    document.getElementById("scanButton").addEventListener("click", () => runAction(() => api("/api/scan", {method: "POST"}), "toastScanned", {confirmKey: "confirmScanOnce"}));
+    document.getElementById("exportDigest").addEventListener("click", () => runAction(() => api("/api/export/digest", {method: "POST"}), "toastDigestExported", {refresh: false, confirmKey: "confirmExportDigest"}));
+    document.getElementById("exportCandidates").addEventListener("click", () => runAction(() => api("/api/export/candidates", {method: "POST"}), "toastCandidatesExported", {refresh: false, confirmKey: "confirmExportCandidates"}));
     document.getElementById("rebuildButton").addEventListener("click", () => runRebuild());
     document.getElementById("saveReview").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/review`, {
       method: "POST",
@@ -2225,18 +2733,29 @@
         note: document.getElementById("reviewNote").value,
         rewrite_text: document.getElementById("reviewRewrite").value,
       }),
-    }), "toastReviewSaved", {needsSelection: true}));
-    document.getElementById("archiveSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/archive`, {method: "POST"}), "toastArchived", {needsSelection: true}));
-    document.getElementById("rejectSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/reject`, {method: "POST"}), "toastRejected", {needsSelection: true}));
+    }), "toastReviewSaved", {needsSelection: true, confirmKey: "confirmSaveReview"}));
+    document.getElementById("archiveSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/archive`, {method: "POST"}), "toastArchived", {needsSelection: true, confirmKey: "confirmArchiveSelected"}));
+    document.getElementById("rejectSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/reject`, {method: "POST"}), "toastRejected", {needsSelection: true, confirmKey: "confirmRejectSelected"}));
     document.getElementById("promoteSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote`, {method: "POST"}), "toastPromotedUser", {needsSelection: true, confirmKey: "confirmPromoteUser"}));
     document.getElementById("promoteAgents").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-agents`, {method: "POST"}), "toastPromotedAgents", {needsSelection: true, confirmKey: "confirmPromoteAgents"}));
     document.getElementById("promoteSkill").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-skill`, {method: "POST"}), "toastPromotedSkill", {needsSelection: true, confirmKey: "confirmPromoteSkill"}));
     document.getElementById("promotePatch").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-patch`, {method: "POST"}), "toastPromotedPatch", {needsSelection: true, confirmKey: "confirmPromotePatch"}));
-    document.getElementById("installSchedule").addEventListener("click", () => runAction(() => api("/api/schedule/install", {method: "POST"}), "toastScheduleInstalled", {refresh: false}));
-    document.getElementById("uninstallSchedule").addEventListener("click", () => runAction(() => api("/api/schedule/uninstall", {method: "POST"}), "toastScheduleUninstalled", {refresh: false}));
-    document.getElementById("installShortcut").addEventListener("click", () => runAction(() => api("/api/shortcut/install", {method: "POST"}), "toastShortcutInstalled", {refresh: false}));
-    document.getElementById("uninstallShortcut").addEventListener("click", () => runAction(() => api("/api/shortcut/uninstall", {method: "POST"}), "toastShortcutUninstalled", {refresh: false}));
+    document.getElementById("installSchedule").addEventListener("click", () => runAction(() => api("/api/schedule/install", {method: "POST"}), "toastScheduleInstalled", {refresh: false, confirmKey: "confirmInstallSchedule"}));
+    document.getElementById("uninstallSchedule").addEventListener("click", () => runAction(() => api("/api/schedule/uninstall", {method: "POST"}), "toastScheduleUninstalled", {refresh: false, confirmKey: "confirmUninstallSchedule"}));
+    document.getElementById("installShortcut").addEventListener("click", () => runAction(() => api("/api/shortcut/install", {method: "POST"}), "toastShortcutInstalled", {refresh: false, confirmKey: "confirmInstallShortcut"}));
+    document.getElementById("uninstallShortcut").addEventListener("click", () => runAction(() => api("/api/shortcut/uninstall", {method: "POST"}), "toastShortcutUninstalled", {refresh: false, confirmKey: "confirmUninstallShortcut"}));
     document.getElementById("recallButton").addEventListener("click", () => runRecallSearch().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("promotionRows").addEventListener("click", (event) => {
+      const target = event.target.closest("[data-preview-promotion]");
+      if (!target) {
+        return;
+      }
+      event.stopPropagation();
+      selectPromotion(target.dataset.previewPromotion).catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
+    });
+    document.getElementById("refreshAudit").addEventListener("click", () => refreshAudit().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("refreshPromotions").addEventListener("click", () => refreshHistory().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("refreshReviews").addEventListener("click", () => refreshHistory().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("recallSearch").addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         event.preventDefault();
@@ -2251,6 +2770,19 @@
       try {
         await copyText(selectedCandidate.rewrite_suggestion || selectedCandidate.text || "");
         showToast(t("toastCopied"));
+      } catch (error) {
+        console.error(error);
+        showToast(t("toastCopyFailed"), "error");
+      }
+    });
+    document.getElementById("copyRollback").addEventListener("click", async () => {
+      if (!rollbackInfo || !rollbackInfo.restore_command) {
+        showToast(t("rollbackUnavailable"), "warn");
+        return;
+      }
+      try {
+        await copyText(rollbackInfo.restore_command);
+        showToast(t("toastRollbackCopied"));
       } catch (error) {
         console.error(error);
         showToast(t("toastCopyFailed"), "error");

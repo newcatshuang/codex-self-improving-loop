@@ -17,6 +17,7 @@ The v2 architecture replaces scattered Markdown/JSON outputs with one SQLite dat
 | Skill candidates | Reusable workflows are stored as `type=skill` candidates |
 | Skill patches | Existing skill improvement ideas are stored as `type=skill_patch` candidates |
 | WebUI management | `sil.py serve --open` starts a local backend and opens the dashboard |
+| Audit and history | The WebUI shows audit logs, review history, promotion history, and rollback previews |
 | Scheduled scan | `sil.py schedule install` prepares a daily 03:00 scan command |
 | Desktop launcher | `sil.py shortcut install` prepares a one-click launcher command |
 
@@ -61,7 +62,9 @@ Start the temporary local WebUI backend:
 python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open
 ```
 
-From the WebUI you can initialize the database, clear current SQLite data and rebuild from all historical sessions, scan sessions, install or remove the daily schedule, install the desktop shortcut, export review data, archive or reject candidates, and promote reviewed items to `USER.md`, independent learned skills, or skill patch artifacts.
+From the WebUI you can initialize the database, clear current SQLite data and rebuild from all historical sessions, scan sessions, install or remove the daily schedule, install the desktop shortcut, export review data, archive or reject candidates, and promote reviewed items to `USER.md`, project `AGENTS.md`, independent learned skills, or skill patch artifacts.
+
+The WebUI also includes governance views for audit logs, review history, promotion history, and rollback preview. Rollback is intentionally preview-only: the UI shows the target path, backup path, and a copy-safe Python restore command, but it does not overwrite files automatically.
 
 Scan new sessions once:
 

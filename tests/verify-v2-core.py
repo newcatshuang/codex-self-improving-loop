@@ -256,6 +256,7 @@ def main() -> int:
             backup_api = json.loads(response.read().decode("utf-8"))
         if not backup_api.get("backup"):
             raise AssertionError(f"backup API should create a backup path: {backup_api}")
+        (root / "AGENTS.md").write_text("# AGENTS.md\n\n## Project Learned Facts\n", encoding="utf-8")
         promote_agents_request = urllib.request.Request(
             f"http://{LOCAL_HOST}:{server.server_port}/api/candidates/{summary_api['candidates'][0]['id']}/promote-agents",
             method="POST",
@@ -265,6 +266,40 @@ def main() -> int:
             agents_api = json.loads(response.read().decode("utf-8"))
         if agents_api["status"] != "ok" or not agents_api["target_path"].endswith("AGENTS.md"):
             raise AssertionError(f"project AGENTS promotion should be available: {agents_api}")
+        if not agents_api.get("backup_path") or not Path(agents_api["backup_path"]).exists():
+            raise AssertionError(f"project AGENTS promotion should create a restorable backup: {agents_api}")
+        request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/audit",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(request, timeout=5) as response:
+            audit_api = json.loads(response.read().decode("utf-8"))
+        audit_actions = {item["action"] for item in audit_api.get("audit", [])}
+        if {"review_candidate", "promote_project_agents"} - audit_actions:
+            raise AssertionError(f"audit API should expose review and promotion actions: {audit_api}")
+        request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/history",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(request, timeout=5) as response:
+            history_api = json.loads(response.read().decode("utf-8"))
+        if not history_api.get("promotions") or not history_api.get("reviews"):
+            raise AssertionError(f"history API should expose promotions and reviews: {history_api}")
+        if not any(item.get("target_type") == "AGENTS.md" for item in history_api["promotions"]):
+            raise AssertionError(f"history API should include project AGENTS promotions: {history_api}")
+        if not any(item.get("note") == "checked" and item.get("rewrite_text") == "Reviewed rewrite" for item in history_api["reviews"]):
+            raise AssertionError(f"history API should preserve review note and rewrite text: {history_api}")
+        promotion_id = next(item["id"] for item in history_api["promotions"] if item.get("target_type") == "AGENTS.md")
+        request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/promotions/{promotion_id}/rollback-preview",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(request, timeout=5) as response:
+            rollback_api = json.loads(response.read().decode("utf-8"))
+        if not rollback_api.get("can_restore") or not rollback_api.get("backup_path") or not rollback_api.get("target_path"):
+            raise AssertionError(f"rollback preview should expose restorable paths: {rollback_api}")
+        if "shutil.copy2" not in rollback_api.get("restore_command", ""):
+            raise AssertionError(f"rollback preview should provide a copy-safe Python restore command: {rollback_api}")
     finally:
         server.shutdown()
         server.server_close()
@@ -277,25 +312,40 @@ def main() -> int:
         "tab-home",
         "tab-data",
         "tab-candidates",
-        "tab-review",
         "tab-promotion",
         "tab-skills",
         "tab-schedule",
         "tab-runs",
         "tab-recall",
         "tab-doctor",
+        "tab-audit",
+        "tab-promotions",
+        "tab-reviews",
         "data-view=\"home\"",
         "data-view=\"data\"",
         "data-view=\"candidates\"",
-        "data-view=\"review\"",
         "data-view=\"promotion\"",
         "data-view=\"skills\"",
         "data-view=\"schedule\"",
         "data-view=\"runs\"",
         "data-view=\"recall\"",
         "data-view=\"doctor\"",
+        "data-view=\"audit\"",
+        "data-view=\"promotions\"",
+        "data-view=\"reviews\"",
         "Candidate Center",
         "候选中心",
+        "candidateWorkspace",
+        "candidateListPanel",
+        "candidateDetailPanel",
+        "Audit Center",
+        "审计中心",
+        "Promotion History",
+        "晋升历史",
+        "Review History",
+        "审阅历史",
+        "Rollback Preview",
+        "回滚预览",
         "Schedule Center",
         "调度中心",
         "Skill Usage",
@@ -304,8 +354,8 @@ def main() -> int:
         "状态统计",
         "Rebuild Database",
         "重建数据库",
-        "clear active data, and rescan all historical sessions",
-        "清空当前数据并全量重扫历史会话",
+        "clear active SQLite tables, and rescan all historical sessions",
+        "清空当前 SQLite 表，并全量重扫历史会话",
         "navigator.language",
         "localStorage",
         "languageToggle",
@@ -340,15 +390,46 @@ def main() -> int:
         "recallLimit",
         "recallResults",
         "doctorRows",
+        "auditRows",
+        "promotionRows",
+        "reviewRows",
+        "rollbackPreview",
+        "copyRollback",
+        "previewRollback",
         "reviewNote",
         "reviewRewrite",
         "saveReview",
+        "confirmAction",
+        "confirmActionLabel",
+        "confirmFilesLabel",
+        "confirmResultLabel",
+        "confirmInitializeData",
+        "confirmBackupDatabase",
+        "confirmScanOnce",
+        "confirmRebuildDatabase",
+        "confirmExportDigest",
+        "confirmExportCandidates",
+        "confirmInstallSkills",
+        "confirmSaveReview",
+        "confirmArchiveSelected",
+        "confirmRejectSelected",
+        "confirmPromoteUser",
+        "confirmPromoteAgents",
+        "confirmPromoteSkill",
+        "confirmPromotePatch",
+        "confirmInstallSchedule",
+        "confirmUninstallSchedule",
+        "confirmInstallShortcut",
+        "confirmUninstallShortcut",
         "promoteSkill",
         "promotePatch",
         "promoteAgents",
         "/api/init",
         "/api/backup",
         "/api/doctor",
+        "/api/audit",
+        "/api/history",
+        "/rollback-preview",
         "/api/schedule/install",
         "/api/shortcut/install",
         "/api/install/skills",
@@ -367,6 +448,9 @@ def main() -> int:
     ):
         if expected not in html:
             raise AssertionError(f"WebUI missing {expected}")
+    for removed in ('id="tab-review"', 'data-nav="review"', 'data-view="review"'):
+        if removed in html:
+            raise AssertionError(f"WebUI should merge Candidate Center and Review Center, found legacy marker: {removed}")
     schedule = run([sys.executable, str(sil), "schedule", "install", "--codex-root", str(root), "--dry-run"], repo)
     if "sil.py scan --once" not in schedule.stdout:
         raise AssertionError("schedule dry-run should invoke sil.py scan --once")

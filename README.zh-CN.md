@@ -17,6 +17,7 @@ v2 架构不再生成大量 Markdown/JSON 产物，而是使用一个 SQLite 数
 | 技能候选 | 可复用流程写入 `type=skill` 候选 |
 | 技能补丁 | 已有 skill 改进建议写入 `type=skill_patch` 候选 |
 | WebUI 管理 | `sil.py serve --open` 启动本地后端并打开控制台 |
+| 审计与历史 | WebUI 可查看审计日志、审阅历史、晋升历史和回滚预览 |
 | 每日扫描 | `sil.py schedule install` 准备每天 03:00 扫描 |
 | 桌面快捷方式 | `sil.py shortcut install` 准备一键启动入口 |
 
@@ -61,7 +62,9 @@ python install.py
 python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open
 ```
 
-在 WebUI 中可以初始化数据库、清空当前 SQLite 数据并全量重扫历史会话、扫描会话、安装或移除每日定时任务、安装桌面快捷方式、导出审阅数据、归档或拒绝候选，并将确认后的候选晋升到 `USER.md`、相互独立的 learned skills 或 skill patch 产物。
+在 WebUI 中可以初始化数据库、清空当前 SQLite 数据并全量重扫历史会话、扫描会话、安装或移除每日定时任务、安装桌面快捷方式、导出审阅数据、归档或拒绝候选，并将确认后的候选晋升到 `USER.md`、项目 `AGENTS.md`、相互独立的 learned skills 或 skill patch 产物。
+
+WebUI 还包含治理视图：审计日志、审阅历史、晋升历史和回滚预览。回滚只做预览，不会自动覆盖文件；页面会展示目标路径、备份路径，以及可复制的 Python 恢复命令。
 
 扫描新增会话：
 
