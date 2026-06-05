@@ -17,7 +17,7 @@ v2 架构不再生成大量 Markdown/JSON 产物，而是使用一个 SQLite 数
 | 技能候选 | 可复用流程写入 `type=skill` 候选 |
 | 技能补丁 | 已有 skill 改进建议写入 `type=skill_patch` 候选 |
 | WebUI 管理 | `sil.py serve --open` 启动本地后端并打开控制台 |
-| 每日扫描 | `sil.py schedule install` 准备每天 12:00 扫描 |
+| 每日扫描 | `sil.py schedule install` 准备每天 03:00 扫描 |
 | 桌面快捷方式 | `sil.py shortcut install` 准备一键启动入口 |
 
 ## 运行时目录

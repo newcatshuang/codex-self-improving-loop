@@ -17,7 +17,7 @@ The v2 architecture replaces scattered Markdown/JSON outputs with one SQLite dat
 | Skill candidates | Reusable workflows are stored as `type=skill` candidates |
 | Skill patches | Existing skill improvement ideas are stored as `type=skill_patch` candidates |
 | WebUI management | `sil.py serve --open` starts a local backend and opens the dashboard |
-| Scheduled scan | `sil.py schedule install` prepares a daily 12:00 scan command |
+| Scheduled scan | `sil.py schedule install` prepares a daily 03:00 scan command |
 | Desktop launcher | `sil.py shortcut install` prepares a one-click launcher command |
 
 ## Runtime Layout

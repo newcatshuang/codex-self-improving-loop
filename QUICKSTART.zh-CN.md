@@ -22,7 +22,7 @@ $HOME/.codex/self-improving-loop/
 python "$HOME/.agents/codex-self-improving-loop/sil.py" scan --once
 ```
 
-安装每天 12:00 的扫描入口：
+安装每天 03:00 的扫描入口：
 
 ```bash
 python "$HOME/.agents/codex-self-improving-loop/sil.py" schedule install

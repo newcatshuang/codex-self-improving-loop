@@ -446,13 +446,21 @@
     }
 
     .filter-select,
-    .filter-date {
+    .filter-date,
+    .review-input {
       min-height: 32px;
       border: 1px solid #cddbd6;
       border-radius: 7px;
       padding: 6px 9px;
       color: var(--ink);
       background: #ffffff;
+    }
+
+    textarea.review-input {
+      width: 100%;
+      min-height: 82px;
+      resize: vertical;
+      line-height: 1.45;
     }
 
     .table-wrap {
@@ -846,6 +854,7 @@
       <button class="nav-button" id="tab-schedule" type="button" data-nav="schedule" data-i18n="navSchedule">Schedule</button>
       <button class="nav-button" id="tab-runs" type="button" data-nav="runs" data-i18n="navRuns">Run Logs</button>
       <button class="nav-button" id="tab-recall" type="button" data-nav="recall" data-i18n="navRecall">Session Recall</button>
+      <button class="nav-button" id="tab-doctor" type="button" data-nav="doctor" data-i18n="navDoctor">Doctor</button>
     </nav>
 
     <div class="view-stack">
@@ -1045,11 +1054,20 @@
               <div class="detail-text" id="selectedRewrite"></div>
             </div>
             <div class="detail-block">
+              <label class="detail-label" for="reviewNote" data-i18n="reviewNoteLabel">Review Note</label>
+              <textarea class="review-input" id="reviewNote" data-i18n-placeholder="reviewNotePlaceholder" placeholder="Optional review note"></textarea>
+            </div>
+            <div class="detail-block">
+              <label class="detail-label" for="reviewRewrite" data-i18n="reviewRewriteLabel">Reviewed Rewrite</label>
+              <textarea class="review-input" id="reviewRewrite" data-i18n-placeholder="reviewRewritePlaceholder" placeholder="Optional reviewed rewrite"></textarea>
+            </div>
+            <div class="detail-block">
               <div class="detail-label" data-i18n="sourceFilesLabel">Source Files</div>
               <ul class="source-list" id="selectedSourceFiles"></ul>
             </div>
             <div class="toolbar" id="detailActions">
               <button class="secondary" id="copyRewrite" data-i18n="copyRewrite">Copy Rewrite</button>
+              <button class="secondary" id="saveReview" data-action data-i18n="saveReview">Save Review</button>
               <button class="secondary" id="archiveSelected" data-action data-i18n="archiveSelected">Archive Selected</button>
               <button class="secondary" id="rejectSelected" data-action data-i18n="rejectSelected">Reject Selected</button>
               <button id="promoteSelected" data-action data-i18n="promoteUser">Promote Selected To USER.md</button>
@@ -1092,7 +1110,7 @@
             <h2 data-i18n="scheduleCenter">Schedule Center</h2>
           </div>
           <div class="panel-body">
-            <p class="panel-description" data-i18n="scheduleDesc">Install or remove the daily 12:00 scan and desktop WebUI launcher. The scheduled task runs <code>sil.py scan --once</code>.</p>
+            <p class="panel-description" data-i18n="scheduleDesc">Install or remove the daily 03:00 scan and desktop WebUI launcher. The scheduled task runs <code>sil.py scan --once</code>.</p>
             <div class="toolbar">
               <button id="installSchedule" data-action data-i18n="installSchedule">Install Schedule</button>
               <button class="secondary" id="uninstallSchedule" data-action data-i18n="uninstallSchedule">Uninstall Schedule</button>
@@ -1156,9 +1174,36 @@
           <div class="panel-body">
             <div class="toolbar">
               <input class="search-input" id="recallSearch" type="search" data-i18n-placeholder="recallPlaceholder" placeholder="Search sessions and candidates">
+              <select class="filter-select" id="recallLimit" aria-label="Recall result limit">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
               <button id="recallButton" type="button" data-i18n="recallButton">Search</button>
             </div>
             <ul class="simple-list" id="recallResults"></ul>
+          </div>
+        </section>
+      </section>
+
+      <section class="view-panel" data-view="doctor">
+        <section class="panel">
+          <div class="panel-header">
+            <h2 data-i18n="doctorTitle">Doctor</h2>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="doctorKeyHeader">Key</th>
+                  <th data-i18n="doctorValueHeader">Value</th>
+                </tr>
+              </thead>
+              <tbody id="doctorRows">
+                <tr><td class="empty-row" colspan="2" data-i18n="loading">Loading data...</td></tr>
+              </tbody>
+            </table>
           </div>
         </section>
       </section>
@@ -1184,6 +1229,7 @@
         navSchedule: "Schedule",
         navRuns: "Run Logs",
         navRecall: "Session Recall",
+        navDoctor: "Doctor",
         dataCenter: "Data Center",
         dataCenterDesc: "Initialize, back up, rebuild, scan, or export the local SQLite learning database.",
         reviewCenter: "Review Center",
@@ -1196,6 +1242,9 @@
         runLogs: "Run Logs",
         runSteps: "Run Steps",
         recallTitle: "Cross-Session Recall",
+        doctorTitle: "Doctor",
+        doctorKeyHeader: "Key",
+        doctorValueHeader: "Value",
         memoryCandidates: "Memory Candidates",
         skillCandidates: "Skill Candidates",
         skillPatchCandidates: "Skill Patch Candidates",
@@ -1226,7 +1275,7 @@
         recallPlaceholder: "Search sessions and candidates",
         recallButton: "Search",
         scheduleCenter: "Schedule Center",
-        scheduleDesc: "Install or remove the daily 12:00 scan and desktop WebUI launcher. The scheduled task runs sil.py scan --once.",
+        scheduleDesc: "Install or remove the daily 03:00 scan and desktop WebUI launcher. The scheduled task runs sil.py scan --once.",
         installSchedule: "Install Schedule",
         uninstallSchedule: "Uninstall Schedule",
         installShortcut: "Install Desktop Shortcut",
@@ -1273,7 +1322,12 @@
         updatedAtLabel: "Updated",
         candidateTextLabel: "Candidate",
         rewriteSuggestionLabel: "Rewrite Suggestion",
+        reviewNoteLabel: "Review Note",
+        reviewNotePlaceholder: "Optional review note",
+        reviewRewriteLabel: "Reviewed Rewrite",
+        reviewRewritePlaceholder: "Optional reviewed rewrite",
         copyRewrite: "Copy Rewrite",
+        saveReview: "Save Review",
         visibleItems: "{count} visible",
         toastLoaded: "Dashboard refreshed.",
         toastInitialized: "Database initialized.",
@@ -1286,6 +1340,7 @@
         toastCandidatesExported: "Candidates exported.",
         toastArchived: "Candidate archived.",
         toastRejected: "Candidate rejected.",
+        toastReviewSaved: "Review saved.",
         toastPromotedUser: "Candidate promoted to USER.md.",
         toastPromotedAgents: "Candidate promoted to AGENTS.md.",
         toastPromotedSkill: "Skill created from selected candidate.",
@@ -1326,6 +1381,7 @@
         navSchedule: "调度中心",
         navRuns: "运行日志",
         navRecall: "跨会话检索",
+        navDoctor: "诊断",
         dataCenter: "数据中心",
         dataCenterDesc: "初始化、备份、重建、扫描或导出本地 SQLite 学习数据库。",
         reviewCenter: "审阅中心",
@@ -1338,6 +1394,9 @@
         runLogs: "运行日志",
         runSteps: "运行步骤",
         recallTitle: "跨会话检索",
+        doctorTitle: "诊断",
+        doctorKeyHeader: "项目",
+        doctorValueHeader: "值",
         memoryCandidates: "记忆候选",
         skillCandidates: "技能候选",
         skillPatchCandidates: "技能补丁候选",
@@ -1368,7 +1427,7 @@
         recallPlaceholder: "搜索历史会话和已入库候选",
         recallButton: "搜索",
         scheduleCenter: "调度中心",
-        scheduleDesc: "安装或移除每天 12:00 的扫描任务和桌面 WebUI 快捷方式。定时任务会运行 sil.py scan --once。",
+        scheduleDesc: "安装或移除每天 03:00 的扫描任务和桌面 WebUI 快捷方式。定时任务会运行 sil.py scan --once。",
         installSchedule: "安装定时任务",
         uninstallSchedule: "卸载定时任务",
         installShortcut: "安装桌面快捷方式",
@@ -1415,7 +1474,12 @@
         updatedAtLabel: "更新时间",
         candidateTextLabel: "候选内容",
         rewriteSuggestionLabel: "改写建议",
+        reviewNoteLabel: "审阅备注",
+        reviewNotePlaceholder: "可选审阅备注",
+        reviewRewriteLabel: "审阅后改写",
+        reviewRewritePlaceholder: "可选审阅后改写",
         copyRewrite: "复制改写建议",
+        saveReview: "保存审阅",
         visibleItems: "当前显示 {count} 条",
         toastLoaded: "控制台已刷新。",
         toastInitialized: "数据库已初始化。",
@@ -1428,6 +1492,7 @@
         toastCandidatesExported: "候选已导出。",
         toastArchived: "候选已归档。",
         toastRejected: "候选已拒绝。",
+        toastReviewSaved: "审阅已保存。",
         toastPromotedUser: "候选已晋升到 USER.md。",
         toastPromotedAgents: "候选已晋升到 AGENTS.md。",
         toastPromotedSkill: "已基于候选创建独立技能。",
@@ -1473,6 +1538,7 @@
     let latestRuns = [];
     let latestRunSteps = [];
     let recallMatches = [];
+    let doctorInfo = {};
     window.selectedCandidateId = null;
 
     function initialLanguage() {
@@ -1511,6 +1577,7 @@
       renderSelected();
       renderRuns();
       renderRecallResults();
+      renderDoctor();
     }
 
     let currentSummary = {memory: 0, skill: 0, skill_patch: 0, review: 0};
@@ -1661,6 +1728,9 @@
       if (view === "runs") {
         refreshRuns().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
       }
+      if (view === "doctor") {
+        refreshDoctor().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
+      }
     }
 
     function renderEmptyRow(body, colspan, messageKey) {
@@ -1768,6 +1838,29 @@
       }
     }
 
+    function renderDoctor() {
+      const body = document.getElementById("doctorRows");
+      if (!body) {
+        return;
+      }
+      body.innerHTML = "";
+      const entries = Object.entries(doctorInfo || {});
+      if (!entries.length) {
+        renderEmptyRow(body, 2, "loading");
+        return;
+      }
+      for (const [key, value] of entries) {
+        const row = document.createElement("tr");
+        const keyCell = cell();
+        keyCell.textContent = key;
+        row.appendChild(keyCell);
+        const valueCell = cell();
+        valueCell.textContent = String(value);
+        row.appendChild(valueCell);
+        body.appendChild(row);
+      }
+    }
+
     async function refreshRuns() {
       const payload = await api("/api/runs");
       latestRuns = payload.runs || [];
@@ -1775,15 +1868,21 @@
       renderRuns();
     }
 
+    async function refreshDoctor() {
+      doctorInfo = await api("/api/doctor");
+      renderDoctor();
+    }
+
     async function runRecallSearch() {
       const input = document.getElementById("recallSearch");
+      const limit = document.getElementById("recallLimit").value || "10";
       const query = input.value.trim();
       if (!query) {
         recallMatches = [];
         renderRecallResults();
         return;
       }
-      const payload = await api(`/api/recall?q=${encodeURIComponent(query)}`);
+      const payload = await api(`/api/recall?q=${encodeURIComponent(query)}&max_results=${encodeURIComponent(limit)}`);
       recallMatches = payload.results || [];
       renderRecallResults();
     }
@@ -1939,6 +2038,8 @@
       document.getElementById("selectedUpdatedAt").textContent = formatDateTime(selectedCandidate.updated_at);
       document.getElementById("selectedText").textContent = selectedCandidate.text || "-";
       document.getElementById("selectedRewrite").textContent = selectedCandidate.rewrite_suggestion || selectedCandidate.text || "-";
+      document.getElementById("reviewNote").value = "";
+      document.getElementById("reviewRewrite").value = selectedCandidate.rewrite_suggestion || selectedCandidate.text || "";
       const sourceFiles = document.getElementById("selectedSourceFiles");
       sourceFiles.innerHTML = "";
       const files = selectedCandidate.source_files || [];
@@ -2116,6 +2217,15 @@
     document.getElementById("exportDigest").addEventListener("click", () => runAction(() => api("/api/export/digest", {method: "POST"}), "toastDigestExported", {refresh: false}));
     document.getElementById("exportCandidates").addEventListener("click", () => runAction(() => api("/api/export/candidates", {method: "POST"}), "toastCandidatesExported", {refresh: false}));
     document.getElementById("rebuildButton").addEventListener("click", () => runRebuild());
+    document.getElementById("saveReview").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/review`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        status: "reviewed",
+        note: document.getElementById("reviewNote").value,
+        rewrite_text: document.getElementById("reviewRewrite").value,
+      }),
+    }), "toastReviewSaved", {needsSelection: true}));
     document.getElementById("archiveSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/archive`, {method: "POST"}), "toastArchived", {needsSelection: true}));
     document.getElementById("rejectSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/reject`, {method: "POST"}), "toastRejected", {needsSelection: true}));
     document.getElementById("promoteSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote`, {method: "POST"}), "toastPromotedUser", {needsSelection: true, confirmKey: "confirmPromoteUser"}));

@@ -12,10 +12,11 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 import webbrowser
 
+from . import __version__
 from .db import connect, init_db
 from .exporter import export_candidates, export_digest
 from .installer import install_skills
-from .paths import html_path
+from .paths import db_path, html_path, runtime_dir
 from .promotion import archive_candidate, promote_to_project_agents, promote_to_skill, promote_to_skill_patch, promote_to_user_memory, review_candidate
 from .recall import search as recall_search
 from .scanner import backup_db, finish_run, iter_session_files, rebuild, reset_db_for_rebuild, scan_into_run, scan_once, start_run
@@ -41,6 +42,18 @@ def write_webui(root: Path) -> Path:
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
     return target
+
+
+def doctor_payload(root: Path) -> dict[str, Any]:
+    init_db(root)
+    return {
+        "version": __version__,
+        "codex_root": str(root),
+        "runtime_dir": str(runtime_dir(root)),
+        "database": str(db_path(root)),
+        "webui": str(html_path(root)),
+        "service_host": LOCAL_HOST,
+    }
 
 
 def summary_payload(root: Path) -> dict[str, Any]:
@@ -214,6 +227,19 @@ class SilHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _read_json_body(self) -> dict[str, Any]:
+        length = int(self.headers.get("Content-Length", "0") or "0")
+        if length <= 0:
+            return {}
+        raw = self.rfile.read(length)
+        if not raw:
+            return {}
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except json.JSONDecodeError:
+            return {}
+        return payload if isinstance(payload, dict) else {}
+
     def _authorized(self) -> bool:
         expected = getattr(self.server, "token", "")
         header = self.headers.get("Authorization", "")
@@ -236,6 +262,12 @@ class SilHandler(BaseHTTPRequestHandler):
                 return
             self._json(200, summary_payload(getattr(self.server, "codex_root")))
             return
+        if parsed.path == "/api/doctor":
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            self._json(200, doctor_payload(getattr(self.server, "codex_root")))
+            return
         if parsed.path == "/api/runs":
             if not self._authorized():
                 self._json(401, {"error": "token required"})
@@ -254,8 +286,18 @@ class SilHandler(BaseHTTPRequestHandler):
             if not self._authorized():
                 self._json(401, {"error": "token required"})
                 return
-            query = parse_qs(parsed.query).get("q", [""])[0].strip()
-            self._json(200, recall_search(getattr(self.server, "codex_root"), query) if query else {"query": query, "results": []})
+            query_params = parse_qs(parsed.query)
+            query = query_params.get("q", [""])[0].strip()
+            try:
+                max_results = max(1, min(50, int(query_params.get("max_results", ["10"])[0])))
+            except ValueError:
+                max_results = 10
+            self._json(
+                200,
+                recall_search(getattr(self.server, "codex_root"), query, max_results=max_results)
+                if query
+                else {"query": query, "results": []},
+            )
             return
         if parsed.path in {"/", "/index.html"}:
             if not (self._authorized() or self._query_authorized()):
@@ -309,7 +351,17 @@ class SilHandler(BaseHTTPRequestHandler):
         archive_match = re.fullmatch(r"/api/candidates/(\d+)/archive", parsed.path)
         promote_match = re.fullmatch(r"/api/candidates/(\d+)/promote", parsed.path)
         if review_match:
-            review_candidate(root, int(review_match.group(1)), "reviewed")
+            payload = self._read_json_body()
+            status = str(payload.get("status") or "reviewed")
+            note = payload.get("note")
+            rewrite_text = payload.get("rewrite_text")
+            review_candidate(
+                root,
+                int(review_match.group(1)),
+                status,
+                note=str(note) if note is not None else None,
+                rewrite_text=str(rewrite_text) if rewrite_text is not None else None,
+            )
             self._json(200, {"ok": True})
             return
         if archive_match:

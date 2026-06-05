@@ -9,6 +9,10 @@ import os
 from pathlib import Path
 
 
+SCHEDULE_HOUR = 3
+SCHEDULE_TIME = "03:00"
+
+
 def sil_command(repo_root: Path, *args: str) -> list[str]:
     return [sys.executable, str(repo_root / "sil.py"), *args]
 
@@ -35,7 +39,7 @@ def schedule_command(repo_root: Path, codex_root: Path) -> str:
 
 
 def shortcut_command(repo_root: Path, codex_root: Path) -> str:
-    return display_command(sil_command(repo_root, "serve", "--open", "--codex-root", str(codex_root)))
+    return display_command(sil_command(repo_root, "serve", "--open", "--port", "0", "--codex-root", str(codex_root)))
 
 
 def install_schedule_dry_run(repo_root: Path, codex_root: Path) -> str:
@@ -43,10 +47,10 @@ def install_schedule_dry_run(repo_root: Path, codex_root: Path) -> str:
     parts = sil_command(repo_root, "scan", "--once", "--codex-root", str(codex_root))
     command = windows_task_command(parts) if system == "Windows" else schedule_command(repo_root, codex_root)
     if system == "Windows":
-        return f"schtasks.exe /Create /TN CodexSelfImprovingLoop /SC DAILY /ST 12:00 /TR {command} /F"
+        return f"schtasks.exe /Create /TN CodexSelfImprovingLoop /SC DAILY /ST {SCHEDULE_TIME} /TR {command} /F"
     if system == "Darwin":
-        return f"launchd plist {launch_agent_path()} daily 12:00 -> {command}"
-    return f"systemd user timer {systemd_user_dir() / 'codex-self-improving-loop.timer'} daily 12:00 -> {command}"
+        return f"launchd plist {launch_agent_path()} daily {SCHEDULE_TIME} -> {command}"
+    return f"systemd user timer {systemd_user_dir() / 'codex-self-improving-loop.timer'} daily {SCHEDULE_TIME} -> {command}"
 
 
 def install_shortcut_dry_run(repo_root: Path, codex_root: Path) -> str:
@@ -76,7 +80,7 @@ def install_schedule(repo_root: Path, codex_root: Path, dry_run: bool = False) -
                 "/SC",
                 "DAILY",
                 "/ST",
-                "12:00",
+                SCHEDULE_TIME,
                 "/TR",
                 command,
                 "/F",
@@ -103,7 +107,7 @@ def install_schedule(repo_root: Path, codex_root: Path, dry_run: bool = False) -
                     "  <key>StartCalendarInterval</key>",
                     "  <dict>",
                     "    <key>Hour</key>",
-                    "    <integer>12</integer>",
+                    f"    <integer>{SCHEDULE_HOUR}</integer>",
                     "    <key>Minute</key>",
                     "    <integer>0</integer>",
                     "  </dict>",
@@ -143,10 +147,10 @@ def install_schedule(repo_root: Path, codex_root: Path, dry_run: bool = False) -
             "\n".join(
                 [
                     "[Unit]",
-                    "Description=Run Codex Self-Improving Loop daily scan at 12:00",
+                    f"Description=Run Codex Self-Improving Loop daily scan at {SCHEDULE_TIME}",
                     "",
                     "[Timer]",
-                    "OnCalendar=*-*-* 12:00:00",
+                    f"OnCalendar=*-*-* {SCHEDULE_TIME}:00",
                     "Persistent=true",
                     "",
                     "[Install]",

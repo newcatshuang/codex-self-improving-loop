@@ -216,13 +216,37 @@ def main() -> int:
         if not runs_api.get("runs") or "steps" not in runs_api:
             raise AssertionError(f"runs API should expose recent runs and steps: {runs_api}")
         request = urllib.request.Request(
-            f"http://{LOCAL_HOST}:{server.server_port}/api/recall?q=SQL",
+            f"http://{LOCAL_HOST}:{server.server_port}/api/doctor",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(request, timeout=5) as response:
+            doctor_api = json.loads(response.read().decode("utf-8"))
+        if doctor_api["service_host"] != "127.0.0.1" or not doctor_api["database"].endswith("self-improving-loop.sqlite"):
+            raise AssertionError(f"doctor API should expose runtime diagnostics: {doctor_api}")
+        request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/recall?q=SQL&max_results=3",
             headers={"Authorization": "Bearer test-token"},
         )
         with urllib.request.urlopen(request, timeout=5) as response:
             recall_api = json.loads(response.read().decode("utf-8"))
         if recall_api["query"] != "SQL" or not recall_api["results"]:
             raise AssertionError(f"recall API should search sessions and candidates: {recall_api}")
+        if len(recall_api["results"]) > 3:
+            raise AssertionError(f"recall API should honor max_results: {recall_api}")
+        review_request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/candidates/{summary_api['candidates'][0]['id']}/review",
+            method="POST",
+            data=json.dumps({"status": "reviewed", "note": "checked", "rewrite_text": "Reviewed rewrite"}).encode("utf-8"),
+            headers={"Authorization": "Bearer test-token", "Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(review_request, timeout=5) as response:
+            review_api = json.loads(response.read().decode("utf-8"))
+        if not review_api.get("ok"):
+            raise AssertionError(f"review API should accept note and rewrite text: {review_api}")
+        with sqlite3.connect(db_path) as conn:
+            stored_review = conn.execute("select status, note, rewrite_text from reviews order by id desc limit 1").fetchone()
+        if tuple(stored_review) != ("reviewed", "checked", "Reviewed rewrite"):
+            raise AssertionError(f"review note/rewrite should be stored: {stored_review}")
         backup_request = urllib.request.Request(
             f"http://{LOCAL_HOST}:{server.server_port}/api/backup",
             method="POST",
@@ -259,6 +283,7 @@ def main() -> int:
         "tab-schedule",
         "tab-runs",
         "tab-recall",
+        "tab-doctor",
         "data-view=\"home\"",
         "data-view=\"data\"",
         "data-view=\"candidates\"",
@@ -268,6 +293,7 @@ def main() -> int:
         "data-view=\"schedule\"",
         "data-view=\"runs\"",
         "data-view=\"recall\"",
+        "data-view=\"doctor\"",
         "Candidate Center",
         "候选中心",
         "Schedule Center",
@@ -311,12 +337,18 @@ def main() -> int:
         "runRows",
         "runStepRows",
         "recallSearch",
+        "recallLimit",
         "recallResults",
+        "doctorRows",
+        "reviewNote",
+        "reviewRewrite",
+        "saveReview",
         "promoteSkill",
         "promotePatch",
         "promoteAgents",
         "/api/init",
         "/api/backup",
+        "/api/doctor",
         "/api/schedule/install",
         "/api/shortcut/install",
         "/api/install/skills",
@@ -325,6 +357,7 @@ def main() -> int:
         "/api/runs/${runId}",
         "/api/runs",
         "/api/recall?q=",
+        "max_results=",
         "/promote-agents",
         "progressPanel",
         "progressText",
@@ -337,10 +370,14 @@ def main() -> int:
     schedule = run([sys.executable, str(sil), "schedule", "install", "--codex-root", str(root), "--dry-run"], repo)
     if "sil.py scan --once" not in schedule.stdout:
         raise AssertionError("schedule dry-run should invoke sil.py scan --once")
+    if "03:00" not in schedule.stdout:
+        raise AssertionError("schedule dry-run should install a 03:00 run")
 
     shortcut = run([sys.executable, str(sil), "shortcut", "install", "--codex-root", str(root), "--dry-run"], repo)
     if "sil.py serve --open" not in shortcut.stdout:
         raise AssertionError("shortcut dry-run should launch sil.py serve --open")
+    if "--port 0" not in shortcut.stdout:
+        raise AssertionError("shortcut should use an ephemeral port to avoid stale token/port collisions")
 
     print("verify-v2-core passed")
     return 0
