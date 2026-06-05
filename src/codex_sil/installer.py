@@ -8,6 +8,7 @@ from pathlib import Path
 
 START = "<!-- codex-self-improving-loop:start -->"
 END = "<!-- codex-self-improving-loop:end -->"
+COPY_IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", ".pytest_cache", ".mypy_cache", ".ruff_cache")
 
 
 def copy_tree(src: Path, dst: Path, force: bool = True) -> None:
@@ -15,7 +16,7 @@ def copy_tree(src: Path, dst: Path, force: bool = True) -> None:
         shutil.rmtree(dst)
     if dst.exists():
         return
-    shutil.copytree(src, dst)
+    shutil.copytree(src, dst, ignore=COPY_IGNORE)
 
 
 def copy_file_if_missing(src: Path, dst: Path) -> None:

@@ -10,6 +10,7 @@ from pathlib import Path
 
 START = "<!-- codex-self-improving-loop:start -->"
 END = "<!-- codex-self-improving-loop:end -->"
+COPY_IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", ".pytest_cache", ".mypy_cache", ".ruff_cache")
 
 
 def ensure_dir(path: Path) -> None:
@@ -22,7 +23,7 @@ def copy_tree(src: Path, dst: Path, force: bool) -> None:
     if dst.exists():
         print(f"SKIP existing: {dst}")
         return
-    shutil.copytree(src, dst)
+    shutil.copytree(src, dst, ignore=COPY_IGNORE)
     print(f"COPY: {src} -> {dst}")
 
 

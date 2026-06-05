@@ -101,7 +101,6 @@ def setup_status_payload(root: Path) -> dict[str, Any]:
 
 def summary_payload(root: Path) -> dict[str, Any]:
     init_db(root)
-    generate_merge_suggestions(root)
     with connect(root) as conn:
         rows = conn.execute("select type, count(*) as count from candidates group by type").fetchall()
         status_rows = conn.execute("select status, count(*) as count from candidates group by status").fetchall()
@@ -374,7 +373,7 @@ class SilHandler(BaseHTTPRequestHandler):
     def _authorized(self) -> bool:
         expected = getattr(self.server, "token", "")
         header = self.headers.get("Authorization", "")
-        return header == f"Bearer {expected}"
+        return secrets.compare_digest(header, f"Bearer {expected}")
 
     def _query_authorized(self) -> bool:
         expected = getattr(self.server, "token", "")
@@ -441,7 +440,7 @@ class SilHandler(BaseHTTPRequestHandler):
             if not self._authorized():
                 self._json(401, {"error": "token required"})
                 return
-            self._json(200, generate_merge_suggestions(getattr(self.server, "codex_root")))
+            self._json(200, merge_suggestions_payload(getattr(self.server, "codex_root")))
             return
         if parsed.path == "/api/digests/latest":
             if not self._authorized():
@@ -572,6 +571,9 @@ class SilHandler(BaseHTTPRequestHandler):
                 self._json(404, {"error": str(exc)})
             return
         merge_apply_match = re.fullmatch(r"/api/merge-suggestions/(\d+)/apply", parsed.path)
+        if parsed.path == "/api/merge-suggestions/refresh":
+            self._json(200, generate_merge_suggestions(root))
+            return
         if merge_apply_match:
             try:
                 self._json(200, apply_merge_suggestion(root, int(merge_apply_match.group(1))))

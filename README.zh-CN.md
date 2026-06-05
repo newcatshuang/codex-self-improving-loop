@@ -136,6 +136,7 @@ codex exec --ephemeral --skip-git-repo-check --sandbox read-only --output-schema
 - `GET /api/recommendations`
 - `POST /api/candidates/{id}/recommend`
 - `GET /api/merge-suggestions`
+- `POST /api/merge-suggestions/refresh`
 - `POST /api/merge-suggestions/{id}/apply`
 - `GET /api/candidates/{id}/promotion-preview?target=user|agents|skill|patch`
 - `GET /api/digests/latest`

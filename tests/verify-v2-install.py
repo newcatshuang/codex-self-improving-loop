@@ -48,6 +48,10 @@ def main() -> int:
     for path in expected:
         if not path.exists():
             raise FileNotFoundError(path)
+    installed_app = agents / "codex-self-improving-loop"
+    compiled_artifacts = [path for path in installed_app.rglob("*") if "__pycache__" in path.parts or path.suffix == ".pyc"]
+    if compiled_artifacts:
+        raise AssertionError(f"installed app should not include Python bytecode artifacts: {compiled_artifacts[:5]}")
 
     recall_skill = (agents / "skills" / "session-recall" / "SKILL.md").read_text(encoding="utf-8")
     memory_skill = (agents / "skills" / "memory-capture" / "SKILL.md").read_text(encoding="utf-8")

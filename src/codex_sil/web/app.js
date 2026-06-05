@@ -1727,6 +1727,12 @@
       renderMergeSuggestions();
     }
 
+    async function regenerateMergeSuggestions() {
+      const payload = await api("/api/merge-suggestions/refresh", {method: "POST"});
+      mergeSuggestions = payload.merge_suggestions || [];
+      renderMergeSuggestions();
+    }
+
     async function refreshSkillHealth() {
       const payload = await api("/api/skills/health");
       skillHealthItems = payload.skills || [];
@@ -2130,7 +2136,7 @@
     document.getElementById("doctorRefresh").addEventListener("click", () => refreshDoctor().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("doctorOpenData").addEventListener("click", () => setView("data"));
     document.getElementById("refreshDigest").addEventListener("click", () => refreshDailyDigest().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
-    document.getElementById("refreshMergeSuggestions").addEventListener("click", () => refreshMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("refreshMergeSuggestions").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
 
     document.getElementById("prevPage").addEventListener("click", () => {
       currentPage = Math.max(1, currentPage - 1);

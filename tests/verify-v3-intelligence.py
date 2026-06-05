@@ -76,7 +76,22 @@ def main() -> int:
         if regenerated.get("suggested_action") not in {"promote", "merge", "archive", "reject", "needs_review"}:
             raise AssertionError(f"single candidate recommendation should be regenerated: {regenerated}")
 
+        with sqlite3.connect(db) as conn:
+            conn.execute("delete from merge_suggestions")
+            conn.commit()
+            before_summary_read = int(conn.execute("select count(*) from merge_suggestions").fetchone()[0])
+        summary_payload = fetch_json(server.port, server.token, "/api/summary")
+        if not summary_payload.get("summary"):
+            raise AssertionError(f"summary should return current counters: {summary_payload}")
+        with sqlite3.connect(db) as conn:
+            after_summary_read = int(conn.execute("select count(*) from merge_suggestions").fetchone()[0])
+        if before_summary_read != after_summary_read:
+            raise AssertionError("/api/summary should be read-only and must not generate merge suggestions")
+
         merge_payload = fetch_json(server.port, server.token, "/api/merge-suggestions")
+        if merge_payload.get("merge_suggestions"):
+            raise AssertionError(f"/api/merge-suggestions should be read-only before refresh: {merge_payload}")
+        merge_payload = fetch_json(server.port, server.token, "/api/merge-suggestions/refresh", method="POST")
         groups = merge_payload.get("merge_suggestions", [])
         group = next((item for item in groups if first in item.get("candidate_ids", []) and second in item.get("candidate_ids", [])), None)
         if not group:
