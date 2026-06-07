@@ -231,22 +231,10 @@
             <input class="filter-date" id="createdAtFilter" type="date" aria-label="Created date">
             <input class="search-input" id="searchInput" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search candidates">
           </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th class="col-type" data-i18n="typeHeader">Type</th>
-                  <th class="col-destination" data-i18n="destinationHeader">Destination</th>
-                  <th data-i18n="candidateHeader">Candidate</th>
-                  <th class="col-status" data-i18n="statusHeader">Status</th>
-                  <th class="col-time" id="createdAtHeader" data-i18n="createdAtHeader">Created</th>
-                  <th class="col-time" id="updatedAtHeader" data-i18n="updatedAtHeader">Updated</th>
-                </tr>
-              </thead>
-              <tbody id="candidateRows">
-                <tr><td class="empty-row" colspan="6" data-i18n="loading">Loading data...</td></tr>
-              </tbody>
-            </table>
+          <div class="candidate-list-wrap">
+            <div class="candidate-card-list" id="candidateRows" role="list" aria-labelledby="tab-candidates">
+              <div class="empty-row" data-i18n="loading">Loading data...</div>
+            </div>
           </div>
           <div class="pagination" id="paginationControls">
             <div class="pagination-group">

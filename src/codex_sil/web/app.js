@@ -1877,59 +1877,47 @@
       renderPagination(items.length, totalPages);
       body.innerHTML = "";
       if (!items.length) {
-        const row = document.createElement("tr");
-        const empty = cell("empty-row");
-        empty.colSpan = 6;
+        const empty = document.createElement("div");
+        empty.className = "empty-row";
         empty.textContent = t("emptyCandidates");
-        row.appendChild(empty);
-        body.appendChild(row);
+        body.appendChild(empty);
         return;
       }
 
       for (const item of pageItems) {
-        const row = document.createElement("tr");
-        row.dataset.id = item.id;
-        row.tabIndex = 0;
-        row.classList.toggle("selected-row", String(item.id) === String(window.selectedCandidateId));
-        row.addEventListener("click", () => selectCandidate(item.id));
-        row.addEventListener("keydown", (event) => {
+        const card = document.createElement("article");
+        card.className = "candidate-card";
+        card.dataset.id = item.id;
+        card.tabIndex = 0;
+        card.setAttribute("role", "listitem");
+        card.setAttribute("aria-selected", String(String(item.id) === String(window.selectedCandidateId)));
+        card.classList.toggle("selected-card", String(item.id) === String(window.selectedCandidateId));
+        card.addEventListener("click", () => selectCandidate(item.id));
+        card.addEventListener("keydown", (event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             selectCandidate(item.id);
           }
         });
 
-        const typeCell = cell("col-type");
-        typeCell.appendChild(tag(formatType(item.type), item.type));
-        row.appendChild(typeCell);
-
-        const destinationCell = cell("col-destination");
-        destinationCell.appendChild(tag(item.destination || "-", "status"));
-        row.appendChild(destinationCell);
-
-        const candidateCell = cell();
         const title = document.createElement("div");
-        title.className = "candidate-title";
+        title.className = "candidate-card-title";
         title.textContent = item.title || item.text || "-";
         const snippet = document.createElement("div");
-        snippet.className = "candidate-snippet";
+        snippet.className = "candidate-card-snippet";
         snippet.textContent = item.text || "";
-        candidateCell.append(title, snippet);
-        row.appendChild(candidateCell);
-
-        const statusCell = cell("col-status");
-        statusCell.appendChild(tag(item.status || "-", item.status === "review" ? "review" : "status"));
-        row.appendChild(statusCell);
-
-        const createdCell = cell("col-time");
-        createdCell.textContent = formatDateTime(item.created_at);
-        row.appendChild(createdCell);
-
-        const updatedCell = cell("col-time");
-        updatedCell.textContent = formatDateTime(item.updated_at);
-        row.appendChild(updatedCell);
-
-        body.appendChild(row);
+        const meta = document.createElement("div");
+        meta.className = "candidate-card-meta";
+        meta.append(
+          tag(formatType(item.type), item.type),
+          tag(item.destination || "-", "status"),
+          tag(item.status || "-", item.status === "review" ? "review" : "status")
+        );
+        const time = document.createElement("div");
+        time.className = "candidate-card-time";
+        time.textContent = `${formatDateTime(item.created_at)} / ${formatDateTime(item.updated_at)}`;
+        card.append(meta, title, snippet, time);
+        body.appendChild(card);
       }
     }
 
@@ -1952,6 +1940,7 @@
       selectedCandidate = allCandidates.find((item) => String(item.id) === String(id)) || null;
       renderCandidates();
       renderSelected();
+      renderCandidateActionPanel();
     }
 
     function renderSelected() {
@@ -2004,6 +1993,7 @@
       hydrateSelection();
       renderCandidates();
       renderSelected();
+      renderCandidateActionPanel();
       await refreshRuns();
       await refreshScheduleStatus();
       await refreshHistory();

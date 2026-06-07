@@ -156,6 +156,9 @@ def main() -> int:
         raise FileNotFoundError("WebUI should be split into index.html, styles.css, and app.js")
     css = css_path.read_text(encoding="utf-8")
     required_layout_rules = (
+        ".candidate-card-list",
+        ".candidate-card",
+        ".candidate-card-meta",
         "td > *",
         ".col-destination .tag",
         "text-overflow: ellipsis",
@@ -166,6 +169,9 @@ def main() -> int:
         if rule not in css:
             raise AssertionError(f"WebUI table layout should prevent long candidate text overflow: missing {rule}")
     js = js_path.read_text(encoding="utf-8")
+    for marker in ("role", "listitem", "candidate-card-title", "candidate-card-snippet"):
+        if marker not in js:
+            raise AssertionError(f"Candidate Center should render accessible review cards: missing {marker}")
     for marker in ("setupWizard", "dailyDigestPanel", "mergeSuggestionsPanel", "promotionPreview", "skillHealthTable", "skillHealthRows", "exportBundle", "importPreview"):
         if marker not in html and marker not in js:
             raise AssertionError(f"WebUI missing v3 marker: {marker}")
