@@ -18,6 +18,7 @@ v3 架构不再生成大量 Markdown/JSON 产物，而是使用一个 SQLite 数
 | 技能补丁 | 已有 skill 改进建议写入 `type=skill_patch` 候选 |
 | WebUI 管理 | `sil.py serve --open` 启动本地后端并打开控制台 |
 | 审阅建议 | 每条候选生成确定性的审阅建议，并保留后续接入 Codex 审阅的扩展点 |
+| LLM 分析包 | Codex 可分析候选证据、风险、改写质量，并生成需要人工审批的进化建议目标 |
 | 候选合并 | 相似候选会聚合成合并建议；应用合并只更新状态，原始 evidence 仍保留 |
 | 晋升预览 | 写入 USER.md、AGENTS.md、skill、skill patch 前先展示 diff |
 | 每日 digest | scan/rebuild 后写入一条 SQLite digest，包含候选、风险、skill 使用和失败运行统计 |
@@ -108,13 +109,15 @@ python "$HOME/.agents/codex-self-improving-loop/sil.py" shortcut install
 
 ## 提取策略
 
-扫描优先使用 Codex CLI 做更精准的结构化提取：
+扫描优先使用 Codex CLI 做更精准的结构化提取、分析和审阅建议：
 
 ```text
 codex exec --ephemeral --skip-git-repo-check --sandbox read-only --output-schema extraction.schema.json
 ```
 
-当 Codex 不存在、执行失败、超时、JSON 非法或 schema 不合法时，才回退到内置规则提取器。
+当 Codex 不存在、执行失败、超时、JSON 非法或 schema 不合法时，才回退到内置规则提取和分析助手。
+
+LLM 分析可以提出目标位置、建议文本、理由和验证步骤，但晋升始终只能通过 WebUI 人工触发。扫描器不会自动晋升 memory、AGENTS.md 事实、skill 或 skill patch。
 
 `--ephemeral` 用于避免自动化提取本身产生新的 session 文件，导致下一轮重复扫描。
 

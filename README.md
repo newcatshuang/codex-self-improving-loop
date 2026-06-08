@@ -18,6 +18,7 @@ The v3 architecture replaces scattered Markdown/JSON outputs with one SQLite dat
 | Skill patches | Existing skill improvement ideas are stored as `type=skill_patch` candidates |
 | WebUI management | `sil.py serve --open` starts a local backend and opens the dashboard |
 | Review suggestions | Each candidate gets a deterministic review recommendation, with Codex-ready extension points |
+| LLM analysis packages | Codex can analyze candidate evidence, risk, rewrite quality, and proposed manual evolution targets |
 | Candidate merge | Similar candidates are grouped, and merge actions keep original evidence while marking duplicates `merged` |
 | Promotion preview | USER.md, AGENTS.md, skill, and skill patch promotions show a diff before writing files |
 | Daily digest | Each scan/rebuild stores one SQLite digest with candidate, risk, skill usage, and failed-run counts |
@@ -108,13 +109,15 @@ Schedule installation is cross-platform:
 
 ## Extraction Strategy
 
-Scans prefer Codex CLI for higher-quality extraction:
+Scans prefer Codex CLI for higher-quality extraction, analysis, and review suggestions:
 
 ```text
 codex exec --ephemeral --skip-git-repo-check --sandbox read-only --output-schema extraction.schema.json
 ```
 
-If Codex is unavailable, fails, times out, or returns invalid JSON, the scanner falls back to a small rule-based extractor.
+If Codex is unavailable, fails, times out, or returns invalid JSON, the scanner falls back to small rule-based extraction and analysis helpers.
+
+LLM analysis can propose target surfaces, text, rationale, and verification steps, but promotion is always manual through the WebUI. The scanner never auto-promotes memory, AGENTS.md facts, skills, or skill patches.
 
 `--ephemeral` prevents automated extraction runs from creating new session files that would be scanned again later.
 

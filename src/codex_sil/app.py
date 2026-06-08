@@ -12,6 +12,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 import webbrowser
 
+from .analysis import analysis_payload
 from . import __version__
 from .bundle import export_bundle, import_preview
 from .db import connect, init_db
@@ -136,12 +137,18 @@ def summary_payload(root: Path) -> dict[str, Any]:
               r.recommendation,
               r.recommendation_reason,
               r.suggested_action,
+              ca.risk_level as analysis_risk_level,
+              ca.recommended_next_step as analysis_next_step,
+              ep.target_type as proposal_target_type,
+              ep.requires_manual_approval as proposal_requires_manual_approval,
               count(distinct cs.session_id) as source_count,
               json_group_array(distinct s.rel_path) as source_files
             from candidates c
             left join candidate_sources cs on cs.candidate_id=c.id
             left join sessions s on s.id=cs.session_id
             left join recommendations r on r.candidate_id=c.id
+            left join candidate_analyses ca on ca.candidate_id=c.id
+            left join evolution_proposals ep on ep.candidate_id=c.id
             group by c.id
             order by c.updated_at desc, c.id desc
             limit 200
@@ -479,6 +486,18 @@ class SilHandler(BaseHTTPRequestHandler):
             target = query_params.get("target", ["user"])[0]
             try:
                 payload = promotion_preview(getattr(self.server, "codex_root"), int(preview_match.group(1)), target)
+            except ValueError as exc:
+                self._json(404, {"error": str(exc)})
+                return
+            self._json(200, payload)
+            return
+        analysis_match = re.fullmatch(r"/api/candidates/(\d+)/analysis", parsed.path)
+        if analysis_match:
+            if not self._authorized():
+                self._json(401, {"error": "token required"})
+                return
+            try:
+                payload = analysis_payload(getattr(self.server, "codex_root"), int(analysis_match.group(1)))
             except ValueError as exc:
                 self._json(404, {"error": str(exc)})
                 return

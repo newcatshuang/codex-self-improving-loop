@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
+from .analysis import analyze_candidate, generate_missing as generate_missing_analyses
 from .db import connect, init_db
 from .codex_runner import extract_with_codex
 from .digest import generate_digest
@@ -365,6 +366,7 @@ def process_session(root: Path, run_id: int, path: Path) -> int:
     candidates = codex_candidates if codex_candidates else extract_candidates(text)
     for candidate in candidates:
         candidate_id = persist_candidate(root, session_id, candidate, text[:1000])
+        analyze_candidate(root, candidate_id)
         recommend_candidate(root, candidate_id)
     with connect(root) as conn:
         conn.execute("update sessions set status='processed', last_processed_at=current_timestamp where id=?", (session_id,))
@@ -386,6 +388,8 @@ def reset_db_for_rebuild(root: Path, keep_run_id: int | None = None) -> None:
     init_db(root)
     tables = (
         "recommendations",
+        "candidate_analyses",
+        "evolution_proposals",
         "merge_suggestions",
         "digests",
         "candidate_sources",
@@ -429,6 +433,7 @@ def scan_into_run(root: Path, run_id: int, sessions: list[Path]) -> dict[str, in
 
 
 def finalize_scan(root: Path, run_id: int) -> dict[str, object]:
+    generate_missing_analyses(root)
     generate_merge_suggestions(root)
     digest = generate_digest(root, run_id=run_id)
     return {"digest": digest}

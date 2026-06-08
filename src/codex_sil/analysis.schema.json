@@ -1,0 +1,52 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["analysis", "proposal"],
+  "properties": {
+    "analysis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_assessment",
+        "stability",
+        "scope",
+        "risk_level",
+        "conflicts",
+        "rewrite_quality",
+        "recommended_next_step"
+      ],
+      "properties": {
+        "evidence_assessment": {"type": "string"},
+        "stability": {"type": "string"},
+        "scope": {"type": "string"},
+        "risk_level": {"type": "string", "enum": ["low", "medium", "high"]},
+        "conflicts": {"type": "string"},
+        "rewrite_quality": {"type": "string"},
+        "recommended_next_step": {"type": "string"}
+      }
+    },
+    "proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_type",
+        "target_path",
+        "proposed_text",
+        "rationale",
+        "verification",
+        "requires_manual_approval"
+      ],
+      "properties": {
+        "target_type": {
+          "type": "string",
+          "enum": ["USER.md", "AGENTS.md", "skill", "skill_patch", "manual_review"]
+        },
+        "target_path": {"type": "string"},
+        "proposed_text": {"type": "string"},
+        "rationale": {"type": "string"},
+        "verification": {"type": "string"},
+        "requires_manual_approval": {"type": "boolean", "const": true}
+      }
+    }
+  }
+}

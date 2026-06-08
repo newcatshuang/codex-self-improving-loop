@@ -50,6 +50,8 @@
         riskBlocked: "Blocked or unsafe. Review evidence and resolve conflicts before promotion.",
         riskReview: "Needs human review. Check source files, rewrite, destination, and safety.",
         riskSafe: "No blocking signal detected. Promotion is still explicit and reversible through backups where supported.",
+        analysisSummary: "Analysis: {risk}. {step}",
+        proposalSummary: "Proposal target: {target}. Manual approval required.",
         recommendMemory: "Promote to USER.md only for durable global preferences; use AGENTS.md for project facts.",
         recommendAgents: "This looks project-scoped. Prefer project AGENTS.md when the fact is not universal.",
         recommendSkill: "Promote as an independent skill when the workflow is reusable across tasks.",
@@ -420,6 +422,8 @@
         riskBlocked: "存在阻断或不安全信号。晋升前需要核对证据并处理冲突。",
         riskReview: "需要人工审阅。请核对来源、改写、归属和安全状态。",
         riskSafe: "未发现阻断信号。晋升仍需要明确点击，支持备份的目标可按历史回滚。",
+        analysisSummary: "分析：{risk}。{step}",
+        proposalSummary: "建议目标：{target}。需要人工审批。",
         recommendMemory: "只有稳定的全局偏好才晋升到 USER.md；项目事实优先放 AGENTS.md。",
         recommendAgents: "这更像项目级事实。若不是全局规则，优先晋升到项目 AGENTS.md。",
         recommendSkill: "当该流程可跨任务复用时，适合晋升为独立技能。",
@@ -1084,6 +1088,17 @@
       if (!candidate) {
         return {className: "", text: t("selectCandidateHint")};
       }
+      if (candidate.analysis_risk_level || candidate.analysis_next_step) {
+        const riskLevel = String(candidate.analysis_risk_level || "review");
+        const className = riskLevel === "high" ? "danger" : riskLevel === "low" ? "safe" : "warning";
+        return {
+          className,
+          text: t("analysisSummary", {
+            risk: riskLevel,
+            step: candidate.analysis_next_step || t("riskReview"),
+          }),
+        };
+      }
       const status = String(candidate.status || "").toLowerCase();
       const safety = String(candidate.safety || "").toLowerCase();
       if (status === "blocked" || safety.includes("conflict") || safety.includes("unsafe")) {
@@ -1100,10 +1115,14 @@
         return t("selectCandidateHint");
       }
       if (candidate.suggested_action || candidate.recommendation_reason) {
-        return t("recommendationFromBackend", {
+        const recommendation = t("recommendationFromBackend", {
           action: candidate.suggested_action || "needs_review",
           reason: candidate.recommendation_reason || candidate.recommendation || "",
         });
+        if (candidate.proposal_target_type) {
+          return `${recommendation}\n${t("proposalSummary", {target: candidate.proposal_target_type})}`;
+        }
+        return recommendation;
       }
       if (candidate.type === "skill") {
         return t("recommendSkill");

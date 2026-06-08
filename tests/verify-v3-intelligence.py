@@ -46,8 +46,16 @@ def main() -> int:
     run_sil(repo, root, "rebuild", "--backup")
     if table_count(db, "recommendations") < table_count(db, "candidates"):
         raise AssertionError("rebuild should generate a recommendation row for each candidate")
+    if table_count(db, "candidate_analyses") < table_count(db, "candidates"):
+        raise AssertionError("rebuild should persist an analysis row for each candidate")
+    if table_count(db, "evolution_proposals") < table_count(db, "candidates"):
+        raise AssertionError("rebuild should persist an evolution proposal row for each candidate")
     if table_count(db, "digests") < 1:
         raise AssertionError("rebuild should persist a daily digest row")
+    with sqlite3.connect(db) as conn:
+        auto_promoted = conn.execute("select count(*) from candidates where status='promoted'").fetchone()[0]
+        if int(auto_promoted) != 0:
+            raise AssertionError("scan must not auto-promote candidates; all promotion stays manual")
 
     with sqlite3.connect(db) as conn:
         conn.execute(
@@ -75,6 +83,15 @@ def main() -> int:
         regenerated = fetch_json(server.port, server.token, f"/api/candidates/{first}/recommend", method="POST")
         if regenerated.get("suggested_action") not in {"promote", "merge", "archive", "reject", "needs_review"}:
             raise AssertionError(f"single candidate recommendation should be regenerated: {regenerated}")
+        analysis = fetch_json(server.port, server.token, f"/api/candidates/{first}/analysis")
+        if not analysis.get("analysis") or not analysis.get("proposal"):
+            raise AssertionError(f"candidate analysis endpoint should expose analysis and proposal: {analysis}")
+        if analysis["analysis"].get("engine") not in {"codex", "fallback_rules"}:
+            raise AssertionError(f"candidate analysis should identify its engine: {analysis}")
+        if analysis["proposal"].get("requires_manual_approval") is not True:
+            raise AssertionError(f"evolution proposals must keep manual approval required: {analysis}")
+        if analysis["proposal"].get("target_type") not in {"USER.md", "AGENTS.md", "skill", "skill_patch", "manual_review"}:
+            raise AssertionError(f"proposal should target a known manual review surface: {analysis}")
 
         with sqlite3.connect(db) as conn:
             conn.execute("delete from merge_suggestions")

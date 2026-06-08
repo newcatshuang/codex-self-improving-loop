@@ -70,6 +70,35 @@ create table if not exists recommendations (
   updated_at text not null default current_timestamp
 );
 
+create table if not exists candidate_analyses (
+  id integer primary key autoincrement,
+  candidate_id integer not null unique references candidates(id) on delete cascade,
+  engine text not null,
+  evidence_assessment text not null,
+  stability text not null,
+  scope text not null,
+  risk_level text not null,
+  conflicts text not null,
+  rewrite_quality text not null,
+  recommended_next_step text not null,
+  created_at text not null default current_timestamp,
+  updated_at text not null default current_timestamp
+);
+
+create table if not exists evolution_proposals (
+  id integer primary key autoincrement,
+  candidate_id integer not null unique references candidates(id) on delete cascade,
+  engine text not null,
+  target_type text not null,
+  target_path text not null,
+  proposed_text text not null,
+  rationale text not null,
+  verification text not null,
+  requires_manual_approval integer not null default 1,
+  created_at text not null default current_timestamp,
+  updated_at text not null default current_timestamp
+);
+
 create table if not exists merge_suggestions (
   id integer primary key autoincrement,
   group_key text not null unique,
