@@ -16,9 +16,9 @@ v3 架构不再生成大量 Markdown/JSON 产物，而是使用一个 SQLite 数
 | 记忆候选 | 每日或手动扫描提取 memory candidate，写入 SQLite |
 | 技能候选 | 可复用流程写入 `type=skill` 候选 |
 | 技能补丁 | 已有 skill 改进建议写入 `type=skill_patch` 候选 |
-| WebUI 管理 | `sil.py serve --open` 启动本地后端并打开控制台 |
+| WebUI 管理 | `sil.py serve --open` 启动本地后端，并打开总览 / 审阅工作流 / 运维与历史控制台 |
 | 审阅建议 | 每条候选生成确定性的审阅建议，并保留后续接入 Codex 审阅的扩展点 |
-| LLM 分析包 | Codex 可分析候选证据、风险、改写质量，并生成需要人工审批的进化建议目标 |
+| LLM 分析包 | Codex 可分析候选证据、风险、改写质量，并在审阅工作流中展示需要人工审批的进化建议目标 |
 | 候选合并 | 相似候选会聚合成合并建议；应用合并只更新状态，原始 evidence 仍保留 |
 | 晋升预览 | 写入 USER.md、AGENTS.md、skill、skill patch 前先展示 diff |
 | 每日 digest | scan/rebuild 后写入一条 SQLite digest，包含候选、风险、skill 使用和失败运行统计 |
@@ -72,9 +72,15 @@ python install.py
 python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open
 ```
 
-在 WebUI 中可以初始化数据库、清空当前 SQLite 数据并全量重扫历史会话、扫描会话、安装或移除每日定时任务、安装桌面快捷方式、导出审阅数据或迁移包、归档或拒绝候选、合并重复候选，并将确认后的候选晋升到 `USER.md`、项目 `AGENTS.md`、相互独立的 learned skills 或 skill patch 产物。
+WebUI 按三个工作区组织：
 
-WebUI 还包含首次运行向导、每日 digest、候选合并建议、晋升 diff 预览、Skill 健康、审计日志、审阅历史、晋升历史和回滚预览。回滚只做预览，不会自动覆盖文件；页面会展示目标路径、备份路径，以及可复制的 Python 恢复命令。
+- `总览`：首次运行向导、统计卡片、每日 digest、下一步建议、待审阅数量、风险观察、优先审阅候选、最近晋升、最近运行和错误提示。
+- `审阅工作流`：候选队列、当前步骤引导、候选证据、审阅备注、LLM 分析、建议目标、建议理由、验证步骤、候选合并、晋升 diff 预览，以及 `人工审批操作台`。
+- `运维与历史`：数据库初始化/备份/重建/扫描/导出、导入预览、调度和快捷方式、Skill 健康、跨会话检索、运行日志、审计日志、审阅历史、晋升历史、回滚预览、诊断，以及失败运行和审计信号的恢复复盘队列。
+
+`人工审批操作台` 是唯一会触发晋升写入的位置。LLM 分析可以建议写入 `USER.md`、`AGENTS.md`、skill 或 skill patch，但归档、拒绝、保存审阅、合并和晋升仍然都必须由用户明确点击，并经过确认弹窗。
+
+回滚只做预览，不会自动覆盖文件；页面会展示目标路径、备份路径，以及可复制的 Python 恢复命令。
 
 扫描新增会话：
 
@@ -138,6 +144,7 @@ LLM 分析可以提出目标位置、建议文本、理由和验证步骤，但�
 - `GET /api/setup/status`
 - `GET /api/recommendations`
 - `POST /api/candidates/{id}/recommend`
+- `GET /api/candidates/{id}/analysis`
 - `GET /api/merge-suggestions`
 - `POST /api/merge-suggestions/refresh`
 - `POST /api/merge-suggestions/{id}/apply`
@@ -156,6 +163,7 @@ python tests/verify-v2-recall.py --work-root ./tmp/v2-recall
 python tests/verify-v2-session-filter.py --work-root ./tmp/v2-filter
 python tests/verify-v2-promotion.py --work-root ./tmp/v2-promotion
 python tests/verify-v2-scheduler.py --work-root ./tmp/v2-scheduler
+python tests/verify-webui-browser.py --work-root ./tmp/webui-browser
 python tests/verify-v3-migration.py --work-root ./tmp/v3-migration
 python tests/verify-v3-intelligence.py --work-root ./tmp/v3-intelligence
 python tests/verify-v2-install.py --codex-root ./tmp/codex-v2 --agents-root ./tmp/agents-v2

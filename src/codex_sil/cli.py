@@ -1,4 +1,4 @@
-"""CLI implementation for Codex Self-Improving Loop v2."""
+"""CLI implementation for Codex Self-Improving Loop v3."""
 
 from __future__ import annotations
 
@@ -97,7 +97,7 @@ def cmd_recall(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Codex Self-Improving Loop v2")
+    parser = argparse.ArgumentParser(description="Codex Self-Improving Loop v3")
     sub = parser.add_subparsers(dest="command", required=True)
 
     doctor = sub.add_parser("doctor", help="Show runtime diagnostics")

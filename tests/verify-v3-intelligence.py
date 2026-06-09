@@ -172,6 +172,11 @@ def main() -> int:
     if not css_path.exists() or not js_path.exists():
         raise FileNotFoundError("WebUI should be split into index.html, styles.css, and app.js")
     css = css_path.read_text(encoding="utf-8")
+    scanner_text = (repo / "src" / "codex_sil" / "scanner.py").read_text(encoding="utf-8")
+    analysis_text = (repo / "src" / "codex_sil" / "analysis.py").read_text(encoding="utf-8")
+    for forbidden in ("promote_to_user_memory", "promote_to_project_agents", "promote_to_skill", "promote_to_skill_patch"):
+        if forbidden in scanner_text or forbidden in analysis_text:
+            raise AssertionError(f"Scan/analysis paths must never call promotion functions automatically: {forbidden}")
     required_layout_rules = (
         ".candidate-card-list",
         ".candidate-card",
@@ -181,6 +186,11 @@ def main() -> int:
         "text-overflow: ellipsis",
         "overflow-wrap: anywhere",
         "word-break: break-word",
+        "@media (max-width: 900px)",
+        ".candidate-workspace",
+        ".workflow-shell",
+        ".operations-lifecycle-map",
+        ".next-action-body",
     )
     for rule in required_layout_rules:
         if rule not in css:
@@ -192,9 +202,189 @@ def main() -> int:
     for marker in ("setupWizard", "dailyDigestPanel", "mergeSuggestionsPanel", "promotionPreview", "skillHealthTable", "skillHealthRows", "exportBundle", "importPreview"):
         if marker not in html and marker not in js:
             raise AssertionError(f"WebUI missing v3 marker: {marker}")
+    required_workflow_markers = (
+        "data-view=\"dashboard\"",
+        "data-view=\"workflow\"",
+        "data-view=\"operations\"",
+        "dailyCommandCenter",
+        "dashboardNextActionPanel",
+        "dashboardNextActionCopy",
+        "dashboardPrimaryAction",
+        "dashboardSecondaryAction",
+        "dashboardTopPriorities",
+        "dashboardPriorityList",
+        "openPriorityWorkflow",
+        "workflowReviewQueue",
+        "workflowActionStrip",
+        "workflowNextActionCopy",
+        "workflowPrimaryAction",
+        "workflowSecondaryAction",
+        "evolutionProposalBoard",
+        "manualApprovalDock",
+        "operationsConsole",
+        "operationsLifecycleMap",
+        "auditRecoveryPanel",
+        "recallWorkbench",
+        "workflowMap",
+        "workflowStageRail",
+        "workflowReadinessPanel",
+        "approvalReadiness",
+        "previewOnlyActions",
+        "previewUserDiff",
+        "previewAgentsDiff",
+        "previewSkillDiff",
+        "previewPatchDiff",
+        "candidateSortMode",
+        "selectedPriorityReasons",
+        "operationsIndex",
+        "operationsRecoveryQueue",
+        "recoveryQueueList",
+        "operationsData",
+        "operationsAutomation",
+        "operationsKnowledge",
+        "operationsEvidence",
+    )
+    for marker in required_workflow_markers:
+        if marker not in html:
+            raise AssertionError(f"WebUI should expose the full self-improvement workflow surface: missing {marker}")
+    if html.index("operationsIndex") > html.index("operationsConsole"):
+        raise AssertionError("Operations index should appear before operations panels")
+    if html.index('id="operationsAutomation"') < html.index("schedule-panel"):
+        raise AssertionError("Operations automation shortcut should point to Schedule Center, not promotion guidance")
+    required_workflow_js = (
+        "renderEvolutionProposalBoard",
+        "loadCandidateAnalysis",
+        "/api/candidates/${id}/analysis",
+        "proposalTarget",
+        "proposalManualApproval",
+        "renderWorkflowReadiness",
+        "workflow-stage-done",
+        "approvalReady",
+        "approvalBlocked",
+        "renderDashboardNextAction",
+        "runDashboardPrimaryAction",
+        "renderWorkflowNextAction",
+        "runWorkflowPrimaryAction",
+        "runWorkflowSecondaryAction",
+        "toastPreviewLoaded",
+        "candidatePriorityScore",
+        "priorityReviewFirst",
+        "candidate-card-priority",
+        "candidatePriorityReasons",
+        "priorityReasonReview",
+        "priorityReasonProposal",
+        "renderDashboardTopPriorities",
+        "dashboardPriorityItem",
+        "renderOperationsRecoveryQueue",
+        "recoveryQueueItem",
+        "recoveryQueueRunFailure",
+    )
+    for marker in required_workflow_js:
+        if marker not in js:
+            raise AssertionError(f"WebUI should make LLM analysis central to manual review: missing {marker}")
+    for marker in (
+        "sortedCandidates(visibleCandidates())",
+        'document.getElementById("candidateSortMode").addEventListener("change"',
+        "candidatePriorityLabel",
+    ):
+        if marker not in js:
+            raise AssertionError(f"Candidate queue should support AI-assisted review ordering: missing {marker}")
+    if 'runDashboardPrimaryAction()' not in js or 'document.getElementById("dashboardPrimaryAction").addEventListener("click"' not in js:
+        raise AssertionError("Dashboard should expose a guided next action, not only static counters")
+    if "renderWorkflowNextAction()" not in js or "workflowNextActionCopy" not in js:
+        raise AssertionError("Review Workflow should guide the next manual review step")
+    if 'api(`/api/candidates/${window.selectedCandidateId}/promote' in js.split("async function runWorkflowPrimaryAction", 1)[1].split("async function runWorkflowSecondaryAction", 1)[0]:
+        raise AssertionError("Workflow primary next action must not call promotion endpoints directly")
+    if "runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote" not in js:
+        raise AssertionError("Promotion writes should remain explicit Manual Approval Dock actions")
+    for target, button_id in (
+        ("user", "previewUserDiff"),
+        ("agents", "previewAgentsDiff"),
+        ("skill", "previewSkillDiff"),
+        ("patch", "previewPatchDiff"),
+    ):
+        expected = f'document.getElementById("{button_id}").addEventListener("click", () => runPreviewOnly("{target}"))'
+        if expected not in js:
+            raise AssertionError(f"Preview-only button should not call promotion endpoints directly: missing {button_id}")
+    for button_id, confirm_key, preview_target in (
+        ("promoteSelected", "confirmPromoteUser", "user"),
+        ("promoteAgents", "confirmPromoteAgents", "agents"),
+        ("promoteSkill", "confirmPromoteSkill", "skill"),
+        ("promotePatch", "confirmPromotePatch", "patch"),
+    ):
+        expected = f'document.getElementById("{button_id}").addEventListener("click", () => runAction('
+        if expected not in js or f'confirmKey: "{confirm_key}"' not in js or f'previewTarget: "{preview_target}"' not in js:
+            raise AssertionError(f"Promotion button must require manual confirmation and preview: {button_id}")
+    required_workflow_css = (
+        ".command-center",
+        ".workflow-shell",
+        ".workflow-queue",
+        ".proposal-board",
+        ".manual-approval-dock",
+        ".operations-console",
+        ".audit-recovery-panel",
+        ".recall-workbench",
+        ".workflow-map",
+        ".workflow-stage-rail",
+        ".workflow-stage-done",
+        ".workflow-stage-current",
+        ".workflow-readiness-panel",
+        ".readiness-list",
+        ".candidate-card-priority",
+        ".priority-reason-list",
+        ".selected-priority-panel",
+        ".dashboard-priority-list",
+        ".dashboard-priority-item",
+        ".recovery-queue",
+        ".recovery-queue-list",
+        ".recovery-queue-item",
+        ".operations-index",
+        ".operations-section",
+    )
+    for marker in required_workflow_css:
+        if marker not in css:
+            raise AssertionError(f"WebUI should style the redesigned workflow surface: missing {marker}")
+    if ".workflow-map," not in css:
+        raise AssertionError("Workflow map should collapse with the other grids on narrow screens")
     for marker in ("skillNameHeader", "skillStatusHeader", "skillUsageHeader", "skillPatchHeader", "skillActionHeader"):
         if marker not in html and marker not in js:
             raise AssertionError(f"Skill health should render as a table with column marker: {marker}")
+
+    readme_en = (repo / "README.md").read_text(encoding="utf-8")
+    readme_zh = (repo / "README.zh-CN.md").read_text(encoding="utf-8")
+    quickstart_zh = (repo / "QUICKSTART.zh-CN.md").read_text(encoding="utf-8")
+    learning_block = (repo / "codex" / "AGENTS.learning-block.md").read_text(encoding="utf-8")
+    memory_skill = (repo / "agents" / "skills" / "memory-capture" / "SKILL.md").read_text(encoding="utf-8")
+    stale_manual_boundary_markers = (
+        "Use memory candidate auto-promotion only",
+        "safe, short, repeated",
+        "hard stop for automatic promotion",
+    )
+    for marker in stale_manual_boundary_markers:
+        if marker in learning_block or marker in memory_skill:
+            raise AssertionError(f"Installed instructions must not re-enable automatic promotion wording: {marker}")
+    if "v2 是一个" in quickstart_zh:
+        raise AssertionError("Quickstart should describe the current v3 control plane, not the old v2 wording")
+    if "所有晋升都必须人工确认" not in quickstart_zh:
+        raise AssertionError("Quickstart should state the manual promotion boundary")
+    for marker in (
+        "Dashboard",
+        "Review Workflow",
+        "Operations",
+        "Manual Approval Dock",
+        "GET /api/candidates/{id}/analysis",
+    ):
+        if marker not in readme_en:
+            raise AssertionError(f"English README should document the redesigned WebUI workflow: missing {marker}")
+    for marker in (
+        "总览",
+        "审阅工作流",
+        "运维与历史",
+        "人工审批操作台",
+        "GET /api/candidates/{id}/analysis",
+    ):
+        if marker not in readme_zh:
+            raise AssertionError(f"Chinese README should document the redesigned WebUI workflow: missing {marker}")
 
     print("verify-v3-intelligence passed")
     return 0

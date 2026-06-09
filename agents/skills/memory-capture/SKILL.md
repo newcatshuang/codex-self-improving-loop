@@ -7,7 +7,7 @@ description: Use when a Codex session should preserve stable user preferences, r
 
 ## Purpose
 
-Use the local Codex Self-Improving Loop v2 control plane to capture and review durable learning candidates. Runtime data is stored in SQLite under `$HOME/.codex/self-improving-loop/`.
+Use the local Codex Self-Improving Loop v3 control plane to capture, analyze, and review durable learning candidates. Runtime data is stored in SQLite under `$HOME/.codex/self-improving-loop/`.
 
 ## When To Use
 
@@ -45,7 +45,8 @@ python "$HOME/.agents/codex-self-improving-loop/sil.py" shortcut install
 - Keep promoted memories short and directly actionable.
 - Project-specific facts should usually go in the project's `AGENTS.md`; global user preferences go in `$HOME/.codex/memories/USER.md`.
 - If a candidate contains `[REDACTED]`, do not reconstruct or promote the hidden value.
-- Treat `conflict_review` as a hard stop for automatic promotion.
+- Treat `conflict_review` as a hard stop for promotion review.
+- Do not auto-promote any candidate. Every memory, project AGENTS.md fact, skill, and skill patch promotion must be clicked and confirmed manually in the WebUI.
 
 ## Output Locations
 
@@ -60,7 +61,7 @@ python "$HOME/.agents/codex-self-improving-loop/sil.py" shortcut install
 ## Review Workflow
 
 1. Run `sil.py serve --open`.
-2. Review memory, skill, and skill patch candidates in the WebUI.
-3. Use WebUI buttons for review, archive, clear-and-rebuild, scan, schedule, and promotion actions.
-4. Behavior-changing actions require confirmation; the backend backs up target files and records audit logs.
+2. Review memory, skill, and skill patch candidates in the WebUI Review Workflow.
+3. Use the Manual Approval Dock for promotion actions after checking the LLM analysis and diff preview.
+4. Behavior-changing actions require explicit confirmation; the backend backs up target files and records audit logs.
 5. Do not manually edit the SQLite database unless debugging a backup copy.

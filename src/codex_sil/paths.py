@@ -1,4 +1,4 @@
-"""Runtime path helpers for Codex Self-Improving Loop v2."""
+"""Runtime path helpers for Codex Self-Improving Loop v3."""
 
 from __future__ import annotations
 

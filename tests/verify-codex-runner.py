@@ -15,6 +15,9 @@ from pathlib import Path
 
 def make_fake_codex(path: Path) -> None:
     script = path / ("codex.cmd" if os.name == "nt" else "codex")
+    count_file = path / "fake-codex-count.txt"
+    if count_file.exists():
+        count_file.unlink()
     extraction = "{\"memory_candidates\":[{\"title\":\"Model preference\",\"text\":\"Remember this model preference from the transcript.\",\"destination\":\"global_user_memory\",\"rewrite_suggestion\":\"Remember this model preference from the transcript.\",\"confidence\":0.91}],\"skill_candidates\":[],\"skill_patch_candidates\":[],\"summary\":\"ok\",\"risks\":[],\"confidence\":0.91}"
     recommendation = "{\"recommendation\":\"Promote after human review.\",\"recommendation_reason\":\"The candidate is directly supported by the transcript.\",\"suggested_action\":\"promote\"}"
     analysis = "{\"analysis\":{\"evidence_assessment\":\"The transcript directly supports the candidate.\",\"stability\":\"stable\",\"scope\":\"global\",\"risk_level\":\"low\",\"conflicts\":\"No conflict found.\",\"rewrite_quality\":\"The rewrite is concise.\",\"recommended_next_step\":\"Review the proposal in the WebUI.\"},\"proposal\":{\"target_type\":\"USER.md\",\"target_path\":\"$CODEX_ROOT/memories/USER.md\",\"proposed_text\":\"Remember this model preference from the transcript.\",\"rationale\":\"This is a stable user preference candidate.\",\"verification\":\"Preview the diff before manual promotion.\",\"requires_manual_approval\":true}}"

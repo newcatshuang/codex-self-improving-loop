@@ -17,6 +17,9 @@
         navPromotions: "Promotions",
         navReviews: "Reviews",
         navDoctor: "Doctor",
+        navDashboard: "Dashboard",
+        navWorkflow: "Review Workflow",
+        navOperations: "Operations",
         dataCenter: "Data Center",
         dataCenterDesc: "Initialize, back up, rebuild, scan, or export the local SQLite learning database.",
         reviewCenter: "Review Center",
@@ -33,6 +36,26 @@
         homePromotionTitle: "Recent Promotions",
         homePromotionEmpty: "No promotions yet.",
         homePromotionCopy: "Latest: {item}",
+        dashboardTopPrioritiesTitle: "Top Review Priorities",
+        dashboardTopPrioritiesEmpty: "No review priorities yet.",
+        openPriorityWorkflow: "Open Workflow",
+        dashboardPrioritySummary: "{label} · score {score}",
+        dashboardNextActionTitle: "Next Best Action",
+        dashboardNextActionLoading: "Loading the current workflow state...",
+        dashboardActionRefresh: "Refresh",
+        dashboardActionInitialize: "Open Data Center",
+        dashboardActionResolveFailures: "Open Recovery Queue",
+        dashboardActionReviewCandidates: "Review Candidates",
+        dashboardActionScan: "Scan Once",
+        dashboardActionOpenWorkflow: "Open Workflow",
+        dashboardStateSetup: "Setup",
+        dashboardStateRecovery: "Recovery",
+        dashboardStateReview: "Review",
+        dashboardStateScan: "Scan",
+        dashboardNextSetup: "Initialize the database and install the local loop before collecting new evidence.",
+        dashboardNextRecovery: "A failed run is visible. Review run logs and audit signals before starting more scans.",
+        dashboardNextReview: "{count} candidate(s) are waiting for manual review. Start with the highest-priority evidence package.",
+        dashboardNextScan: "No active review work is visible. Run a scan to let Codex extract and analyze fresh candidates.",
         homeNextRunTitle: "Next Scheduled Run",
         homeNextRunCopy: "Daily local scan. Use Schedule Center to install or remove it.",
         safeOperationsTitle: "Safe Operations",
@@ -52,6 +75,73 @@
         riskSafe: "No blocking signal detected. Promotion is still explicit and reversible through backups where supported.",
         analysisSummary: "Analysis: {risk}. {step}",
         proposalSummary: "Proposal target: {target}. Manual approval required.",
+        evolutionProposalTitle: "LLM Analysis & Proposal",
+        manualApprovalRequired: "Manual approval",
+        manualApprovalUnknown: "Review required",
+        manualApprovalDockTitle: "Manual Approval Dock",
+        proposalTargetTitle: "Proposal Target",
+        proposalEvidenceTitle: "Evidence Assessment",
+        proposalRationaleTitle: "Rationale",
+        proposalVerificationTitle: "Verification",
+        proposalTextTitle: "Proposed Text",
+        proposalTextEmpty: "Select a candidate to load the proposed text.",
+        analysisLoading: "Loading LLM analysis...",
+        analysisUnavailable: "No analysis is available for this candidate yet.",
+        workflowMapScanTitle: "Scan & Analyze",
+        workflowMapScanCopy: "Run scan/rebuild, let Codex extract and analyze candidates, and keep fallback rules available.",
+        workflowMapReviewTitle: "Review Evidence",
+        workflowMapReviewCopy: "Inspect evidence, risk, proposal text, rationale, and verification before changing durable memory.",
+        workflowMapApproveTitle: "Approve Manually",
+        workflowMapApproveCopy: "Use the Manual Approval Dock for confirmed writes, then audit history and rollback previews.",
+        workflowStageQueue: "Queue",
+        workflowStageEvidence: "Evidence",
+        workflowStageProposal: "LLM Proposal",
+        workflowStagePreview: "Diff Preview",
+        workflowStageApproval: "Manual Approval",
+        workflowStageHistory: "History",
+        workflowReadinessTitle: "Review Readiness",
+        workflowReadinessSelected: "Candidate selected",
+        workflowReadinessEvidence: "Evidence available",
+        workflowReadinessAnalysis: "LLM analysis loaded",
+        workflowReadinessPreview: "Promotion diff previewed",
+        workflowReadinessManual: "Manual confirmation still required",
+        approvalReady: "Ready for manual confirmation after reviewing the diff.",
+        approvalBlocked: "Select a candidate, review evidence, load analysis, and preview a diff before approval.",
+        workflowNextActionTitle: "Current Review Step",
+        workflowNextSelectCandidate: "Select a candidate to start evidence review.",
+        workflowNextLoadAnalysis: "Review evidence and wait for the LLM analysis package to load.",
+        workflowNextPreviewDiff: "Review the proposal, then preview a promotion diff. Preview does not write memory.",
+        workflowNextManualApproval: "Diff is loaded. Use the Manual Approval Dock below for the final explicit confirmation.",
+        workflowPrimarySelectCandidate: "Select Top Candidate",
+        workflowPrimaryPreviewUser: "Preview USER.md",
+        workflowPrimaryPreviewAgents: "Preview AGENTS.md",
+        workflowPrimaryPreviewSkill: "Preview Skill",
+        workflowPrimaryPreviewPatch: "Preview Patch",
+        workflowPrimaryApprovalDock: "Go To Approval Dock",
+        workflowSecondaryRefreshCandidates: "Refresh Queue",
+        workflowSecondaryCopyRewrite: "Copy Rewrite",
+        workflowSecondarySaveReview: "Save Review",
+        operationsIndexData: "Data",
+        operationsIndexAutomation: "Automation",
+        operationsIndexKnowledge: "Knowledge",
+        operationsIndexEvidence: "Evidence",
+        operationsLifecycleDataTitle: "Data Lifecycle",
+        operationsLifecycleDataCopy: "Initialize, back up, scan, rebuild, export, and dry-run imports from one place.",
+        operationsLifecycleAutomationTitle: "Automation",
+        operationsLifecycleAutomationCopy: "Install the daily scan and launcher, then review results from the WebUI queue.",
+        operationsLifecycleKnowledgeTitle: "Knowledge",
+        operationsLifecycleKnowledgeCopy: "Track skill health, recall prior sessions, and route candidates back into manual review.",
+        operationsLifecycleEvidenceTitle: "Evidence",
+        operationsLifecycleEvidenceCopy: "Use run logs, audit history, promotion history, and rollback previews for recovery decisions.",
+        operationsRecoveryTitle: "Recovery Queue",
+        operationsRecoveryDesc: "Review failed runs, audit signals, and rollback previews before taking manual recovery action.",
+        recoveryQueueEmpty: "No recovery work is visible.",
+        recoveryQueueRunFailure: "Failed run",
+        recoveryQueueAuditSignal: "Recent audit signal",
+        recoveryQueueRollbackSignal: "Rollback preview available",
+        recoveryQueueOpenRuns: "Open Run Logs",
+        recoveryQueueOpenAudit: "Open Audit",
+        recoveryQueueOpenPromotions: "Open Promotions",
         recommendMemory: "Promote to USER.md only for durable global preferences; use AGENTS.md for project facts.",
         recommendAgents: "This looks project-scoped. Prefer project AGENTS.md when the fact is not universal.",
         recommendSkill: "Promote as an independent skill when the workflow is reusable across tasks.",
@@ -137,6 +227,21 @@
         filterMemory: "Memory",
         filterSkill: "Skill",
         filterPatch: "Skill Patch",
+        priorityReviewFirst: "Priority first",
+        sortNewest: "Newest",
+        sortOldest: "Oldest",
+        sortConfidence: "Confidence",
+        priorityHighRisk: "High risk",
+        priorityReadyReview: "Ready review",
+        prioritySkillChange: "Skill change",
+        priorityNormal: "Normal",
+        priorityReasonsTitle: "Priority Rationale",
+        priorityReasonReview: "Open review item",
+        priorityReasonRisk: "Safety or conflict needs attention",
+        priorityReasonEvidence: "Evidence and confidence are strong enough to review",
+        priorityReasonSkill: "Skill-related change needs careful inspection",
+        priorityReasonProposal: "LLM proposal target is available",
+        priorityReasonNormal: "No special priority signal",
         statusAll: "All Statuses",
         statusReview: "Review",
         statusPromoted: "Promoted",
@@ -345,6 +450,13 @@
         applyMerge: "Apply Merge",
         promotionPreviewTitle: "Promotion Diff Preview",
         promotionPreviewEmpty: "Select a promotion action to preview the diff.",
+        previewOnlyTitle: "Preview Only",
+        previewOnlyCopy: "Load a diff without promoting. Promotion still requires the buttons below and a confirmation dialog.",
+        previewUserDiff: "Preview USER.md",
+        previewAgentsDiff: "Preview AGENTS.md",
+        previewSkillDiff: "Preview Skill",
+        previewPatchDiff: "Preview Patch",
+        toastPreviewLoaded: "Preview loaded. No promotion was written.",
         skillHealthTitle: "Skill Health",
         emptySkillHealth: "No skill health data yet.",
         skillNameHeader: "Skill",
@@ -389,6 +501,9 @@
         navPromotions: "晋升历史",
         navReviews: "审阅历史",
         navDoctor: "诊断",
+        navDashboard: "总览",
+        navWorkflow: "审阅工作流",
+        navOperations: "运维与历史",
         dataCenter: "数据中心",
         dataCenterDesc: "初始化、备份、重建、扫描或导出本地 SQLite 学习数据库。",
         reviewCenter: "审阅中心",
@@ -405,6 +520,26 @@
         homePromotionTitle: "最近晋升",
         homePromotionEmpty: "暂无晋升记录。",
         homePromotionCopy: "最近：{item}",
+        dashboardTopPrioritiesTitle: "优先审阅候选",
+        dashboardTopPrioritiesEmpty: "暂无优先审阅项。",
+        openPriorityWorkflow: "打开审阅工作流",
+        dashboardPrioritySummary: "{label} · 分数 {score}",
+        dashboardNextActionTitle: "下一步建议",
+        dashboardNextActionLoading: "正在读取当前流程状态...",
+        dashboardActionRefresh: "刷新",
+        dashboardActionInitialize: "打开数据中心",
+        dashboardActionResolveFailures: "打开恢复队列",
+        dashboardActionReviewCandidates: "审阅候选",
+        dashboardActionScan: "扫描一次",
+        dashboardActionOpenWorkflow: "打开审阅工作流",
+        dashboardStateSetup: "初始化",
+        dashboardStateRecovery: "恢复",
+        dashboardStateReview: "审阅",
+        dashboardStateScan: "扫描",
+        dashboardNextSetup: "先初始化数据库并安装本地循环，再开始收集新证据。",
+        dashboardNextRecovery: "当前有失败运行。建议先查看运行日志和审计信号，再继续发起扫描。",
+        dashboardNextReview: "有 {count} 条候选等待人工审阅。优先处理证据最充分、风险最高的候选包。",
+        dashboardNextScan: "当前没有活跃审阅工作。可以扫描一次，让 Codex 提取并分析新的候选。",
         homeNextRunTitle: "下一次运行",
         homeNextRunCopy: "每日本地扫描。可在调度中心安装或移除。",
         safeOperationsTitle: "安全操作",
@@ -424,6 +559,73 @@
         riskSafe: "未发现阻断信号。晋升仍需要明确点击，支持备份的目标可按历史回滚。",
         analysisSummary: "分析：{risk}。{step}",
         proposalSummary: "建议目标：{target}。需要人工审批。",
+        evolutionProposalTitle: "LLM 分析与进化建议",
+        manualApprovalRequired: "需要人工审批",
+        manualApprovalUnknown: "需要复核",
+        manualApprovalDockTitle: "人工审批操作台",
+        proposalTargetTitle: "建议目标",
+        proposalEvidenceTitle: "证据评估",
+        proposalRationaleTitle: "建议理由",
+        proposalVerificationTitle: "验证步骤",
+        proposalTextTitle: "建议文本",
+        proposalTextEmpty: "选择候选后加载建议文本。",
+        analysisLoading: "正在加载 LLM 分析...",
+        analysisUnavailable: "这条候选暂无可用分析。",
+        workflowMapScanTitle: "扫描与分析",
+        workflowMapScanCopy: "运行 scan/rebuild，让 Codex 提取并分析候选，同时保留规则兜底。",
+        workflowMapReviewTitle: "审阅证据",
+        workflowMapReviewCopy: "在改变长期记忆前，核对证据、风险、建议文本、理由和验证步骤。",
+        workflowMapApproveTitle: "人工审批",
+        workflowMapApproveCopy: "只通过人工审批操作台执行确认写入，再从审计历史和回滚预览复核。",
+        workflowStageQueue: "队列",
+        workflowStageEvidence: "证据",
+        workflowStageProposal: "LLM 建议",
+        workflowStagePreview: "Diff 预览",
+        workflowStageApproval: "人工审批",
+        workflowStageHistory: "历史",
+        workflowReadinessTitle: "审阅就绪度",
+        workflowReadinessSelected: "已选择候选",
+        workflowReadinessEvidence: "已有证据",
+        workflowReadinessAnalysis: "LLM 分析已加载",
+        workflowReadinessPreview: "已预览晋升 diff",
+        workflowReadinessManual: "仍需人工确认",
+        approvalReady: "已具备人工确认前的审阅条件，请核对 diff 后手动确认。",
+        approvalBlocked: "请先选择候选、核对证据、加载分析，并预览 diff 后再审批。",
+        workflowNextActionTitle: "当前审阅步骤",
+        workflowNextSelectCandidate: "选择一条候选，开始核对证据。",
+        workflowNextLoadAnalysis: "核对候选证据，并等待 LLM 分析包加载完成。",
+        workflowNextPreviewDiff: "核对建议目标和建议文本后，先预览晋升 diff。预览不会写入记忆。",
+        workflowNextManualApproval: "Diff 已加载。最终写入只能在下方人工审批操作台显式确认。",
+        workflowPrimarySelectCandidate: "选择最高优先级",
+        workflowPrimaryPreviewUser: "预览 USER.md",
+        workflowPrimaryPreviewAgents: "预览 AGENTS.md",
+        workflowPrimaryPreviewSkill: "预览 Skill",
+        workflowPrimaryPreviewPatch: "预览 Patch",
+        workflowPrimaryApprovalDock: "前往审批操作台",
+        workflowSecondaryRefreshCandidates: "刷新队列",
+        workflowSecondaryCopyRewrite: "复制改写",
+        workflowSecondarySaveReview: "保存审阅",
+        operationsIndexData: "数据",
+        operationsIndexAutomation: "自动化",
+        operationsIndexKnowledge: "知识",
+        operationsIndexEvidence: "证据",
+        operationsLifecycleDataTitle: "数据生命周期",
+        operationsLifecycleDataCopy: "集中处理初始化、备份、扫描、重建、导出和导入 dry-run 预览。",
+        operationsLifecycleAutomationTitle: "自动化",
+        operationsLifecycleAutomationCopy: "安装每日扫描和桌面入口，再从 WebUI 队列审阅结果。",
+        operationsLifecycleKnowledgeTitle: "知识资产",
+        operationsLifecycleKnowledgeCopy: "查看 Skill 健康、跨会话检索，并把候选重新引回人工审阅。",
+        operationsLifecycleEvidenceTitle: "证据与恢复",
+        operationsLifecycleEvidenceCopy: "通过运行日志、审计、晋升历史和回滚预览支撑恢复决策。",
+        operationsRecoveryTitle: "恢复复盘队列",
+        operationsRecoveryDesc: "先复盘失败运行、审计信号和回滚预览，再手动执行恢复动作。",
+        recoveryQueueEmpty: "暂无可见恢复事项。",
+        recoveryQueueRunFailure: "失败运行",
+        recoveryQueueAuditSignal: "最近审计信号",
+        recoveryQueueRollbackSignal: "可查看回滚预览",
+        recoveryQueueOpenRuns: "打开运行日志",
+        recoveryQueueOpenAudit: "打开审计",
+        recoveryQueueOpenPromotions: "打开晋升历史",
         recommendMemory: "只有稳定的全局偏好才晋升到 USER.md；项目事实优先放 AGENTS.md。",
         recommendAgents: "这更像项目级事实。若不是全局规则，优先晋升到项目 AGENTS.md。",
         recommendSkill: "当该流程可跨任务复用时，适合晋升为独立技能。",
@@ -509,6 +711,21 @@
         filterMemory: "记忆",
         filterSkill: "技能",
         filterPatch: "技能补丁",
+        priorityReviewFirst: "优先处理",
+        sortNewest: "最新",
+        sortOldest: "最早",
+        sortConfidence: "置信度",
+        priorityHighRisk: "高风险",
+        priorityReadyReview: "可审阅",
+        prioritySkillChange: "技能变更",
+        priorityNormal: "普通",
+        priorityReasonsTitle: "优先级依据",
+        priorityReasonReview: "仍在待审队列",
+        priorityReasonRisk: "安全或冲突信号需要关注",
+        priorityReasonEvidence: "证据数量和置信度足够进入审阅",
+        priorityReasonSkill: "技能相关变更需要谨慎检查",
+        priorityReasonProposal: "已有 LLM 建议目标",
+        priorityReasonNormal: "没有特殊优先级信号",
         statusAll: "全部状态",
         statusReview: "待审阅",
         statusPromoted: "已晋升",
@@ -717,6 +934,13 @@
         applyMerge: "应用合并",
         promotionPreviewTitle: "晋升 Diff 预览",
         promotionPreviewEmpty: "选择晋升动作后预览 diff。",
+        previewOnlyTitle: "仅预览",
+        previewOnlyCopy: "只加载 diff，不执行晋升。真正晋升仍必须点击下方按钮并通过确认弹窗。",
+        previewUserDiff: "预览 USER.md",
+        previewAgentsDiff: "预览 AGENTS.md",
+        previewSkillDiff: "预览 Skill",
+        previewPatchDiff: "预览 Patch",
+        toastPreviewLoaded: "已加载预览，未执行晋升写入。",
         skillHealthTitle: "Skill 健康",
         emptySkillHealth: "暂无 skill 健康数据。",
         skillNameHeader: "Skill",
@@ -754,12 +978,13 @@
     let statusFilter = "all";
     let createdAtFilter = "";
     let searchTerm = "";
+    let candidateSortMode = "priority";
     let currentPage = 1;
     let pageSize = 20;
     let toastTimer = null;
     let activeRunId = null;
     let activeRunTimer = null;
-    let currentView = "home";
+    let currentView = "dashboard";
     let latestRuns = [];
     let latestRunSteps = [];
     let selectedRunId = null;
@@ -780,6 +1005,8 @@
     let mergeSuggestions = [];
     let skillHealthItems = [];
     let latestPromotionPreview = null;
+    let selectedAnalysisPayload = null;
+    let selectedAnalysisLoading = false;
     window.selectedCandidateId = null;
 
     function initialLanguage() {
@@ -817,6 +1044,9 @@
       renderCandidates();
       renderSelected();
       renderCandidateActionPanel();
+      renderEvolutionProposalBoard();
+      renderWorkflowReadiness();
+      renderWorkflowNextAction();
       renderRuns();
       renderRecallResults();
       renderDoctor();
@@ -825,10 +1055,12 @@
       renderPromotions();
       renderReviews();
       renderRollbackPreview();
+      renderOperationsRecoveryQueue();
       renderHomeTasks();
       renderScheduleStatus();
       renderSetupWizard();
       renderDailyDigest();
+      renderDashboardTopPriorities();
       renderMergeSuggestions();
       renderSkillHealth();
       renderPromotionPreview(latestPromotionPreview);
@@ -991,6 +1223,68 @@
       );
     }
 
+    function dashboardNextActionState() {
+      const ready = setupStatus && setupStatus.ready && setupStatus.schedule_installed && setupStatus.skills_installed;
+      const openReviews = (currentSummary.review || 0) + (currentSummary.blocked || 0);
+      const failures = latestFailureCount();
+      if (!ready) {
+        return {
+          tone: "review",
+          badge: t("dashboardStateSetup"),
+          copy: t("dashboardNextSetup"),
+          primary: t("dashboardActionInitialize"),
+          secondary: t("dashboardActionRefresh"),
+          action: "operations",
+        };
+      }
+      if (failures) {
+        return {
+          tone: "review",
+          badge: t("dashboardStateRecovery"),
+          copy: t("dashboardNextRecovery"),
+          primary: t("dashboardActionResolveFailures"),
+          secondary: t("dashboardActionReviewCandidates"),
+          action: "recovery",
+        };
+      }
+      if (openReviews) {
+        return {
+          tone: "status",
+          badge: t("dashboardStateReview"),
+          copy: t("dashboardNextReview", {count: openReviews}),
+          primary: t("dashboardActionReviewCandidates"),
+          secondary: t("dashboardActionScan"),
+          action: "workflow",
+        };
+      }
+      return {
+        tone: "status",
+        badge: t("dashboardStateScan"),
+        copy: t("dashboardNextScan"),
+        primary: t("dashboardActionScan"),
+        secondary: t("dashboardActionOpenWorkflow"),
+        action: "scan",
+      };
+    }
+
+    function renderDashboardNextAction() {
+      const badge = document.getElementById("dashboardNextActionBadge");
+      const copy = document.getElementById("dashboardNextActionCopy");
+      const primary = document.getElementById("dashboardPrimaryAction");
+      const secondary = document.getElementById("dashboardSecondaryAction");
+      if (!badge || !copy || !primary || !secondary) {
+        return;
+      }
+      const state = dashboardNextActionState();
+      badge.textContent = state.badge;
+      badge.className = `tag ${state.tone}`;
+      copy.textContent = state.copy;
+      primary.textContent = state.primary;
+      secondary.textContent = state.secondary;
+      primary.dataset.dashboardAction = state.action;
+      secondary.dataset.dashboardAction = state.action === "scan" ? "workflow" : "refresh";
+    }
+
     function formatType(type) {
       return t(`type_${type}`) || type;
     }
@@ -1032,6 +1326,48 @@
       return latestRuns.filter((run) => run.status === "failed").length;
     }
 
+    function dashboardPriorityItem(item) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "dashboard-priority-item";
+      button.addEventListener("click", () => {
+        selectCandidate(item.id);
+        setView("workflow");
+      });
+      const title = document.createElement("strong");
+      title.textContent = item.title || item.text || "-";
+      const summary = document.createElement("span");
+      summary.textContent = t("dashboardPrioritySummary", {
+        label: candidatePriorityLabel(item),
+        score: candidatePriorityScore(item),
+      });
+      const reasons = document.createElement("small");
+      reasons.textContent = candidatePriorityReasons(item).join(" / ");
+      button.append(title, summary, reasons);
+      return button;
+    }
+
+    function renderDashboardTopPriorities() {
+      const list = document.getElementById("dashboardPriorityList");
+      if (!list) {
+        return;
+      }
+      list.innerHTML = "";
+      const priorities = sortedCandidates(
+        allCandidates.filter((item) => ["review", "blocked"].includes(String(item.status || "").toLowerCase()))
+      ).slice(0, 3);
+      if (!priorities.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-row";
+        empty.textContent = t("dashboardTopPrioritiesEmpty");
+        list.appendChild(empty);
+        return;
+      }
+      for (const item of priorities) {
+        list.appendChild(dashboardPriorityItem(item));
+      }
+    }
+
     function renderHomeTasks() {
       const todoCount = document.getElementById("homeTodoCount");
       const todoList = document.getElementById("homeTodoList");
@@ -1054,6 +1390,8 @@
       promotionCopy.textContent = latest
         ? t("homePromotionCopy", {item: `${latest.target_type || "-"} · ${formatDateTime(latest.created_at)}`})
         : t("homePromotionEmpty");
+      renderDashboardTopPriorities();
+      renderDashboardNextAction();
     }
 
     function renderScheduleStatus() {
@@ -1148,18 +1486,92 @@
       if (!selectedCandidate) {
         badge.textContent = t("noneSelected");
         badge.className = "tag status";
-        riskPanel.className = "action-card";
-        riskCopy.textContent = t("selectCandidateHint");
-        recommendation.textContent = t("selectCandidateHint");
       } else {
-        const risk = candidateRisk(selectedCandidate);
         badge.textContent = selectedCandidate.status || t("noneSelected");
         badge.className = `tag ${selectedCandidate.status === "blocked" ? "review" : "status"}`;
-        riskPanel.className = `action-card ${risk.className}`.trim();
-        riskCopy.textContent = risk.text;
-        recommendation.textContent = candidateRecommendation(selectedCandidate);
       }
       result.textContent = lastOperationMessage || t("operationResultIdle");
+      renderEvolutionProposalBoard();
+    }
+
+    function setText(id, text) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = text;
+      }
+    }
+
+    function renderEvolutionProposalBoard() {
+      const riskPanel = document.getElementById("candidateRiskSummary");
+      const manualBadge = document.getElementById("proposalManualApproval");
+      if (!riskPanel || !manualBadge) {
+        return;
+      }
+      if (!selectedCandidate) {
+        riskPanel.className = "action-card";
+        setText("candidateRiskCopy", t("selectCandidateHint"));
+        setText("candidateRecommendationCopy", t("selectCandidateHint"));
+        setText("proposalTarget", t("selectCandidateHint"));
+        setText("proposalEvidence", t("selectCandidateHint"));
+        setText("proposalRationale", t("selectCandidateHint"));
+        setText("proposalVerification", t("selectCandidateHint"));
+        setText("proposalText", t("proposalTextEmpty"));
+        manualBadge.textContent = t("manualApprovalUnknown");
+        manualBadge.className = "tag status";
+        return;
+      }
+      const risk = candidateRisk(selectedCandidate);
+      riskPanel.className = `action-card ${risk.className}`.trim();
+      setText("candidateRiskCopy", risk.text);
+      setText("candidateRecommendationCopy", candidateRecommendation(selectedCandidate));
+      if (selectedAnalysisLoading) {
+        setText("proposalTarget", selectedCandidate.proposal_target_type || "-");
+        setText("proposalEvidence", t("analysisLoading"));
+        setText("proposalRationale", t("analysisLoading"));
+        setText("proposalVerification", t("analysisLoading"));
+        setText("proposalText", t("analysisLoading"));
+        manualBadge.textContent = t("manualApprovalUnknown");
+        manualBadge.className = "tag review";
+        return;
+      }
+      const analysis = selectedAnalysisPayload && selectedAnalysisPayload.analysis;
+      const proposal = selectedAnalysisPayload && selectedAnalysisPayload.proposal;
+      setText("proposalTarget", proposal
+        ? `${proposal.target_type || "-"} · ${proposal.target_path || "-"}`
+        : selectedCandidate.proposal_target_type || t("analysisUnavailable"));
+      setText("proposalEvidence", analysis
+        ? `${analysis.evidence_assessment || "-"}\n${analysis.conflicts || ""}\n${analysis.rewrite_quality || ""}`.trim()
+        : selectedCandidate.analysis_next_step || t("analysisUnavailable"));
+      setText("proposalRationale", proposal ? proposal.rationale || "-" : t("analysisUnavailable"));
+      setText("proposalVerification", proposal ? proposal.verification || "-" : t("analysisUnavailable"));
+      setText("proposalText", proposal ? proposal.proposed_text || "-" : t("proposalTextEmpty"));
+      const manual = !proposal || proposal.requires_manual_approval !== false;
+      manualBadge.textContent = manual ? t("manualApprovalRequired") : t("manualApprovalUnknown");
+      manualBadge.className = `tag ${manual ? "review" : "status"}`;
+    }
+
+    async function loadCandidateAnalysis(id) {
+      selectedAnalysisPayload = null;
+      selectedAnalysisLoading = true;
+      renderEvolutionProposalBoard();
+      renderWorkflowNextAction();
+      try {
+        const payload = await api(`/api/candidates/${id}/analysis`);
+        if (String(window.selectedCandidateId) === String(id)) {
+          selectedAnalysisPayload = payload;
+        }
+      } catch (error) {
+        console.warn(error);
+        if (String(window.selectedCandidateId) === String(id)) {
+          selectedAnalysisPayload = null;
+        }
+      } finally {
+        if (String(window.selectedCandidateId) === String(id)) {
+          selectedAnalysisLoading = false;
+          renderEvolutionProposalBoard();
+          renderWorkflowReadiness();
+        }
+      }
     }
 
     function renderPromotionPreview(preview) {
@@ -1168,6 +1580,120 @@
         return;
       }
       element.textContent = preview && preview.diff ? preview.diff : t("promotionPreviewEmpty");
+      renderWorkflowReadiness();
+    }
+
+    function workflowReadinessSteps() {
+      const hasSelection = Boolean(selectedCandidate);
+      const hasEvidence = hasSelection && Number(selectedCandidate.source_count || 0) > 0;
+      const hasAnalysis = hasSelection && !selectedAnalysisLoading && Boolean(selectedAnalysisPayload && selectedAnalysisPayload.analysis);
+      const hasPreview = hasSelection
+        && Boolean(latestPromotionPreview && latestPromotionPreview.diff)
+        && String(latestPromotionPreview.candidate_id || window.selectedCandidateId) === String(window.selectedCandidateId);
+      return [
+        {stage: "queue", key: "workflowReadinessSelected", done: hasSelection},
+        {stage: "evidence", key: "workflowReadinessEvidence", done: hasEvidence},
+        {stage: "proposal", key: "workflowReadinessAnalysis", done: hasAnalysis},
+        {stage: "preview", key: "workflowReadinessPreview", done: hasPreview},
+        {stage: "approval", key: "workflowReadinessManual", done: hasPreview},
+      ];
+    }
+
+    function proposalTargetType() {
+      const proposal = selectedAnalysisPayload && selectedAnalysisPayload.proposal;
+      const target = proposal && proposal.target_type ? proposal.target_type : selectedCandidate && selectedCandidate.proposal_target_type;
+      const normalized = String(target || selectedCandidate && selectedCandidate.destination || "").toLowerCase();
+      if (normalized.includes("agents") || normalized === "project") {
+        return "agents";
+      }
+      if (normalized.includes("skill_patch") || normalized.includes("patch")) {
+        return "patch";
+      }
+      if (normalized.includes("skill")) {
+        return "skill";
+      }
+      return "user";
+    }
+
+    function workflowPrimaryPreviewLabel(target) {
+      const keys = {
+        agents: "workflowPrimaryPreviewAgents",
+        skill: "workflowPrimaryPreviewSkill",
+        patch: "workflowPrimaryPreviewPatch",
+        user: "workflowPrimaryPreviewUser",
+      };
+      return t(keys[target] || keys.user);
+    }
+
+    function renderWorkflowNextAction() {
+      const copy = document.getElementById("workflowNextActionCopy");
+      const primary = document.getElementById("workflowPrimaryAction");
+      const secondary = document.getElementById("workflowSecondaryAction");
+      if (!copy || !primary || !secondary) {
+        return;
+      }
+      const steps = workflowReadinessSteps();
+      const previewLoaded = steps.find((step) => step.stage === "preview").done;
+      if (!selectedCandidate) {
+        copy.textContent = t("workflowNextSelectCandidate");
+        primary.textContent = t("workflowPrimarySelectCandidate");
+        secondary.textContent = t("workflowSecondaryRefreshCandidates");
+        primary.dataset.workflowAction = "select";
+        secondary.dataset.workflowAction = "refresh";
+        return;
+      }
+      if (selectedAnalysisLoading || !selectedAnalysisPayload) {
+        copy.textContent = t("workflowNextLoadAnalysis");
+        primary.textContent = t("workflowPrimarySelectCandidate");
+        secondary.textContent = t("workflowSecondaryRefreshCandidates");
+        primary.dataset.workflowAction = "noop";
+        secondary.dataset.workflowAction = "refresh";
+        return;
+      }
+      if (!previewLoaded) {
+        const target = proposalTargetType();
+        copy.textContent = t("workflowNextPreviewDiff");
+        primary.textContent = workflowPrimaryPreviewLabel(target);
+        secondary.textContent = t("workflowSecondaryCopyRewrite");
+        primary.dataset.workflowAction = `preview:${target}`;
+        secondary.dataset.workflowAction = "copy";
+        return;
+      }
+      copy.textContent = t("workflowNextManualApproval");
+      primary.textContent = t("workflowPrimaryApprovalDock");
+      secondary.textContent = t("workflowSecondarySaveReview");
+      primary.dataset.workflowAction = "approval";
+      secondary.dataset.workflowAction = "review";
+    }
+
+    function renderWorkflowReadiness() {
+      const list = document.getElementById("workflowReadinessList");
+      const summary = document.getElementById("approvalReadiness");
+      const rail = document.getElementById("workflowStageRail");
+      if (!list || !summary || !rail) {
+        return;
+      }
+      const steps = workflowReadinessSteps();
+      const ready = steps.every((step) => step.done);
+      summary.textContent = ready ? t("approvalReady") : t("approvalBlocked");
+      summary.className = `task-copy ${ready ? "approvalReady" : "approvalBlocked"}`;
+      list.innerHTML = "";
+      for (const step of steps) {
+        const item = document.createElement("li");
+        item.className = step.done ? "readiness-done" : "readiness-pending";
+        item.textContent = `${step.done ? "OK" : "--"} ${t(step.key)}`;
+        list.appendChild(item);
+      }
+      const completedStages = new Set(steps.filter((step) => step.done).map((step) => step.stage));
+      const firstOpen = steps.find((step) => !step.done);
+      rail.querySelectorAll("[data-workflow-stage]").forEach((stage) => {
+        const name = stage.dataset.workflowStage;
+        const done = completedStages.has(name);
+        const current = firstOpen ? name === firstOpen.stage : name === "approval";
+        stage.classList.toggle("workflow-stage-done", done);
+        stage.classList.toggle("workflow-stage-current", current);
+      });
+      renderWorkflowNextAction();
     }
 
     function renderMergeSuggestions() {
@@ -1261,6 +1787,21 @@
     }
 
     function setView(view) {
+      const aliases = {
+        home: "dashboard",
+        data: "operations",
+        candidates: "workflow",
+        promotion: "workflow",
+        skills: "operations",
+        schedule: "operations",
+        runs: "operations",
+        recall: "operations",
+        audit: "operations",
+        promotions: "operations",
+        reviews: "operations",
+        doctor: "operations",
+      };
+      view = aliases[view] || view;
       currentView = view;
       document.querySelectorAll("[data-nav]").forEach((button) => {
         const active = button.dataset.nav === view;
@@ -1270,16 +1811,10 @@
       document.querySelectorAll("[data-view]").forEach((panel) => {
         panel.classList.toggle("active", panel.dataset.view === view);
       });
-      if (view === "runs") {
+      if (view === "operations") {
         refreshRuns().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
-      }
-      if (view === "doctor") {
         refreshDoctor().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
-      }
-      if (view === "audit") {
         refreshAudit().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
-      }
-      if (view === "promotions" || view === "reviews") {
         refreshHistory().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
       }
     }
@@ -1371,6 +1906,80 @@
       for (const run of failures) {
         const item = document.createElement("li");
         item.textContent = `${run.kind || "-"} · ${formatDateTime(run.finished_at || run.started_at)} · ${run.detail || run.status}`;
+        list.appendChild(item);
+      }
+    }
+
+    function scrollToOperationsAnchor(id) {
+      const target = document.getElementById(id);
+      if (target) {
+        target.scrollIntoView({behavior: "smooth", block: "start"});
+      }
+    }
+
+    function recoveryQueueItem(kind, title, detail, actionLabel, targetId) {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "recovery-queue-item";
+      item.addEventListener("click", () => scrollToOperationsAnchor(targetId));
+      const kindLabel = document.createElement("span");
+      kindLabel.className = "tag review";
+      kindLabel.textContent = kind;
+      const heading = document.createElement("strong");
+      heading.textContent = title;
+      const copy = document.createElement("small");
+      copy.textContent = detail;
+      const action = document.createElement("em");
+      action.textContent = actionLabel;
+      item.append(kindLabel, heading, copy, action);
+      return item;
+    }
+
+    function renderOperationsRecoveryQueue() {
+      const list = document.getElementById("recoveryQueueList");
+      const count = document.getElementById("recoveryQueueCount");
+      if (!list || !count) {
+        return;
+      }
+      list.innerHTML = "";
+      const items = [];
+      for (const run of latestRuns.filter((item) => item.status === "failed").slice(0, 3)) {
+        items.push(recoveryQueueItem(
+          t("recoveryQueueRunFailure"),
+          `${run.kind || "-"} #${run.id}`,
+          run.detail || formatDateTime(run.finished_at || run.started_at),
+          t("recoveryQueueOpenRuns"),
+          "runWorkspace",
+        ));
+      }
+      for (const audit of auditItems.slice(0, 2)) {
+        items.push(recoveryQueueItem(
+          t("recoveryQueueAuditSignal"),
+          audit.action || "-",
+          [audit.target, audit.detail, formatDateTime(audit.created_at)].filter(Boolean).join(" · "),
+          t("recoveryQueueOpenAudit"),
+          "auditRecoveryPanel",
+        ));
+      }
+      if (promotionItems.length) {
+        const latest = promotionItems[0];
+        items.push(recoveryQueueItem(
+          t("recoveryQueueRollbackSignal"),
+          latest.target_type || "-",
+          latest.target_path || latest.candidate_title || "-",
+          t("recoveryQueueOpenPromotions"),
+          "promotionHistoryPanel",
+        ));
+      }
+      count.textContent = String(items.length);
+      if (!items.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-row";
+        empty.textContent = t("recoveryQueueEmpty");
+        list.appendChild(empty);
+        return;
+      }
+      for (const item of items) {
         list.appendChild(item);
       }
     }
@@ -1745,6 +2354,8 @@
         selectedRunId = null;
       }
       renderRuns();
+      renderDashboardNextAction();
+      renderOperationsRecoveryQueue();
     }
 
     async function refreshScheduleStatus() {
@@ -1761,6 +2372,7 @@
       const payload = await api("/api/audit");
       auditItems = payload.audit || [];
       renderAudit();
+      renderOperationsRecoveryQueue();
     }
 
     async function refreshHistory() {
@@ -1770,11 +2382,13 @@
       renderPromotions();
       renderReviews();
       renderHomeTasks();
+      renderOperationsRecoveryQueue();
     }
 
     async function refreshSetupStatus() {
       setupStatus = await api("/api/setup/status");
       renderSetupWizard();
+      renderDashboardNextAction();
     }
 
     async function refreshDailyDigest() {
@@ -1847,6 +2461,96 @@
       return latestPromotionPreview;
     }
 
+    async function runPreviewOnly(target) {
+      setBusy(true);
+      try {
+        const preview = await previewPromotion(target);
+        if (preview) {
+          showToast(t("toastPreviewLoaded"));
+        }
+      } catch (error) {
+        console.error(error);
+        showToast(error.message || t("toastLoadFailed"), "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function runScanOnce() {
+      await runAction(() => api("/api/scan", {method: "POST"}), "toastScanned", {confirmKey: "confirmScanOnce"});
+    }
+
+    async function runDashboardPrimaryAction() {
+      const action = document.getElementById("dashboardPrimaryAction").dataset.dashboardAction || "workflow";
+      if (action === "scan") {
+        await runScanOnce();
+      } else if (action === "recovery") {
+        setView("operations");
+        scrollToOperationsAnchor("operationsRecoveryQueue");
+      } else if (action === "operations") {
+        setView("operations");
+        scrollToOperationsAnchor("operationsData");
+      } else {
+        setView("workflow");
+      }
+    }
+
+    async function runDashboardSecondaryAction() {
+      const action = document.getElementById("dashboardSecondaryAction").dataset.dashboardAction || "refresh";
+      if (action === "workflow") {
+        setView("workflow");
+      } else {
+        await refresh(true);
+      }
+    }
+
+    function topReviewCandidate() {
+      return sortedCandidates(
+        allCandidates.filter((item) => ["review", "blocked"].includes(String(item.status || "").toLowerCase()))
+      )[0] || sortedCandidates(visibleCandidates())[0] || allCandidates[0] || null;
+    }
+
+    async function runWorkflowPrimaryAction() {
+      const action = document.getElementById("workflowPrimaryAction").dataset.workflowAction || "select";
+      if (action === "select") {
+        const candidate = topReviewCandidate();
+        if (candidate) {
+          selectCandidate(candidate.id);
+        } else {
+          showToast(t("emptyCandidates"), "warn");
+        }
+        return;
+      }
+      if (action.startsWith("preview:")) {
+        await runPreviewOnly(action.split(":")[1] || "user");
+        return;
+      }
+      if (action === "approval") {
+        const dock = document.getElementById("candidateActionPanel");
+        if (dock) {
+          dock.scrollIntoView({behavior: "smooth", block: "start"});
+        }
+        return;
+      }
+      showToast(t("analysisLoading"), "warn");
+    }
+
+    async function runWorkflowSecondaryAction() {
+      const action = document.getElementById("workflowSecondaryAction").dataset.workflowAction || "refresh";
+      if (action === "copy") {
+        if (!selectedCandidate) {
+          showToast(t("selectCandidateFirst"), "warn");
+          return;
+        }
+        await copyText(selectedCandidate.rewrite_suggestion || selectedCandidate.text || "");
+        showToast(t("toastCopied"));
+      } else if (action === "review") {
+        document.getElementById("saveReview").click();
+      } else {
+        await refresh(true);
+      }
+    }
+
     function visibleCandidates() {
       const normalized = searchTerm.trim().toLowerCase();
       return allCandidates.filter((item) => {
@@ -1871,6 +2575,87 @@
       });
     }
 
+    function candidatePriorityScore(item) {
+      let score = 0;
+      const safety = String(item.safety || "").toLowerCase();
+      const status = String(item.status || "").toLowerCase();
+      const type = String(item.type || "").toLowerCase();
+      const sourceCount = Number(item.source_count || 0);
+      const confidence = Number(item.confidence || 0);
+      if (status === "review") {
+        score += 30;
+      }
+      if (safety === "blocked" || safety === "conflict_review" || safety === "unsafe") {
+        score += 45;
+      } else if (sourceCount >= 2 && confidence >= 0.7) {
+        score += 28;
+      }
+      if (type === "skill_patch") {
+        score += 18;
+      } else if (type === "skill") {
+        score += 12;
+      }
+      if (item.proposal_target_type) {
+        score += 8;
+      }
+      return score;
+    }
+
+    function candidatePriorityReasons(item) {
+      const reasons = [];
+      const safety = String(item.safety || "").toLowerCase();
+      const status = String(item.status || "").toLowerCase();
+      const type = String(item.type || "").toLowerCase();
+      const sourceCount = Number(item.source_count || 0);
+      const confidence = Number(item.confidence || 0);
+      if (status === "review") {
+        reasons.push(t("priorityReasonReview"));
+      }
+      if (safety === "blocked" || safety === "conflict_review" || safety === "unsafe") {
+        reasons.push(t("priorityReasonRisk"));
+      } else if (sourceCount >= 2 && confidence >= 0.7) {
+        reasons.push(t("priorityReasonEvidence"));
+      }
+      if (type === "skill" || type === "skill_patch") {
+        reasons.push(t("priorityReasonSkill"));
+      }
+      if (item.proposal_target_type) {
+        reasons.push(t("priorityReasonProposal"));
+      }
+      return reasons.length ? reasons : [t("priorityReasonNormal")];
+    }
+
+    function candidatePriorityLabel(item) {
+      const safety = String(item.safety || "").toLowerCase();
+      const type = String(item.type || "").toLowerCase();
+      const sourceCount = Number(item.source_count || 0);
+      const confidence = Number(item.confidence || 0);
+      if (safety === "blocked" || safety === "conflict_review" || safety === "unsafe") {
+        return t("priorityHighRisk");
+      }
+      if (type === "skill" || type === "skill_patch") {
+        return t("prioritySkillChange");
+      }
+      if (sourceCount >= 2 && confidence >= 0.7) {
+        return t("priorityReadyReview");
+      }
+      return t("priorityNormal");
+    }
+
+    function sortedCandidates(items) {
+      const copy = items.slice();
+      if (candidateSortMode === "newest") {
+        copy.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      } else if (candidateSortMode === "oldest") {
+        copy.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+      } else if (candidateSortMode === "confidence") {
+        copy.sort((a, b) => Number(b.confidence || 0) - Number(a.confidence || 0));
+      } else {
+        copy.sort((a, b) => candidatePriorityScore(b) - candidatePriorityScore(a) || new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+      }
+      return copy;
+    }
+
     function pagedCandidates(items) {
       const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
       currentPage = Math.min(Math.max(1, currentPage), totalPages);
@@ -1887,11 +2672,12 @@
       document.getElementById("prevPage").disabled = currentPage <= 1;
       document.getElementById("nextPage").disabled = currentPage >= totalPages;
       document.getElementById("pageSizeSelect").value = String(pageSize);
+      document.getElementById("candidateSortMode").value = candidateSortMode;
     }
 
     function renderCandidates() {
       const body = document.getElementById("candidateRows");
-      const items = visibleCandidates();
+      const items = sortedCandidates(visibleCandidates());
       const {pageItems, totalPages} = pagedCandidates(items);
       renderPagination(items.length, totalPages);
       body.innerHTML = "";
@@ -1929,13 +2715,17 @@
         meta.className = "candidate-card-meta";
         meta.append(
           tag(formatType(item.type), item.type),
+          tag(candidatePriorityLabel(item), "priority"),
           tag(item.destination || "-", "status"),
           tag(item.status || "-", item.status === "review" ? "review" : "status")
         );
+        const priority = document.createElement("div");
+        priority.className = "candidate-card-priority";
+        priority.textContent = `${t("priorityReviewFirst")}: ${candidatePriorityLabel(item)} · ${candidatePriorityScore(item)} · ${candidatePriorityReasons(item).join(" / ")}`;
         const time = document.createElement("div");
         time.className = "candidate-card-time";
         time.textContent = `${formatDateTime(item.created_at)} / ${formatDateTime(item.updated_at)}`;
-        card.append(meta, title, snippet, time);
+        card.append(meta, title, snippet, priority, time);
         body.appendChild(card);
       }
     }
@@ -1952,14 +2742,23 @@
         selectedCandidate = null;
         window.selectedCandidateId = null;
       }
+      selectedAnalysisPayload = null;
+      selectedAnalysisLoading = false;
     }
 
     function selectCandidate(id) {
       window.selectedCandidateId = id;
       selectedCandidate = allCandidates.find((item) => String(item.id) === String(id)) || null;
+      selectedAnalysisPayload = null;
+      selectedAnalysisLoading = false;
+      latestPromotionPreview = null;
       renderCandidates();
       renderSelected();
       renderCandidateActionPanel();
+      renderPromotionPreview(null);
+      if (selectedCandidate) {
+        loadCandidateAnalysis(id);
+      }
     }
 
     function renderSelected() {
@@ -2003,6 +2802,13 @@
           sourceFiles.appendChild(item);
         }
       }
+      const priorityReasons = document.getElementById("selectedPriorityReasons");
+      priorityReasons.innerHTML = "";
+      for (const reason of candidatePriorityReasons(selectedCandidate)) {
+        const item = document.createElement("li");
+        item.textContent = reason;
+        priorityReasons.appendChild(item);
+      }
     }
 
     async function refresh(showMessage = false) {
@@ -2010,9 +2816,14 @@
       renderSummary(payload.summary);
       allCandidates = payload.candidates || [];
       hydrateSelection();
+      latestPromotionPreview = null;
       renderCandidates();
       renderSelected();
       renderCandidateActionPanel();
+      renderPromotionPreview(null);
+      if (selectedCandidate) {
+        await loadCandidateAnalysis(selectedCandidate.id);
+      }
       await refreshRuns();
       await refreshScheduleStatus();
       await refreshHistory();
@@ -2137,6 +2948,12 @@
       button.addEventListener("click", () => setView(button.dataset.navJump));
     });
 
+    document.getElementById("openPriorityWorkflow").addEventListener("click", () => setView("workflow"));
+    document.getElementById("dashboardPrimaryAction").addEventListener("click", () => runDashboardPrimaryAction().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("dashboardSecondaryAction").addEventListener("click", () => runDashboardSecondaryAction().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("workflowPrimaryAction").addEventListener("click", () => runWorkflowPrimaryAction().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("workflowSecondaryAction").addEventListener("click", () => runWorkflowSecondaryAction().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+
     document.querySelectorAll("[data-filter]").forEach((button) => {
       button.addEventListener("click", () => {
         currentFilter = button.dataset.filter;
@@ -2154,6 +2971,12 @@
 
     document.getElementById("createdAtFilter").addEventListener("change", (event) => {
       createdAtFilter = event.target.value;
+      currentPage = 1;
+      renderCandidates();
+    });
+
+    document.getElementById("candidateSortMode").addEventListener("change", (event) => {
+      candidateSortMode = event.target.value || "priority";
       currentPage = 1;
       renderCandidates();
     });
@@ -2185,7 +3008,7 @@
     });
 
     document.getElementById("doctorRefresh").addEventListener("click", () => refreshDoctor().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
-    document.getElementById("doctorOpenData").addEventListener("click", () => setView("data"));
+    document.getElementById("doctorOpenData").addEventListener("click", () => setView("operations"));
     document.getElementById("refreshDigest").addEventListener("click", () => refreshDailyDigest().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("refreshMergeSuggestions").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
 
@@ -2209,7 +3032,7 @@
     document.getElementById("initializeData").addEventListener("click", () => runAction(() => api("/api/init", {method: "POST"}), "toastInitialized", {confirmKey: "confirmInitializeData"}));
     document.getElementById("backupDatabase").addEventListener("click", () => runAction(() => api("/api/backup", {method: "POST"}), "toastBackupCreated", {refresh: false, confirmKey: "confirmBackupDatabase"}));
     document.getElementById("installSkills").addEventListener("click", () => runAction(() => api("/api/install/skills", {method: "POST"}), "toastSkillsInstalled", {refresh: false, confirmKey: "confirmInstallSkills"}));
-    document.getElementById("scanButton").addEventListener("click", () => runAction(() => api("/api/scan", {method: "POST"}), "toastScanned", {confirmKey: "confirmScanOnce"}));
+    document.getElementById("scanButton").addEventListener("click", () => runScanOnce());
     document.getElementById("exportDigest").addEventListener("click", () => runAction(() => api("/api/export/digest", {method: "POST"}), "toastDigestExported", {refresh: false, confirmKey: "confirmExportDigest"}));
     document.getElementById("exportCandidates").addEventListener("click", () => runAction(() => api("/api/export/candidates", {method: "POST"}), "toastCandidatesExported", {refresh: false, confirmKey: "confirmExportCandidates"}));
     document.getElementById("exportBundle").addEventListener("click", () => runAction(() => api("/api/export/bundle", {method: "POST"}), "toastBundleExported", {refresh: false, confirmKey: "confirmExportBundle"}));
@@ -2234,6 +3057,10 @@
     }), "toastReviewSaved", {needsSelection: true, confirmKey: "confirmSaveReview"}));
     document.getElementById("archiveSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/archive`, {method: "POST"}), "toastArchived", {needsSelection: true, confirmKey: "confirmArchiveSelected"}));
     document.getElementById("rejectSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/reject`, {method: "POST"}), "toastRejected", {needsSelection: true, confirmKey: "confirmRejectSelected"}));
+    document.getElementById("previewUserDiff").addEventListener("click", () => runPreviewOnly("user"));
+    document.getElementById("previewAgentsDiff").addEventListener("click", () => runPreviewOnly("agents"));
+    document.getElementById("previewSkillDiff").addEventListener("click", () => runPreviewOnly("skill"));
+    document.getElementById("previewPatchDiff").addEventListener("click", () => runPreviewOnly("patch"));
     document.getElementById("promoteSelected").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote`, {method: "POST"}), "toastPromotedUser", {needsSelection: true, confirmKey: "confirmPromoteUser", previewTarget: "user"}));
     document.getElementById("promoteAgents").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-agents`, {method: "POST"}), "toastPromotedAgents", {needsSelection: true, confirmKey: "confirmPromoteAgents", previewTarget: "agents"}));
     document.getElementById("promoteSkill").addEventListener("click", () => runAction(() => api(`/api/candidates/${window.selectedCandidateId}/promote-skill`, {method: "POST"}), "toastPromotedSkill", {needsSelection: true, confirmKey: "confirmPromoteSkill", previewTarget: "skill"}));

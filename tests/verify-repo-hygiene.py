@@ -24,7 +24,7 @@ def main() -> int:
             raise AssertionError(f".gitignore should include {pattern}")
 
     tracked = subprocess.run(
-        ["git", "ls-files", "*.pyc", "__pycache__/*", "src/**/__pycache__/*"],
+        ["git", "-c", f"safe.directory={repo.as_posix()}", "ls-files", "*.pyc", "__pycache__/*", "src/**/__pycache__/*"],
         cwd=repo,
         check=True,
         text=True,

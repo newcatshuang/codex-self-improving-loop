@@ -1,4 +1,4 @@
-"""Install v2 skill resources from the bundled app copy."""
+"""Install skill resources from the bundled app copy."""
 
 from __future__ import annotations
 

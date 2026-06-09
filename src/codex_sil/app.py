@@ -1,4 +1,4 @@
-"""Local-only HTTP backend for the v2 WebUI."""
+"""Local-only HTTP backend for the v3 WebUI."""
 
 from __future__ import annotations
 

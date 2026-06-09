@@ -19,11 +19,11 @@ Safety rules:
 
 - Never store or repeat secrets in memory files.
 - Treat `[REDACTED]` as a hard boundary; never reconstruct hidden values.
-- Treat `conflict_review` as a hard stop for automatic promotion.
+- Treat `conflict_review` as a hard stop for promotion review.
 - Project-specific facts belong in project-level `AGENTS.md`, not global `USER.md`.
 - Skill candidates and skill patch candidates require review and security scanning before use.
 - Keep `$HOME/.codex/memories/USER.md` compact. Use memory budget reports to merge, delete, or move stale/project-specific memory before adding more global memory.
-- Use memory candidate auto-promotion only for safe, short, repeated user preferences or avoidance rules. Archive only fully processed candidates; unresolved review and conflict items must remain visible.
+- Never auto-promote memory candidates, even when they are safe, short, or repeated. Safe repeated candidates may be prioritized in the WebUI, but all promotions must be explicitly clicked and confirmed by the user. Archive only fully processed candidates; unresolved review and conflict items must remain visible.
 - Treat skill usage metadata as operational telemetry for skill maintenance, not as task evidence.
 
 For substantial work, run:

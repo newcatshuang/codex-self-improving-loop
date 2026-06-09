@@ -16,9 +16,9 @@ The v3 architecture replaces scattered Markdown/JSON outputs with one SQLite dat
 | Memory capture | Daily or manual scans extract memory candidates into SQLite |
 | Skill candidates | Reusable workflows are stored as `type=skill` candidates |
 | Skill patches | Existing skill improvement ideas are stored as `type=skill_patch` candidates |
-| WebUI management | `sil.py serve --open` starts a local backend and opens the dashboard |
+| WebUI management | `sil.py serve --open` starts a local backend and opens the Dashboard / Review Workflow / Operations console |
 | Review suggestions | Each candidate gets a deterministic review recommendation, with Codex-ready extension points |
-| LLM analysis packages | Codex can analyze candidate evidence, risk, rewrite quality, and proposed manual evolution targets |
+| LLM analysis packages | Codex can analyze candidate evidence, risk, rewrite quality, and proposed manual evolution targets shown in the Review Workflow |
 | Candidate merge | Similar candidates are grouped, and merge actions keep original evidence while marking duplicates `merged` |
 | Promotion preview | USER.md, AGENTS.md, skill, and skill patch promotions show a diff before writing files |
 | Daily digest | Each scan/rebuild stores one SQLite digest with candidate, risk, skill usage, and failed-run counts |
@@ -72,9 +72,15 @@ Start the temporary local WebUI backend:
 python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open
 ```
 
-From the WebUI you can initialize the database, clear current SQLite data and rebuild from all historical sessions, scan sessions, install or remove the daily schedule, install the desktop shortcut, export review data or a migration bundle, archive or reject candidates, merge duplicate candidates, and promote reviewed items to `USER.md`, project `AGENTS.md`, independent learned skills, or skill patch artifacts.
+The WebUI is organized around three working areas:
 
-The WebUI also includes a first-run wizard, daily digest, candidate merge suggestions, promotion diff preview, skill health, audit logs, review history, promotion history, and rollback preview. Rollback is intentionally preview-only: the UI shows the target path, backup path, and a copy-safe Python restore command, but it does not overwrite files automatically.
+- `Dashboard`: first-run setup, counters, daily digest, next-best-action guidance, pending review count, risk watch, top review priorities, recent promotions, recent runs, and error alerts.
+- `Review Workflow`: candidate queue, current-step guidance, candidate evidence, review notes, LLM analysis, proposed target, rationale, verification steps, merge suggestions, promotion diff preview, and the `Manual Approval Dock`.
+- `Operations`: database init/backup/rebuild/scan/export, import preview, schedule and shortcut management, skill health, session recall, run logs, audit logs, review history, promotion history, rollback preview, doctor diagnostics, and a recovery queue for failed runs or audit signals.
+
+The `Manual Approval Dock` is the only place that writes promotions. LLM analysis can propose `USER.md`, `AGENTS.md`, skill, or skill patch targets, but every archive, reject, review save, merge, and promotion action still requires an explicit user click and confirmation dialog.
+
+Rollback is intentionally preview-only: the UI shows the target path, backup path, and a copy-safe Python restore command, but it does not overwrite files automatically.
 
 Scan new sessions once:
 
@@ -138,6 +144,7 @@ The WebUI uses these local-only JSON APIs in addition to the existing scan, rebu
 - `GET /api/setup/status`
 - `GET /api/recommendations`
 - `POST /api/candidates/{id}/recommend`
+- `GET /api/candidates/{id}/analysis`
 - `GET /api/merge-suggestions`
 - `POST /api/merge-suggestions/refresh`
 - `POST /api/merge-suggestions/{id}/apply`
@@ -156,6 +163,7 @@ python tests/verify-v2-recall.py --work-root ./tmp/v2-recall
 python tests/verify-v2-session-filter.py --work-root ./tmp/v2-filter
 python tests/verify-v2-promotion.py --work-root ./tmp/v2-promotion
 python tests/verify-v2-scheduler.py --work-root ./tmp/v2-scheduler
+python tests/verify-webui-browser.py --work-root ./tmp/webui-browser
 python tests/verify-v3-migration.py --work-root ./tmp/v3-migration
 python tests/verify-v3-intelligence.py --work-root ./tmp/v3-intelligence
 python tests/verify-v2-install.py --codex-root ./tmp/codex-v2 --agents-root ./tmp/agents-v2
