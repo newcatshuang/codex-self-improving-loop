@@ -20,6 +20,12 @@
         navDashboard: "Dashboard",
         navWorkflow: "Review Workflow",
         navOperations: "Operations",
+        opsTabData: "Data",
+        opsTabAutomation: "Automation",
+        opsTabKnowledge: "Knowledge",
+        opsTabHistory: "History",
+        rpTabDetail: "Detail",
+        rpTabProposal: "LLM Proposal",
         dataCenter: "Data Center",
         dataCenterDesc: "Initialize, back up, rebuild, scan, or export the local SQLite learning database.",
         reviewCenter: "Review Center",
@@ -206,6 +212,8 @@
         installSkills: "Install / Update Skills",
         rebuildDatabase: "Rebuild Database",
         scanOnce: "Scan Once",
+        scanAndAnalyze: "Scan & Analyze",
+        toastScannedAnalyzed: "Scan & analysis completed: {new} new candidates, {analyzed} analyzed.",
         exportDigest: "Export Digest",
         exportCandidates: "Export Candidates",
         archiveSelected: "Archive Selected",
@@ -483,7 +491,9 @@
           action: "Apply a merge suggestion.",
           files: "Updates duplicate candidate statuses and audit_log in self-improving-loop.sqlite.",
           result: "Original evidence remains in SQLite; duplicate candidates move to merged status.",
-        }
+        },
+        reviewProgressIdle: "-",
+        reviewProgressLabel: "Reviewed {reviewed} / {total}",
       },
       zh: {
         localOnly: "本机专用控制台",
@@ -504,6 +514,12 @@
         navDashboard: "总览",
         navWorkflow: "审阅工作流",
         navOperations: "运维与历史",
+        opsTabData: "数据",
+        opsTabAutomation: "自动化",
+        opsTabKnowledge: "知识",
+        opsTabHistory: "历史",
+        rpTabDetail: "详情",
+        rpTabProposal: "LLM 建议",
         dataCenter: "数据中心",
         dataCenterDesc: "初始化、备份、重建、扫描或导出本地 SQLite 学习数据库。",
         reviewCenter: "审阅中心",
@@ -690,6 +706,8 @@
         installSkills: "安装 / 更新技能",
         rebuildDatabase: "重建数据库",
         scanOnce: "扫描一次",
+        scanAndAnalyze: "扫描并分析",
+        toastScannedAnalyzed: "扫描与分析完成：新增 {new} 个候选，分析 {analyzed} 个。",
         exportDigest: "导出摘要",
         exportCandidates: "导出候选",
         archiveSelected: "归档所选",
@@ -967,10 +985,13 @@
           action: "应用一组合并建议。",
           files: "更新 self-improving-loop.sqlite 中重复候选状态和 audit_log。",
           result: "原始 evidence 仍保留在 SQLite；重复候选状态变为 merged。",
-        }
+        },
+        reviewProgressIdle: "-",
+        reviewProgressLabel: "已审阅 {reviewed} / {total}",
       }
     };
 
+    let currentTheme = initialTheme();
     let currentLanguage = initialLanguage();
     let allCandidates = [];
     let selectedCandidate = null;
@@ -1016,6 +1037,23 @@
       }
       const browserLanguage = (navigator.language || "en").toLowerCase();
       return browserLanguage.startsWith("zh") ? "zh" : "en";
+    }
+
+    function initialTheme() {
+      const saved = localStorage.getItem("codexSilTheme");
+      if (saved === "light" || saved === "dark") {
+        return saved;
+      }
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+
+    function applyTheme() {
+      document.body.setAttribute("data-theme", currentTheme);
+      document.querySelectorAll("#themeToggle button").forEach((button) => {
+        const active = button.dataset.theme === currentTheme;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
     }
 
     function t(key, values = {}) {
@@ -1064,6 +1102,8 @@
       renderMergeSuggestions();
       renderSkillHealth();
       renderPromotionPreview(latestPromotionPreview);
+      renderReviewProgress();
+      applyTheme();
       refreshScheduleStatus().catch((error) => console.warn(error));
     }
 
@@ -1544,7 +1584,16 @@
         : selectedCandidate.analysis_next_step || t("analysisUnavailable"));
       setText("proposalRationale", proposal ? proposal.rationale || "-" : t("analysisUnavailable"));
       setText("proposalVerification", proposal ? proposal.verification || "-" : t("analysisUnavailable"));
-      setText("proposalText", proposal ? proposal.proposed_text || "-" : t("proposalTextEmpty"));
+      const proposalText = document.getElementById("proposalText");
+      if (proposalText) {
+        if (proposal && proposal.proposed_text) {
+          proposalText.innerHTML = renderDiff(proposal.proposed_text);
+          proposalText.className = "diff-view";
+        } else {
+          proposalText.textContent = t("proposalTextEmpty");
+          proposalText.className = "diff-preview";
+        }
+      }
       const manual = !proposal || proposal.requires_manual_approval !== false;
       manualBadge.textContent = manual ? t("manualApprovalRequired") : t("manualApprovalUnknown");
       manualBadge.className = `tag ${manual ? "review" : "status"}`;
@@ -1579,7 +1628,13 @@
       if (!element) {
         return;
       }
-      element.textContent = preview && preview.diff ? preview.diff : t("promotionPreviewEmpty");
+      if (preview && preview.diff) {
+        element.innerHTML = renderDiff(preview.diff);
+        element.className = "diff-view";
+      } else {
+        element.textContent = t("promotionPreviewEmpty");
+        element.className = "diff-preview";
+      }
       renderWorkflowReadiness();
     }
 
@@ -1697,29 +1752,62 @@
     }
 
     function renderMergeSuggestions() {
-      const list = document.getElementById("mergeSuggestionsList");
+      renderMergeSuggestionsList(document.getElementById("mergeSuggestionsList"), true);
+      renderMergeSuggestionsList(document.getElementById("mergeInlineList"), false);
+      const countEl = document.getElementById("mergeInlineCount");
+      if (countEl) {
+        countEl.textContent = String(mergeSuggestions.length);
+      }
+    }
+
+    function renderMergeSuggestionsList(list, showEmptyRow) {
       if (!list) {
         return;
       }
       list.innerHTML = "";
       if (!mergeSuggestions.length) {
-        const item = document.createElement("li");
-        item.textContent = t("emptyMergeSuggestions");
-        list.appendChild(item);
+        if (showEmptyRow) {
+          const item = document.createElement("li");
+          item.textContent = t("emptyMergeSuggestions");
+          list.appendChild(item);
+        }
         return;
       }
       for (const suggestion of mergeSuggestions.slice(0, 8)) {
-        const item = document.createElement("li");
+        const item = document.createElement("div");
+        item.className = "merge-inline-item";
         const text = document.createElement("span");
+        text.className = "merge-text";
         text.textContent = `${suggestion.reason || ""} #${(suggestion.candidate_ids || []).join(", #")}`;
+        const action = document.createElement("div");
+        action.className = "merge-action";
         const button = document.createElement("button");
         button.type = "button";
         button.className = "secondary";
         button.textContent = t("applyMerge");
         button.addEventListener("click", () => applyMergeSuggestion(suggestion.id));
-        item.append(text, button);
+        action.appendChild(button);
+        item.append(text, action);
         list.appendChild(item);
       }
+    }
+
+    function renderReviewProgress() {
+      const fill = document.getElementById("reviewProgressFill");
+      const label = document.getElementById("reviewProgressLabel");
+      if (!fill || !label) {
+        return;
+      }
+      const total = allCandidates.length;
+      const reviewed = allCandidates.filter((c) =>
+        ["reviewed", "promoted", "rejected", "archived", "merged"].includes(String(c.status || "").toLowerCase())
+      ).length;
+      const pending = total - reviewed;
+      const pct = total > 0 ? Math.round((reviewed / total) * 100) : 0;
+      fill.style.width = `${pct}%`;
+      label.textContent = total > 0
+        ? t("reviewProgressLabel", {reviewed, total})
+        : t("reviewProgressIdle");
     }
 
     function renderSkillHealth() {
@@ -2039,6 +2127,16 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+    function renderDiff(text) {
+      const lines = String(text || "").split("\n");
+      const result = [];
+      for (const line of lines) {
+        const cls = line.startsWith("+") ? "added" : line.startsWith("-") ? "removed" : line.startsWith("@@") || line.startsWith("---") || line.startsWith("+++") ? "header" : "context";
+        result.push(`<div class="diff-line ${cls}">${escapeHtml(line)}</div>`);
+      }
+      return result.join("");
     }
 
     function highlightText(text, query) {
@@ -2480,6 +2578,37 @@
       await runAction(() => api("/api/scan", {method: "POST"}), "toastScanned", {confirmKey: "confirmScanOnce"});
     }
 
+    async function runScanAndAnalyze() {
+      setBusy(true);
+      try {
+        const result = await api("/api/scan-and-analyze", {method: "POST"});
+        await refresh(false);
+        const newCount = (result.scan && result.scan.candidates) || 0;
+        const analyzed = (result.analysis && result.analysis.analyzed) || 0;
+        showToast(t("toastScannedAnalyzed", {new: newCount, analyzed}), "ok");
+        setView("workflow");
+      } catch (error) {
+        console.error(error);
+        showToast(error.message || t("toastLoadFailed"), "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function runBatchAnalyze() {
+      setBusy(true);
+      try {
+        const result = await api("/api/analyze/batch", {method: "POST"});
+        await refresh(false);
+        showToast(`Analysis completed: ${result.analyzed || 0} candidates analyzed.`, "ok");
+      } catch (error) {
+        console.error(error);
+        showToast(error.message || t("toastLoadFailed"), "error");
+      } finally {
+        setBusy(false);
+      }
+    }
+
     async function runDashboardPrimaryAction() {
       const action = document.getElementById("dashboardPrimaryAction").dataset.dashboardAction || "workflow";
       if (action === "scan") {
@@ -2821,6 +2950,7 @@
       renderSelected();
       renderCandidateActionPanel();
       renderPromotionPreview(null);
+      renderReviewProgress();
       if (selectedCandidate) {
         await loadCandidateAnalysis(selectedCandidate.id);
       }
@@ -2940,8 +3070,54 @@
       });
     });
 
+    document.querySelectorAll("#themeToggle button").forEach((button) => {
+      button.addEventListener("click", () => {
+        currentTheme = button.dataset.theme;
+        localStorage.setItem("codexSilTheme", currentTheme);
+        applyTheme();
+      });
+    });
+
     document.querySelectorAll("[data-nav]").forEach((button) => {
       button.addEventListener("click", () => setView(button.dataset.nav));
+    });
+
+    document.querySelectorAll("[data-ops-tab]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-ops-tab]").forEach((btn) => btn.classList.toggle("active", btn === button));
+        const tab = button.dataset.opsTab;
+        const sections = {
+          data: ["operationsLifecycleMap", "operationsConsole", "operationsRecoveryQueue"],
+          automation: ["operationsIndex", "operationsRecoveryQueue"],
+          knowledge: ["recallWorkbench"],
+          history: ["runWorkspace", "auditRecoveryPanel", "promotionHistoryPanel"],
+        };
+        const allSectionIds = [
+          "operationsLifecycleMap", "operationsConsole", "operationsRecoveryQueue",
+          "operationsIndex", "recallWorkbench", "runWorkspace", "auditRecoveryPanel", "promotionHistoryPanel",
+        ];
+        const targetIds = new Set(sections[tab] || []);
+        document.querySelectorAll(".view-panel[data-view='operations'] > section[class*='operations'], .view-panel[data-view='operations'] > section[class*='run-'], .view-panel[data-view='operations'] > section[class*='panel'], .view-panel[data-view='operations'] > section[class*='recall-'], .view-panel[data-view='operations'] > section[class*='module-'], .view-panel[data-view='operations'] > section[class*='audit-'], .view-panel[data-view='operations'] > section[class*='promotion-']").forEach((sec) => {
+          const id = sec.id;
+          if (id && targetIds.has(id)) {
+            sec.classList.add("ops-section-active");
+            sec.style.display = "";
+          } else if (id) {
+            sec.classList.remove("ops-section-active");
+            sec.style.display = "none";
+          }
+        });
+      });
+    });
+
+    document.querySelectorAll("[data-rp-tab]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-rp-tab]").forEach((btn) => btn.classList.toggle("active", btn === button));
+        const tab = button.dataset.rpTab;
+        document.querySelectorAll("[data-rp-content]").forEach((content) => {
+          content.classList.toggle("active", content.dataset.rpContent === tab);
+        });
+      });
     });
 
     document.querySelectorAll("[data-nav-jump]").forEach((button) => {
@@ -3011,6 +3187,9 @@
     document.getElementById("doctorOpenData").addEventListener("click", () => setView("operations"));
     document.getElementById("refreshDigest").addEventListener("click", () => refreshDailyDigest().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("refreshMergeSuggestions").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("refreshMergeInline").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("scanButton").addEventListener("click", () => runScanOnce());
+    document.getElementById("scanAndAnalyzeButton").addEventListener("click", () => runScanAndAnalyze());
 
     document.getElementById("prevPage").addEventListener("click", () => {
       currentPage = Math.max(1, currentPage - 1);
@@ -3121,6 +3300,17 @@
     });
 
     applyLanguage();
+    applyTheme();
+
+    if (window.matchMedia) {
+      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+        if (!localStorage.getItem("codexSilTheme")) {
+          currentTheme = e.matches ? "dark" : "light";
+          applyTheme();
+        }
+      });
+    }
+
     refresh(false).catch((error) => {
       console.error(error);
       showToast(`${t("toastLoadFailed")} ${error.message || ""}`, "error");

@@ -255,6 +255,32 @@ def generate_missing(root: Path) -> None:
         analyze_candidate(root, candidate_id)
 
 
+def batch_analysis(root: Path) -> dict[str, object]:
+    """Analyze all candidates that are missing analysis. Returns counts."""
+    init_db(root)
+    with connect(root) as conn:
+        ids = [
+            int(row["id"])
+            for row in conn.execute(
+                """
+                select c.id
+                from candidates c
+                left join candidate_analyses ca on ca.candidate_id=c.id
+                left join evolution_proposals ep on ep.candidate_id=c.id
+                where ca.id is null or ep.id is null
+                """
+            )
+        ]
+    analyzed = 0
+    for candidate_id in ids:
+        try:
+            analyze_candidate(root, candidate_id)
+            analyzed += 1
+        except Exception:
+            pass
+    return {"analyzed": analyzed, "total": len(ids)}
+
+
 def analysis_payload(root: Path, candidate_id: int) -> dict[str, object]:
     init_db(root)
     with connect(root) as conn:

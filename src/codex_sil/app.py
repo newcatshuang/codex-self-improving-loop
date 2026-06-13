@@ -12,7 +12,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 import webbrowser
 
-from .analysis import analysis_payload
+from .analysis import analysis_payload, batch_analysis
 from . import __version__
 from .bundle import export_bundle, import_preview
 from .db import connect, init_db
@@ -106,6 +106,12 @@ def summary_payload(root: Path) -> dict[str, Any]:
         rows = conn.execute("select type, count(*) as count from candidates group by type").fetchall()
         status_rows = conn.execute("select status, count(*) as count from candidates group by status").fetchall()
         destination_rows = conn.execute("select destination, count(*) as count from candidates group by destination").fetchall()
+        analysis_count = conn.execute(
+            "select count(*) as count from candidates c join candidate_analyses ca on ca.candidate_id=c.id"
+        ).fetchone()["count"]
+        pending_analysis = conn.execute(
+            "select count(*) as count from candidates c left join candidate_analyses ca on ca.candidate_id=c.id where ca.id is null and c.status='review'"
+        ).fetchone()["count"]
         skill_usage_rows = conn.execute("select status, count(*) as count from skill_usage group by status").fetchall()
         skill_usage_by_skill_rows = conn.execute(
             """
@@ -182,6 +188,8 @@ def summary_payload(root: Path) -> dict[str, Any]:
         "by_destination": destination_counts,
         "skill_usage_by_status": skill_usage_counts,
         "skill_usage_by_skill": skill_usage_by_skill,
+        "analysis_count": analysis_count,
+        "pending_analysis": pending_analysis,
     }
     for row in rows:
         summary[str(row["type"])] = int(row["count"])
@@ -559,12 +567,26 @@ class SilHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/scan":
             self._json(200, scan_once(root))
             return
+        if parsed.path == "/api/scan-and-analyze":
+            result = scan_once(root)
+            batch_result = batch_analysis(root)
+            merge_result = {}
+            try:
+                from .merge import generate_merge_suggestions
+                merge_result = generate_merge_suggestions(root)
+            except Exception:
+                pass
+            self._json(200, {"scan": result, "analysis": batch_result, "merge": merge_result})
+            return
         if parsed.path == "/api/rebuild":
             self._json(200, start_background_rebuild(root))
             return
         if parsed.path == "/api/backup":
             backup = backup_db(root)
             self._json(200, {"backup": str(backup) if backup else None})
+            return
+        if parsed.path == "/api/analyze/batch":
+            self._json(200, batch_analysis(root))
             return
         repo_root = Path(__file__).resolve().parents[2]
         if parsed.path == "/api/schedule/install":

@@ -16,6 +16,14 @@
         <p class="subtitle" data-i18n="subtitle">Review memory, skill, and skill patch candidates from a token-protected local service. All promotion actions run through this WebUI.</p>
       </div>
       <div class="header-actions">
+        <div class="segmented" id="themeToggle" aria-label="Theme">
+          <button type="button" data-theme="light" title="Light mode">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+          <button type="button" data-theme="dark" title="Dark mode">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+        </div>
         <div class="segmented" id="languageToggle" aria-label="Language">
           <button type="button" data-lang="zh">中文</button>
           <button type="button" data-lang="en">EN</button>
@@ -193,6 +201,12 @@
       </section>
 
       <section class="view-panel" data-view="operations">
+        <section class="operations-subnav" id="operationsSubNav">
+          <button type="button" class="ops-tab active" data-ops-tab="data" data-i18n="opsTabData">Data</button>
+          <button type="button" class="ops-tab" data-ops-tab="automation" data-i18n="opsTabAutomation">Automation</button>
+          <button type="button" class="ops-tab" data-ops-tab="knowledge" data-i18n="opsTabKnowledge">Knowledge</button>
+          <button type="button" class="ops-tab" data-ops-tab="history" data-i18n="opsTabHistory">History</button>
+        </section>
         <section class="operations-index" id="operationsIndex" aria-label="Operations sections">
           <a href="#operationsData" data-i18n="operationsIndexData">Data</a>
           <a href="#operationsAutomation" data-i18n="operationsIndexAutomation">Automation</a>
@@ -261,6 +275,7 @@
                   <button id="initializeData" data-action data-i18n="initializeData">Initialize Database</button>
                   <button class="secondary" id="backupDatabase" data-action data-i18n="backupDatabase">Backup Database</button>
                   <button class="secondary" id="scanButton" data-action data-i18n="scanOnce">Scan Once</button>
+                  <button id="scanAndAnalyzeButton" data-action data-i18n="scanAndAnalyze">Scan &amp; Analyze</button>
                 </div>
               </section>
               <section class="operation-card danger-operation-zone" id="dangerOperationZone">
@@ -317,10 +332,28 @@
           </div>
         </section>
         <section class="candidate-workspace workflow-shell" id="candidateWorkspace">
+        <section class="panel merge-inline-card" id="mergeInlineCard">
+          <div class="panel-header">
+            <h2 data-i18n="mergeSuggestionsTitle">Merge Suggestions</h2>
+            <div class="toolbar">
+              <span class="tag status" id="mergeInlineCount">0</span>
+              <button class="secondary" id="refreshMergeInline" type="button" data-i18n="refresh">Refresh</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="merge-inlinelist" id="mergeInlineList"></div>
+          </div>
+        </section>
         <section class="panel workflow-queue" id="workflowReviewQueue">
           <div class="panel-header">
             <h2 data-i18n="candidateCenter">Candidate Center</h2>
             <span class="tag status" id="visibleCount">0</span>
+          </div>
+          <div class="review-progress-bar" id="reviewProgressBar">
+            <div class="review-progress-track">
+              <div class="review-progress-fill" id="reviewProgressFill"></div>
+            </div>
+            <span class="review-progress-label" id="reviewProgressLabel" data-i18n="reviewProgressIdle">-</span>
           </div>
           <div class="filters">
             <button class="filter-button active" type="button" data-filter="all" data-i18n="filterAll">All</button>
@@ -367,6 +400,12 @@
           </div>
         </section>
 
+        <aside class="panel right-panel-tabs" id="rightPanelContainer">
+          <div class="right-panel-tab-bar" id="rightPanelTabBar">
+            <button type="button" class="rp-tab active" data-rp-tab="detail" data-i18n="rpTabDetail">Detail</button>
+            <button type="button" class="rp-tab" data-rp-tab="proposal" data-i18n="rpTabProposal">LLM Proposal</button>
+          </div>
+          <div class="right-panel-tab-content active" data-rp-content="detail">
         <aside class="panel detail-panel" id="candidateDetailPanel">
           <div class="panel-header">
             <h2 data-i18n="reviewCenter">Review Center</h2>
@@ -435,7 +474,8 @@
             </div>
           </div>
         </aside>
-
+          </div>
+          <div class="right-panel-tab-content" data-rp-content="proposal">
         <aside class="panel proposal-board" id="evolutionProposalBoard">
           <div class="panel-header">
             <h2 data-i18n="evolutionProposalTitle">LLM Analysis & Proposal</h2>
@@ -470,6 +510,8 @@
               <div class="detail-label" data-i18n="proposalTextTitle">Proposed Text</div>
               <pre class="diff-preview" id="proposalText" data-i18n="proposalTextEmpty">Select a candidate to load the proposed text.</pre>
             </section>
+          </div>
+        </aside>
           </div>
         </aside>
         <aside class="panel action-panel manual-approval-dock" id="candidateActionPanel" data-workflow-panel="manualApprovalDock">
