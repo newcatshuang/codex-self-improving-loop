@@ -1900,6 +1900,7 @@
         panel.classList.toggle("active", panel.dataset.view === view);
       });
       if (view === "operations") {
+        switchOpsTab("data");
         refreshRuns().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
         refreshDoctor().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
         refreshAudit().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
@@ -3083,32 +3084,23 @@
     });
 
     document.querySelectorAll("[data-ops-tab]").forEach((button) => {
-      button.addEventListener("click", () => {
-        document.querySelectorAll("[data-ops-tab]").forEach((btn) => btn.classList.toggle("active", btn === button));
-        const tab = button.dataset.opsTab;
-        const sections = {
-          data: ["operationsLifecycleMap", "operationsConsole", "operationsRecoveryQueue"],
-          automation: ["operationsIndex", "operationsRecoveryQueue"],
-          knowledge: ["recallWorkbench"],
-          history: ["runWorkspace", "auditRecoveryPanel", "promotionHistoryPanel"],
-        };
-        const allSectionIds = [
-          "operationsLifecycleMap", "operationsConsole", "operationsRecoveryQueue",
-          "operationsIndex", "recallWorkbench", "runWorkspace", "auditRecoveryPanel", "promotionHistoryPanel",
-        ];
-        const targetIds = new Set(sections[tab] || []);
-        document.querySelectorAll(".view-panel[data-view='operations'] > section[class*='operations'], .view-panel[data-view='operations'] > section[class*='run-'], .view-panel[data-view='operations'] > section[class*='panel'], .view-panel[data-view='operations'] > section[class*='recall-'], .view-panel[data-view='operations'] > section[class*='module-'], .view-panel[data-view='operations'] > section[class*='audit-'], .view-panel[data-view='operations'] > section[class*='promotion-']").forEach((sec) => {
-          const id = sec.id;
-          if (id && targetIds.has(id)) {
-            sec.classList.add("ops-section-active");
-            sec.style.display = "";
-          } else if (id) {
-            sec.classList.remove("ops-section-active");
-            sec.style.display = "none";
-          }
-        });
-      });
+      button.addEventListener("click", () => switchOpsTab(button.dataset.opsTab));
     });
+
+    function switchOpsTab(tab) {
+      document.querySelectorAll("[data-ops-tab]").forEach((btn) => btn.classList.toggle("active", btn.dataset.opsTab === tab));
+      const viewPanel = document.querySelector('.view-panel.active[data-view="operations"]');
+      if (!viewPanel) return;
+      viewPanel.querySelectorAll("section[data-ops-section]").forEach((sec) => {
+        const groups = (sec.dataset.opsSection || "").split(",").map((s) => s.trim());
+        const visible = groups.includes(tab);
+        sec.style.display = visible ? "" : "none";
+        sec.classList.toggle("ops-section-active", visible);
+      });
+    }
+
+    // Initialize default ops tab on load
+    switchOpsTab("data");
 
     document.querySelectorAll("[data-rp-tab]").forEach((button) => {
       button.addEventListener("click", () => {

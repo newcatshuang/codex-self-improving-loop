@@ -2232,3 +2232,292 @@
       color: #fef08a;
     }
 
+    /* Summary cards */
+    [data-theme="dark"] .summary-card {
+      background: var(--surface);
+      border-color: var(--line);
+    }
+    [data-theme="dark"] .summary-card.memory {
+      background: rgba(34, 197, 94, 0.06);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    [data-theme="dark"] .summary-card.skill {
+      background: rgba(76, 139, 255, 0.06);
+      border-color: rgba(76, 139, 255, 0.3);
+    }
+    [data-theme="dark"] .summary-card.patch {
+      background: rgba(234, 179, 8, 0.06);
+      border-color: rgba(234, 179, 8, 0.3);
+    }
+    [data-theme="dark"] .summary-card.review {
+      background: rgba(239, 68, 68, 0.06);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    [data-theme="dark"] .summary-card.data {
+      background: rgba(20, 184, 166, 0.06);
+      border-color: rgba(20, 184, 166, 0.3);
+    }
+    [data-theme="dark"] .summary-card.status {
+      background: rgba(168, 85, 247, 0.06);
+      border-color: rgba(168, 85, 247, 0.3);
+    }
+    [data-theme="dark"] .control-grid .panel {
+      background: var(--surface);
+      border-color: var(--line);
+    }
+
+    /* Setup wizard */
+    [data-theme="dark"] .setup-wizard {
+      background: var(--surface);
+      border-color: rgba(76, 139, 255, 0.3);
+    }
+
+    /* Digest metrics */
+    [data-theme="dark"] .digest-metric {
+      background: var(--surface-soft);
+      border-color: var(--line);
+    }
+
+    /* Command center / home workbench */
+    [data-theme="dark"] .command-center {
+      background: var(--surface);
+      border-color: var(--line);
+    }
+
+    /* Task cards with colored backgrounds */
+    [data-theme="dark"] .task-card.memory {
+      background: rgba(34, 197, 94, 0.06);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    [data-theme="dark"] .task-card.review {
+      background: rgba(239, 68, 68, 0.06);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    [data-theme="dark"] .task-card.skill {
+      background: rgba(76, 139, 255, 0.06);
+      border-color: rgba(76, 139, 255, 0.3);
+    }
+    [data-theme="dark"] .task-card.data {
+      background: rgba(20, 184, 166, 0.06);
+      border-color: rgba(20, 184, 166, 0.3);
+    }
+
+    /* Workflow stage rail */
+    [data-theme="dark"] .workflow-stage-rail {
+      background: var(--surface);
+      border-color: var(--line);
+    }
+    [data-theme="dark"] .workflow-stage-rail span {
+      background: var(--surface-soft);
+      border-color: var(--line);
+      color: rgba(255, 255, 255, 0.65);
+    }
+    [data-theme="dark"] .workflow-stage-rail .workflow-stage-done {
+      background: rgba(34, 197, 94, 0.08);
+      border-color: #22c55e;
+      color: #86efac;
+    }
+    [data-theme="dark"] .workflow-stage-rail .workflow-stage-current {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Action cards with colored backgrounds */
+    [data-theme="dark"] .action-card.warning {
+      background: rgba(234, 179, 8, 0.06);
+      border-color: rgba(234, 179, 8, 0.3);
+    }
+    [data-theme="dark"] .action-card.safe {
+      background: rgba(34, 197, 94, 0.06);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    [data-theme="dark"] .action-card.danger {
+      background: rgba(239, 68, 68, 0.06);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    /* Health cards */
+    [data-theme="dark"] .health-card.ok {
+      background: rgba(34, 197, 94, 0.06);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    [data-theme="dark"] .health-card.warn {
+      background: rgba(234, 179, 8, 0.06);
+      border-color: rgba(234, 179, 8, 0.3);
+    }
+    [data-theme="dark"] .health-card.error {
+      background: rgba(239, 68, 68, 0.06);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    /* Operations lifecycle map */
+    [data-theme="dark"] .operations-lifecycle-map article {
+      background: var(--surface);
+      border-color: var(--line);
+    }
+
+    /* Operation zones */
+    [data-theme="dark"] .safe-operation-zone {
+      background: rgba(34, 197, 94, 0.06);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+    [data-theme="dark"] .danger-operation-zone {
+      background: rgba(239, 68, 68, 0.06);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    [data-theme="dark"] .export-operation-zone {
+      background: rgba(76, 139, 255, 0.06);
+      border-color: rgba(76, 139, 255, 0.3);
+    }
+
+    /* Progress panel */
+    [data-theme="dark"] .progress-panel.active {
+      background: var(--surface-soft);
+      border-color: var(--line);
+    }
+    [data-theme="dark"] .progress-track {
+      background: #2a2d3a;
+    }
+
+    /* Merge suggestions panel */
+    [data-theme="dark"] .merge-suggestions-panel {
+      background: var(--surface);
+      border-color: var(--accent);
+    }
+
+    /* Priority panel */
+    [data-theme="dark"] .selected-priority-panel {
+      background: rgba(76, 139, 255, 0.08);
+      border-color: var(--line);
+    }
+
+    /* Priority reasons */
+    [data-theme="dark"] .priority-reason-list li {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Readiness list */
+    [data-theme="dark"] .readiness-list li {
+      background: var(--surface);
+      border-color: var(--line);
+    }
+    [data-theme="dark"] .readiness-list .readiness-done {
+      background: rgba(34, 197, 94, 0.08);
+      border-color: #22c55e;
+      color: #86efac;
+    }
+    [data-theme="dark"] .readiness-list .readiness-pending {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    /* Inline panel headers */
+    [data-theme="dark"] .inline-panel-header {
+      background: var(--surface-soft);
+      border-bottom-color: var(--line);
+    }
+
+    /* Dashboard priority items */
+    [data-theme="dark"] .next-action-panel {
+      background: var(--surface);
+    }
+    [data-theme="dark"] .daily-digest-panel {
+      background: var(--surface);
+      border-color: var(--line);
+    }
+    [data-theme="dark"] .dashboard-priorities {
+      background: var(--surface);
+    }
+    [data-theme="dark"] .dashboard-priority-list {
+      background: var(--surface);
+    }
+    [data-theme="dark"] .dashboard-priority-item {
+      background: var(--surface);
+      border-color: var(--line);
+      color: var(--ink);
+    }
+    [data-theme="dark"] .dashboard-priority-item:hover,
+    [data-theme="dark"] .dashboard-priority-item:focus {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    /* Schedule status panel */
+    [data-theme="dark"] .schedule-status-panel .health-card {
+      background: var(--surface-soft);
+    }
+
+    /* Recovery queue items */
+    [data-theme="dark"] .recovery-queue-item {
+      background: var(--surface);
+    }
+    [data-theme="dark"] .recovery-queue-item:hover,
+    [data-theme="dark"] .recovery-queue-item:focus {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    /* Tag variants */
+    [data-theme="dark"] .tag.memory {
+      background: rgba(34, 197, 94, 0.08);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #86efac;
+    }
+    [data-theme="dark"] .tag.skill {
+      background: rgba(76, 139, 255, 0.08);
+      border-color: rgba(76, 139, 255, 0.3);
+      color: #93c5fd;
+    }
+    [data-theme="dark"] .tag.skill_patch {
+      background: rgba(234, 179, 8, 0.08);
+      border-color: rgba(234, 179, 8, 0.3);
+      color: #fde68a;
+    }
+    [data-theme="dark"] .tag.review {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+    [data-theme="dark"] .tag.priority {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Operations index anchor links */
+    [data-theme="dark"] .operations-index a {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Review progress bar */
+    [data-theme="dark"] .review-progress-bar {
+      background: var(--surface-soft);
+      border-bottom-color: var(--line);
+    }
+
+    /* Diff view header lines */
+    [data-theme="dark"] .diff-line.context {
+      color: #94a3b8;
+    }
+    [data-theme="dark"] .diff-line.header {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+    }
+    [data-theme="dark"] .diff-line.added {
+      background: rgba(34, 197, 94, 0.12);
+      color: #86efac;
+    }
+    [data-theme="dark"] .diff-line.removed {
+      background: rgba(239, 68, 68, 0.12);
+      color: #fca5a5;
+    }
+
+    /* Empty row text */
+    [data-theme="dark"] .empty-row {
+      color: var(--muted);
+    }
+

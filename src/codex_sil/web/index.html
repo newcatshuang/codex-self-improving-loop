@@ -213,7 +213,7 @@
           <a href="#operationsKnowledge" data-i18n="operationsIndexKnowledge">Knowledge</a>
           <a href="#operationsEvidence" data-i18n="operationsIndexEvidence">Evidence</a>
         </section>
-        <section class="operations-lifecycle-map operations-section" id="operationsLifecycleMap" aria-label="Operations lifecycle">
+        <section class="operations-lifecycle-map operations-section" id="operationsLifecycleMap" data-ops-section="data" aria-label="Operations lifecycle">
           <article>
             <span class="step-number">1</span>
             <div>
@@ -246,7 +246,7 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="panel recovery-queue operations-section" id="operationsRecoveryQueue">
+        <section class="panel recovery-queue operations-section" id="operationsRecoveryQueue" data-ops-section="data,recovery">
           <div class="panel-header">
             <h2 data-i18n="operationsRecoveryTitle">Recovery Queue</h2>
             <span class="tag review" id="recoveryQueueCount">0</span>
@@ -259,7 +259,7 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="panel data-panel operations-console operations-section" id="operationsConsole">
+        <section class="panel data-panel operations-console operations-section" id="operationsConsole" data-ops-section="data">
           <div class="operations-anchor" id="operationsData"></div>
           <div class="panel-header">
             <h2 data-i18n="dataCenter">Data Center</h2>
@@ -566,7 +566,7 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="panel operations-section">
+        <section class="panel operations-section" data-ops-section="history">
           <div class="panel-header">
             <h2 data-i18n="promotionCenter">Promotion Center</h2>
           </div>
@@ -577,7 +577,7 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="panel operations-section">
+        <section class="panel operations-section" data-ops-section="knowledge">
           <div class="operations-anchor" id="operationsKnowledge"></div>
           <div class="panel-header">
             <h2 data-i18n="skillManagement">Skill Management</h2>
@@ -612,7 +612,7 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="panel schedule-panel operations-section">
+        <section class="panel schedule-panel operations-section" data-ops-section="automation">
           <div class="operations-anchor" id="operationsAutomation"></div>
           <div class="panel-header">
             <h2 data-i18n="scheduleCenter">Schedule Center</h2>
@@ -648,7 +648,7 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="run-workspace operations-section" id="runWorkspace">
+        <section class="run-workspace operations-section" id="runWorkspace" data-ops-section="history">
           <section class="panel" id="runListPanel">
             <div class="panel-header">
               <h2 data-i18n="runLogs">Run Logs</h2>
@@ -694,7 +694,7 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="panel recall-workbench operations-section" id="recallWorkbench">
+        <section class="panel recall-workbench operations-section" id="recallWorkbench" data-ops-section="knowledge">
           <div class="panel-header">
             <h2 data-i18n="recallTitle">Cross-Session Recall</h2>
           </div>
@@ -721,7 +721,7 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="panel audit-recovery-panel operations-section" id="auditRecoveryPanel">
+        <section class="panel audit-recovery-panel operations-section" id="auditRecoveryPanel" data-ops-section="history">
           <div class="operations-anchor" id="operationsEvidence"></div>
           <div class="panel-header">
             <h2 data-i18n="auditCenter">Audit Center</h2>
@@ -754,7 +754,7 @@
 
       <section class="view-panel" data-view="operations">
         <section class="module-grid">
-          <section class="panel" id="promotionHistoryPanel">
+          <section class="panel" id="promotionHistoryPanel" data-ops-section="history">
             <div class="panel-header">
               <h2 data-i18n="promotionHistory">Promotion History</h2>
               <button class="secondary" type="button" id="refreshPromotions" data-i18n="refresh">Refresh</button>
@@ -799,7 +799,7 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="panel">
+        <section class="panel" id="reviewHistoryPanel" data-ops-section="history">
           <div class="panel-header">
             <h2 data-i18n="reviewHistory">Review History</h2>
             <button class="secondary" type="button" id="refreshReviews" data-i18n="refresh">Refresh</button>
@@ -836,7 +836,7 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="panel">
+        <section class="panel" id="doctorPanel" data-ops-section="data">
           <div class="panel-header">
             <h2 data-i18n="doctorTitle">Doctor</h2>
           </div>
