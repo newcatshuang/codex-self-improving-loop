@@ -67,18 +67,30 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"unexpected WebUI title: {checks}")
     if not checks.get("dashboardNextAction"):
         raise AssertionError(f"dashboard next action should render: {checks}")
+    if int(checks.get("setupChecklistItems") or 0) < 4:
+        raise AssertionError(f"first-run wizard should render executable checklist items: {checks}")
+    if int(checks.get("operationsViewContainers") or 0) != 1:
+        raise AssertionError(f"operations should render as one single view container: {checks}")
     if int(checks.get("candidateCards") or 0) < 1:
         raise AssertionError(f"workflow should render candidate cards: {checks}")
     if "diff" not in str(checks.get("workflowNextActionAfterSelect", "")).lower() and "预览" not in str(checks.get("workflowNextActionAfterSelect", "")):
         raise AssertionError(f"workflow should guide the user to preview after selection: {checks}")
     if not checks.get("previewTextHead"):
         raise AssertionError(f"promotion preview should load a diff before approval: {checks}")
-    if int(checks.get("confirmCallsAfterPromoteClick") or 0) != 1:
-        raise AssertionError(f"promotion click should stop at one manual confirmation dialog: {checks}")
+    if int(checks.get("confirmCallsAfterPromoteClick") or 0) != 0:
+        raise AssertionError(f"promotion click should not use window.confirm: {checks}")
+    if checks.get("confirmModalVisible") is not True:
+        raise AssertionError(f"promotion click should open the structured confirmation modal: {checks}")
     if checks.get("confirmPreviewIncluded") is not True:
         raise AssertionError(f"manual confirmation should include the diff preview: {checks}")
+    if checks.get("confirmModalHasDanger") is not True:
+        raise AssertionError(f"promotion confirmation should use the high-risk button style: {checks}")
+    if checks.get("approvalDockFixed") is not True:
+        raise AssertionError(f"manual approval dock should remain fixed/sticky during review: {checks}")
     if int(checks.get("operationsLifecycleCards") or 0) != 4:
         raise AssertionError(f"operations lifecycle should expose four flow cards: {checks}")
+    if int(checks.get("operationsVisiblePanels") or 0) != 1:
+        raise AssertionError(f"operations navigation should activate one operations view: {checks}")
     if checks.get("noHorizontalOverflowDesktop") is not True:
         raise AssertionError(f"desktop viewport should not horizontally overflow: {checks}")
     if checks.get("noHorizontalOverflowMobile") is not True:

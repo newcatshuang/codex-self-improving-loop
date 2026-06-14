@@ -18,6 +18,14 @@ def main() -> int:
     repo = args.repo_root.resolve()
     codex = args.codex_root.resolve()
     agents = args.agents_root.resolve()
+    codex.mkdir(parents=True, exist_ok=True)
+    (codex / "AGENTS.md").write_text(
+        "# AGENTS.md\n\n"
+        "<!-- codex-self-improving-loop:start -->\n"
+        "legacy global block\n"
+        "<!-- codex-self-improving-loop:end -->\n",
+        encoding="utf-8",
+    )
 
     forbidden = [
         repo / "agents" / "skills" / "memory-capture" / "scripts",
@@ -38,10 +46,8 @@ def main() -> int:
         agents / "codex-self-improving-loop" / "sil.py",
         agents / "codex-self-improving-loop" / "src" / "codex_sil" / "cli.py",
         agents / "codex-self-improving-loop" / "agents" / "skills" / "memory-capture" / "SKILL.md",
-        agents / "codex-self-improving-loop" / "codex" / "AGENTS.learning-block.md",
         agents / "skills" / "session-recall" / "SKILL.md",
         agents / "skills" / "memory-capture" / "SKILL.md",
-        codex / "AGENTS.md",
         codex / "memories" / "USER.md",
         codex / "self-improving-loop",
     ]
@@ -52,6 +58,11 @@ def main() -> int:
     compiled_artifacts = [path for path in installed_app.rglob("*") if "__pycache__" in path.parts or path.suffix == ".pyc"]
     if compiled_artifacts:
         raise AssertionError(f"installed app should not include Python bytecode artifacts: {compiled_artifacts[:5]}")
+    agents_text = (codex / "AGENTS.md").read_text(encoding="utf-8")
+    if "codex-self-improving-loop:start" in agents_text or "Codex Self-Improving Loop" in agents_text:
+        raise AssertionError("installer should remove old global AGENTS.md self-improving-loop blocks")
+    if (repo / "codex" / "AGENTS.learning-block.md").exists():
+        raise AssertionError("global AGENTS.md learning block template should be removed")
 
     recall_skill = (agents / "skills" / "session-recall" / "SKILL.md").read_text(encoding="utf-8")
     memory_skill = (agents / "skills" / "memory-capture" / "SKILL.md").read_text(encoding="utf-8")

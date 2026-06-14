@@ -54,6 +54,24 @@ def install_schedule_dry_run(repo_root: Path, codex_root: Path) -> str:
     return f"systemd user timer {systemd_user_dir() / 'codex-self-improving-loop.timer'} daily {SCHEDULE_TIME} -> {command}"
 
 
+def schedule_operation_plan(repo_root: Path, codex_root: Path) -> dict[str, Any]:
+    system = platform.system() or "Unknown"
+    return {
+        "mode": "actual",
+        "dry_run_preview": install_schedule_dry_run(repo_root, codex_root),
+        "actual_effect": (
+            "Creates or replaces the CodexSelfImprovingLoop scheduled task on Windows."
+            if system == "Windows"
+            else f"Writes and loads {launch_agent_path()}."
+            if system == "Darwin"
+            else f"Writes and enables {systemd_user_dir() / 'codex-self-improving-loop.timer'}."
+        ),
+        "schedule_time": SCHEDULE_TIME,
+        "command": schedule_command(repo_root, codex_root),
+        "system": system,
+    }
+
+
 def schedule_status(repo_root: Path, codex_root: Path) -> dict[str, Any]:
     """Return a best-effort, read-only view of the local daily schedule."""
     system = platform.system()
@@ -87,6 +105,8 @@ def schedule_status(repo_root: Path, codex_root: Path) -> dict[str, Any]:
         "schedule_time": SCHEDULE_TIME,
         "command": schedule_command(repo_root, codex_root),
         "detail": detail[:1200],
+        "operation_plan": schedule_operation_plan(repo_root, codex_root),
+        "shortcut_plan": shortcut_operation_plan(repo_root, codex_root),
     }
 
 
@@ -98,6 +118,23 @@ def install_shortcut_dry_run(repo_root: Path, codex_root: Path) -> str:
     if system == "Darwin":
         return f"Desktop .command Codex Self-Improving Loop -> {command}"
     return f"Desktop .desktop Codex Self-Improving Loop -> {command}"
+
+
+def shortcut_operation_plan(repo_root: Path, codex_root: Path) -> dict[str, Any]:
+    system = platform.system() or "Unknown"
+    return {
+        "mode": "actual",
+        "dry_run_preview": install_shortcut_dry_run(repo_root, codex_root),
+        "actual_effect": (
+            "Writes a Desktop .cmd launcher."
+            if system == "Windows"
+            else "Writes a Desktop .command launcher."
+            if system == "Darwin"
+            else "Writes a Desktop .desktop launcher."
+        ),
+        "command": shortcut_command(repo_root, codex_root),
+        "system": system,
+    }
 
 
 def install_schedule(repo_root: Path, codex_root: Path, dry_run: bool = False) -> str:

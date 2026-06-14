@@ -6,8 +6,6 @@ import shutil
 from pathlib import Path
 
 
-START = "<!-- codex-self-improving-loop:start -->"
-END = "<!-- codex-self-improving-loop:end -->"
 COPY_IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", ".pytest_cache", ".mypy_cache", ".ruff_cache")
 
 
@@ -25,24 +23,14 @@ def copy_file_if_missing(src: Path, dst: Path) -> None:
         shutil.copy2(src, dst)
 
 
-def append_learning_block(src: Path, dst: Path, force: bool = True) -> None:
-    block = src.read_text(encoding="utf-8").strip() + "\n"
-    existing = dst.read_text(encoding="utf-8") if dst.exists() else "# AGENTS.md\n\n"
-    if START in existing and END in existing:
-        if not force:
-            return
-        before, rest = existing.split(START, 1)
-        _, after = rest.split(END, 1)
-        dst.write_text(before.rstrip() + "\n\n" + block + after.lstrip(), encoding="utf-8")
-        return
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    dst.write_text(existing.rstrip() + "\n\n" + block, encoding="utf-8")
-
-
 def install_skills(app_root: Path, codex_root: Path, agents_root: Path | None = None) -> dict[str, str]:
     agents = agents_root or Path.home() / ".agents"
     copy_tree(app_root / "agents" / "skills" / "session-recall", agents / "skills" / "session-recall")
     copy_tree(app_root / "agents" / "skills" / "memory-capture", agents / "skills" / "memory-capture")
-    copy_file_if_missing(app_root / "codex" / "memories" / "USER.template.md", codex_root / "memories" / "USER.md")
-    append_learning_block(app_root / "codex" / "AGENTS.learning-block.md", codex_root / "AGENTS.md", force=True)
     return {"agents_root": str(agents), "codex_root": str(codex_root), "status": "ok"}
+
+
+def install_user_template(app_root: Path, codex_root: Path) -> dict[str, str]:
+    target = codex_root / "memories" / "USER.md"
+    copy_file_if_missing(app_root / "codex" / "memories" / "USER.template.md", codex_root / "memories" / "USER.md")
+    return {"codex_root": str(codex_root), "target": str(target), "status": "ok"}

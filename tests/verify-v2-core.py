@@ -124,6 +124,7 @@ def main() -> int:
 
     server = ThreadingHTTPServer((LOCAL_HOST, 0), SilHandler)
     server.codex_root = root
+    server.agents_root = root / "agents"
     server.token = "test-token"
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -132,6 +133,46 @@ def main() -> int:
             page = response.read().decode("utf-8")
         if "Codex Self-Improving Loop" not in page:
             raise AssertionError("tokenized WebUI landing URL should return HTML")
+        original_agents_text = (
+            "# AGENTS.md\n\n"
+            "<!-- codex-self-improving-loop:start -->\n"
+            "legacy global block\n"
+            "<!-- codex-self-improving-loop:end -->\n",
+        )
+        original_agents_text = "".join(original_agents_text)
+        (root / "AGENTS.md").write_text(
+            original_agents_text,
+            encoding="utf-8",
+        )
+        install_skills_request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/install/skills",
+            method="POST",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(install_skills_request, timeout=5) as response:
+            install_skills_api = json.loads(response.read().decode("utf-8"))
+        if install_skills_api.get("status") != "ok":
+            raise AssertionError(f"install skills API should succeed: {install_skills_api}")
+        if (root / "AGENTS.md").read_text(encoding="utf-8") != original_agents_text:
+            raise AssertionError("install skills API should not modify AGENTS.md")
+        user_template_path = root / "memories" / "USER.md"
+        if user_template_path.exists():
+            user_template_path.unlink()
+        with urllib.request.urlopen(install_skills_request, timeout=5) as response:
+            install_skills_api = json.loads(response.read().decode("utf-8"))
+        if install_skills_api.get("status") != "ok":
+            raise AssertionError(f"install skills API should succeed without USER.md side effects: {install_skills_api}")
+        if user_template_path.exists():
+            raise AssertionError("install skills API should not create USER.md")
+        install_user_template_request = urllib.request.Request(
+            f"http://{LOCAL_HOST}:{server.server_port}/api/install/user-template",
+            method="POST",
+            headers={"Authorization": "Bearer test-token"},
+        )
+        with urllib.request.urlopen(install_user_template_request, timeout=5) as response:
+            user_template_api = json.loads(response.read().decode("utf-8"))
+        if user_template_api.get("status") != "ok" or not user_template_path.exists():
+            raise AssertionError(f"user template API should create missing USER.md: {user_template_api}")
         request = urllib.request.Request(
             f"http://{LOCAL_HOST}:{server.server_port}/api/summary",
             headers={"Authorization": "Bearer test-token"},
@@ -184,9 +225,37 @@ def main() -> int:
                 "updated_at",
                 "source_count",
                 "source_files",
+                "analysis_engine",
+                "analysis_error",
+                "recommendation_engine",
+                "recommendation_error",
             }
             if not required_detail_keys.issubset(candidate_keys):
                 raise AssertionError(f"summary API should expose detail panel fields: {candidate_keys}")
+        for path, expected_kind in (("/api/scan", "scan"), ("/api/scan-and-analyze", "scan-and-analyze")):
+            async_request = urllib.request.Request(
+                f"http://{LOCAL_HOST}:{server.server_port}{path}",
+                method="POST",
+                headers={"Authorization": "Bearer test-token"},
+            )
+            with urllib.request.urlopen(async_request, timeout=5) as response:
+                async_payload = json.loads(response.read().decode("utf-8"))
+            if not async_payload.get("async") or not async_payload.get("run_id") or async_payload.get("kind") != expected_kind:
+                raise AssertionError(f"{path} should start an async tracked run: {async_payload}")
+            async_status_request = urllib.request.Request(
+                f"http://{LOCAL_HOST}:{server.server_port}/api/runs/{async_payload['run_id']}",
+                headers={"Authorization": "Bearer test-token"},
+            )
+            async_status = {}
+            deadline = time.time() + 15
+            while time.time() < deadline:
+                with urllib.request.urlopen(async_status_request, timeout=5) as response:
+                    async_status = json.loads(response.read().decode("utf-8"))
+                if async_status["status"] != "running":
+                    break
+                time.sleep(0.2)
+            if async_status.get("status") != "ok":
+                raise AssertionError(f"{path} async run should complete successfully: {async_status}")
         summary_keys = set(summary_api["summary"])
         required_summary_keys = {
             "memory",
@@ -328,6 +397,11 @@ def main() -> int:
         "data-view=\"dashboard\"",
         "data-view=\"workflow\"",
         "data-view=\"operations\"",
+        "setupChecklist",
+        "setupActionInit",
+        "setupActionRebuild",
+        "setupActionSkills",
+        "setupActionSchedule",
         "dailyCommandCenter",
         "workflowReviewQueue",
         "evolutionProposalBoard",
@@ -427,6 +501,7 @@ def main() -> int:
         "installSchedule",
         "installShortcut",
         "installSkills",
+        "installUserTemplate",
         "exportDigest",
         "backupDatabase",
         "runRows",
@@ -445,6 +520,10 @@ def main() -> int:
         "reviewRewrite",
         "saveReview",
         "confirmAction",
+        "confirmModal",
+        "confirmModalTitle",
+        "confirmModalConfirm",
+        "confirmModalCancel",
         "confirmActionLabel",
         "confirmFilesLabel",
         "confirmResultLabel",
@@ -455,6 +534,7 @@ def main() -> int:
         "confirmExportDigest",
         "confirmExportCandidates",
         "confirmInstallSkills",
+        "confirmInstallUserTemplate",
         "confirmSaveReview",
         "confirmArchiveSelected",
         "confirmRejectSelected",
@@ -479,6 +559,7 @@ def main() -> int:
         "/api/schedule/install",
         "/api/shortcut/install",
         "/api/install/skills",
+        "/api/install/user-template",
         "/api/export/digest",
         "/api/rebuild",
         "/api/runs/${runId}",
@@ -497,6 +578,13 @@ def main() -> int:
     for removed in ('id="tab-review"', 'data-nav="review"', 'data-view="review"'):
         if removed in html:
             raise AssertionError(f"WebUI should merge Candidate Center and Review Center, found legacy marker: {removed}")
+    if 'window.confirm' in html:
+        raise AssertionError("WebUI should use the structured confirmation modal, not window.confirm")
+    if html.count('data-view="operations"') != 1:
+        raise AssertionError("Operations should be rendered as one single view container")
+    for marker in ("operation-danger", "operation-secondary", "operation-quiet", "dock-actions"):
+        if marker not in html:
+            raise AssertionError(f"WebUI should expose clearer button hierarchy: missing {marker}")
     schedule = run([sys.executable, str(sil), "schedule", "install", "--codex-root", str(root), "--dry-run"], repo)
     if "sil.py scan --once" not in schedule.stdout:
         raise AssertionError("schedule dry-run should invoke sil.py scan --once")

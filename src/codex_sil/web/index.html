@@ -49,6 +49,40 @@
           </div>
           <div class="panel-body">
             <p class="panel-description" id="setupWizardCopy" data-i18n="setupWizardDesc">Initialize the local database, rebuild history, install skills, then install the daily schedule.</p>
+            <div class="setup-checklist" id="setupChecklist" aria-label="First run checklist">
+              <article class="setup-check-item" data-setup-step="database">
+                <span class="setup-check-status" id="setupCheckDatabase">-</span>
+                <div>
+                  <strong data-i18n="setupCheckDatabaseTitle">Initialize database</strong>
+                  <p class="task-copy" data-i18n="setupCheckDatabaseCopy">Create the local SQLite store and WebUI assets.</p>
+                </div>
+                <button class="operation-secondary" id="setupActionInit" type="button" data-action data-i18n="initializeData">Initialize Database</button>
+              </article>
+              <article class="setup-check-item" data-setup-step="history">
+                <span class="setup-check-status" id="setupCheckHistory">-</span>
+                <div>
+                  <strong data-i18n="setupCheckHistoryTitle">Rebuild history</strong>
+                  <p class="task-copy" data-i18n="setupCheckHistoryCopy">Scan historical sessions into the review queue.</p>
+                </div>
+                <button class="operation-danger" id="setupActionRebuild" type="button" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
+              </article>
+              <article class="setup-check-item" data-setup-step="skills">
+                <span class="setup-check-status" id="setupCheckSkills">-</span>
+                <div>
+                  <strong data-i18n="setupCheckSkillsTitle">Install skills</strong>
+                  <p class="task-copy" data-i18n="setupCheckSkillsCopy">Install bundled recall and memory capture skills.</p>
+                </div>
+                <button class="operation-secondary" id="setupActionSkills" type="button" data-action data-i18n="installSkills">Install / Update Skills</button>
+              </article>
+              <article class="setup-check-item" data-setup-step="schedule">
+                <span class="setup-check-status" id="setupCheckSchedule">-</span>
+                <div>
+                  <strong data-i18n="setupCheckScheduleTitle">Install schedule</strong>
+                  <p class="task-copy" data-i18n="setupCheckScheduleCopy">Create the daily local scan runner.</p>
+                </div>
+                <button class="operation-secondary" id="setupActionSchedule" type="button" data-action data-i18n="installSchedule">Install Schedule</button>
+              </article>
+            </div>
             <div class="toolbar">
               <button class="secondary" data-nav-jump="operations" data-i18n="openDataCenter">Open Data Center</button>
               <button class="secondary" data-nav-jump="operations" data-i18n="openSkillManagement">Open Skills</button>
@@ -243,9 +277,10 @@
             </div>
           </article>
         </section>
+        <div id="operationsDynamicSections"></div>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="panel recovery-queue operations-section" id="operationsRecoveryQueue" data-ops-section="data,recovery">
           <div class="panel-header">
             <h2 data-i18n="operationsRecoveryTitle">Recovery Queue</h2>
@@ -258,7 +293,7 @@
         </section>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="panel data-panel operations-console operations-section" id="operationsConsole" data-ops-section="data">
           <div class="operations-anchor" id="operationsData"></div>
           <div class="panel-header">
@@ -271,10 +306,10 @@
                 <h3 data-i18n="safeOperationsTitle">Safe Operations</h3>
                 <p class="task-copy" data-i18n="safeOperationsDesc">Refresh, initialize, back up, or scan without clearing existing review queues.</p>
                 <div class="toolbar">
-                  <button id="refreshButton" data-action data-i18n="refresh">Refresh</button>
-                  <button id="initializeData" data-action data-i18n="initializeData">Initialize Database</button>
-                  <button class="secondary" id="backupDatabase" data-action data-i18n="backupDatabase">Backup Database</button>
-                  <button class="secondary" id="scanButton" data-action data-i18n="scanOnce">Scan Once</button>
+                  <button class="secondary operation-quiet" id="refreshButton" data-action data-i18n="refresh">Refresh</button>
+                  <button class="operation-secondary" id="initializeData" data-action data-i18n="initializeData">Initialize Database</button>
+                  <button class="secondary operation-quiet" id="backupDatabase" data-action data-i18n="backupDatabase">Backup Database</button>
+                  <button class="operation-secondary" id="scanButton" data-action data-i18n="scanOnce">Scan Once</button>
                   <button id="scanAndAnalyzeButton" data-action data-i18n="scanAndAnalyze">Scan &amp; Analyze</button>
                 </div>
               </section>
@@ -282,21 +317,21 @@
                 <h3 data-i18n="dangerOperationsTitle">Dangerous Operations</h3>
                 <p class="task-copy" data-i18n="dangerOperationsDesc">Rebuild clears active SQLite tables after creating a backup, then rescans history.</p>
                 <div class="toolbar">
-                  <button class="secondary" id="rebuildButton" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
+                  <button class="operation-danger" id="rebuildButton" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
                 </div>
               </section>
               <section class="operation-card export-operation-zone" id="exportOperationZone">
                 <h3 data-i18n="exportOperationsTitle">Export Operations</h3>
                 <p class="task-copy" data-i18n="exportOperationsDesc">Create review files or a migration bundle from current data without changing candidate status.</p>
                 <div class="toolbar">
-                  <button class="secondary" id="exportDigest" data-action data-i18n="exportDigest">Export Digest</button>
-                  <button class="secondary" id="exportCandidates" data-action data-i18n="exportCandidates">Export Candidates</button>
-                  <button class="secondary" id="exportBundle" data-action data-i18n="exportBundle">Export Bundle</button>
+                  <button class="secondary operation-quiet" id="exportDigest" data-action data-i18n="exportDigest">Export Digest</button>
+                  <button class="secondary operation-quiet" id="exportCandidates" data-action data-i18n="exportCandidates">Export Candidates</button>
+                  <button class="secondary operation-quiet" id="exportBundle" data-action data-i18n="exportBundle">Export Bundle</button>
                 </div>
                 <label class="detail-label" for="importPreviewPath" data-i18n="importPreviewLabel">Import Bundle Preview Path</label>
                 <input class="search-input" id="importPreviewPath" type="text" data-i18n-placeholder="importPreviewPlaceholder" placeholder="Paste bundle .zip path for dry-run preview">
                 <div class="toolbar">
-                  <button class="secondary" id="importPreview" data-action data-i18n="importPreview">Import Preview</button>
+                  <button class="secondary operation-quiet" id="importPreview" data-action data-i18n="importPreview">Import Preview</button>
                 </div>
                 <pre class="diff-preview" id="importPreviewResult"></pre>
               </section>
@@ -543,13 +578,13 @@
               <div class="detail-label" data-i18n="operationResultTitle">Last Operation Result</div>
               <p class="task-copy" id="operationResultCopy" data-i18n="operationResultIdle">No operation has run in this session.</p>
             </section>
-            <div class="toolbar">
-              <button class="secondary" id="archiveSelected" data-action data-i18n="archiveSelected">Archive Selected</button>
-              <button class="secondary" id="rejectSelected" data-action data-i18n="rejectSelected">Reject Selected</button>
-              <button id="promoteSelected" data-action data-i18n="promoteUser">Promote Selected To USER.md</button>
-              <button id="promoteAgents" data-action data-i18n="promoteAgents">Promote To Project AGENTS.md</button>
-              <button id="promoteSkill" data-action data-i18n="promoteSkill">Promote As Skill</button>
-              <button id="promotePatch" data-action data-i18n="promotePatch">Promote As Skill Patch</button>
+            <div class="toolbar dock-actions">
+              <button class="secondary operation-quiet" id="archiveSelected" data-action data-i18n="archiveSelected">Archive Selected</button>
+              <button class="operation-danger" id="rejectSelected" data-action data-i18n="rejectSelected">Reject Selected</button>
+              <button class="operation-danger" id="promoteSelected" data-action data-i18n="promoteUser">Promote Selected To USER.md</button>
+              <button class="operation-danger" id="promoteAgents" data-action data-i18n="promoteAgents">Promote To Project AGENTS.md</button>
+              <button class="operation-danger" id="promoteSkill" data-action data-i18n="promoteSkill">Promote As Skill</button>
+              <button class="operation-danger" id="promotePatch" data-action data-i18n="promotePatch">Promote As Skill Patch</button>
             </div>
           </div>
         </aside>
@@ -565,7 +600,7 @@
         </section>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="panel operations-section" data-ops-section="history">
           <div class="panel-header">
             <h2 data-i18n="promotionCenter">Promotion Center</h2>
@@ -576,7 +611,7 @@
         </section>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="panel operations-section" data-ops-section="knowledge">
           <div class="operations-anchor" id="operationsKnowledge"></div>
           <div class="panel-header">
@@ -585,7 +620,8 @@
           <div class="panel-body">
             <p class="panel-description" data-i18n="skillManagementDesc">Install local skills, inspect usage telemetry, and review skill patch candidates from the candidate queue.</p>
             <div class="toolbar">
-              <button id="installSkills" data-action data-i18n="installSkills">Install / Update Skills</button>
+              <button class="operation-secondary" id="installSkills" data-action data-i18n="installSkills">Install / Update Skills</button>
+              <button class="secondary operation-quiet" id="installUserTemplate" data-action data-i18n="installUserTemplate">Initialize USER.md Template</button>
             </div>
             <section class="skill-health-panel" id="skillHealthPanel">
               <h3 data-i18n="skillHealthTitle">Skill Health</h3>
@@ -611,7 +647,7 @@
         </section>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="panel schedule-panel operations-section" data-ops-section="automation">
           <div class="operations-anchor" id="operationsAutomation"></div>
           <div class="panel-header">
@@ -638,16 +674,16 @@
               </article>
             </section>
             <div class="toolbar" id="scheduleActionZone">
-              <button id="installSchedule" data-action data-i18n="installSchedule">Install Schedule</button>
-              <button class="secondary" id="uninstallSchedule" data-action data-i18n="uninstallSchedule">Uninstall Schedule</button>
-              <button id="installShortcut" data-action data-i18n="installShortcut">Install Desktop Shortcut</button>
-              <button class="secondary" id="uninstallShortcut" data-action data-i18n="uninstallShortcut">Uninstall Desktop Shortcut</button>
+              <button class="operation-secondary" id="installSchedule" data-action data-i18n="installSchedule">Install Schedule</button>
+              <button class="secondary operation-quiet" id="uninstallSchedule" data-action data-i18n="uninstallSchedule">Uninstall Schedule</button>
+              <button class="operation-secondary" id="installShortcut" data-action data-i18n="installShortcut">Install Desktop Shortcut</button>
+              <button class="secondary operation-quiet" id="uninstallShortcut" data-action data-i18n="uninstallShortcut">Uninstall Desktop Shortcut</button>
             </div>
           </div>
         </section>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="run-workspace operations-section" id="runWorkspace" data-ops-section="history">
           <section class="panel" id="runListPanel">
             <div class="panel-header">
@@ -693,7 +729,7 @@
         </section>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="panel recall-workbench operations-section" id="recallWorkbench" data-ops-section="knowledge">
           <div class="panel-header">
             <h2 data-i18n="recallTitle">Cross-Session Recall</h2>
@@ -720,12 +756,12 @@
         </section>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="panel audit-recovery-panel operations-section" id="auditRecoveryPanel" data-ops-section="history">
           <div class="operations-anchor" id="operationsEvidence"></div>
           <div class="panel-header">
             <h2 data-i18n="auditCenter">Audit Center</h2>
-            <button class="secondary" type="button" id="refreshAudit" data-i18n="refresh">Refresh</button>
+            <button class="secondary operation-quiet" type="button" id="refreshAudit" data-i18n="refresh">Refresh</button>
           </div>
           <div class="module-toolbar" id="auditFilterBar">
             <input class="search-input" id="auditSearch" type="search" data-i18n-placeholder="auditSearchPlaceholder" placeholder="Filter audit actions">
@@ -752,12 +788,12 @@
         </section>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="module-grid">
           <section class="panel" id="promotionHistoryPanel" data-ops-section="history">
             <div class="panel-header">
               <h2 data-i18n="promotionHistory">Promotion History</h2>
-              <button class="secondary" type="button" id="refreshPromotions" data-i18n="refresh">Refresh</button>
+              <button class="secondary operation-quiet" type="button" id="refreshPromotions" data-i18n="refresh">Refresh</button>
             </div>
             <div class="table-wrap">
               <table>
@@ -792,17 +828,17 @@
             </div>
             <div class="panel-body change-summary" id="targetChangeSummary"></div>
             <div class="toolbar">
-              <button class="secondary" type="button" id="copyRollback" data-i18n="copyRollback">Copy Rollback Command</button>
+              <button class="secondary operation-quiet" type="button" id="copyRollback" data-i18n="copyRollback">Copy Rollback Command</button>
             </div>
           </section>
         </section>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="panel" id="reviewHistoryPanel" data-ops-section="history">
           <div class="panel-header">
             <h2 data-i18n="reviewHistory">Review History</h2>
-            <button class="secondary" type="button" id="refreshReviews" data-i18n="refresh">Refresh</button>
+            <button class="secondary operation-quiet" type="button" id="refreshReviews" data-i18n="refresh">Refresh</button>
           </div>
           <div class="module-toolbar" id="reviewHistoryFilters">
             <select class="filter-select" id="reviewHistoryStatusFilter" aria-label="Review history status">
@@ -835,7 +871,7 @@
         </section>
       </section>
 
-      <section class="view-panel" data-view="operations">
+      <section class="operations-template-fragment" hidden>
         <section class="panel" id="doctorPanel" data-ops-section="data">
           <div class="panel-header">
             <h2 data-i18n="doctorTitle">Doctor</h2>
@@ -843,8 +879,8 @@
           <div class="panel-body">
             <section class="doctor-health-grid" id="doctorHealthGrid"></section>
             <div class="toolbar" id="doctorFixActions">
-              <button class="secondary" type="button" id="doctorRefresh" data-i18n="refresh">Refresh</button>
-              <button class="secondary" type="button" id="doctorOpenData" data-i18n="openDataCenter">Open Data Center</button>
+              <button class="secondary operation-quiet" type="button" id="doctorRefresh" data-i18n="refresh">Refresh</button>
+              <button class="secondary operation-quiet" type="button" id="doctorOpenData" data-i18n="openDataCenter">Open Data Center</button>
             </div>
           </div>
           <div class="table-wrap">
@@ -864,6 +900,21 @@
       </section>
     </div>
   </main>
+
+  <div class="confirm-modal" id="confirmModal" hidden role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+    <div class="confirm-backdrop" id="confirmModalBackdrop"></div>
+    <section class="confirm-dialog" tabindex="-1">
+      <div class="panel-header">
+        <h2 id="confirmModalTitle" data-i18n="confirmModalTitle">Confirm Operation</h2>
+        <span class="tag review" id="confirmModalTone" data-i18n="manualApprovalRequired">Manual approval</span>
+      </div>
+      <div class="panel-body confirm-modal-body" id="confirmModalBody"></div>
+      <div class="toolbar confirm-modal-actions">
+        <button class="secondary operation-quiet" id="confirmModalCancel" type="button" data-i18n="confirmModalCancel">Cancel</button>
+        <button class="operation-danger" id="confirmModalConfirm" type="button" data-i18n="confirmModalConfirm">Confirm</button>
+      </div>
+    </section>
+  </div>
 
   <div class="toast" id="statusToast" role="status" aria-live="polite"></div>
 

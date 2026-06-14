@@ -22,6 +22,7 @@ MIGRATIONS: tuple[tuple[str, str], ...] = (
           recommendation_reason text not null,
           suggested_action text not null,
           engine text not null,
+          error text not null default '',
           created_at text not null default current_timestamp,
           updated_at text not null default current_timestamp
         );
@@ -64,6 +65,7 @@ MIGRATIONS: tuple[tuple[str, str], ...] = (
           conflicts text not null,
           rewrite_quality text not null,
           recommended_next_step text not null,
+          error text not null default '',
           created_at text not null default current_timestamp,
           updated_at text not null default current_timestamp
         );
@@ -80,6 +82,18 @@ MIGRATIONS: tuple[tuple[str, str], ...] = (
           created_at text not null default current_timestamp,
           updated_at text not null default current_timestamp
         );
+        """,
+    ),
+    (
+        "0003_engine_failure_reasons",
+        """
+        alter table recommendations add column error text not null default '';
+        """,
+    ),
+    (
+        "0004_analysis_failure_reasons",
+        """
+        alter table candidate_analyses add column error text not null default '';
         """,
     ),
 )
@@ -106,7 +120,11 @@ def apply_migrations(conn: sqlite3.Connection) -> None:
         existing = conn.execute("select 1 from schema_migrations where name=?", (name,)).fetchone()
         if existing:
             continue
-        conn.executescript(sql)
+        try:
+            conn.executescript(sql)
+        except sqlite3.OperationalError as exc:
+            if "duplicate column name" not in str(exc).lower():
+                raise
         conn.execute("insert into schema_migrations(name) values(?)", (name,))
     ensure_fts_tables(conn)
     conn.execute(

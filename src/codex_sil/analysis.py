@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from .codex_runner import analyze_with_codex
+from .codex_runner import analyze_with_codex, codex_available
 from .db import connect, init_db
 
 
@@ -23,6 +23,7 @@ class CandidateAnalysis:
     rewrite_quality: str
     recommended_next_step: str
     engine: str = "fallback_rules"
+    error: str = ""
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,11 @@ def fallback_analysis(candidate: dict[str, object]) -> tuple[CandidateAnalysis, 
         conflicts="No explicit conflict detected by fallback rules.",
         rewrite_quality="Use the candidate rewrite as a draft; review for specificity and portability.",
         recommended_next_step="Review the proposed text in the WebUI before any manual promotion.",
+        error=(
+            "codex analysis unavailable or invalid; fallback_rules used"
+            if codex_available()
+            else "codex unavailable or disabled; fallback_rules used"
+        ),
     )
     proposal = EvolutionProposal(
         target_type=target_type,
@@ -109,6 +115,7 @@ def _analysis_from_payload(payload: dict[str, object]) -> CandidateAnalysis | No
         rewrite_quality=values["rewrite_quality"],
         recommended_next_step=values["recommended_next_step"],
         engine="codex",
+        error="",
     )
 
 
@@ -163,9 +170,9 @@ def persist_analysis(
             """
             insert into candidate_analyses(
               candidate_id, engine, evidence_assessment, stability, scope, risk_level,
-              conflicts, rewrite_quality, recommended_next_step
+              conflicts, rewrite_quality, recommended_next_step, error
             )
-            values(?, ?, ?, ?, ?, ?, ?, ?, ?)
+            values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             on conflict(candidate_id) do update set
               engine=excluded.engine,
               evidence_assessment=excluded.evidence_assessment,
@@ -175,6 +182,7 @@ def persist_analysis(
               conflicts=excluded.conflicts,
               rewrite_quality=excluded.rewrite_quality,
               recommended_next_step=excluded.recommended_next_step,
+              error=excluded.error,
               updated_at=current_timestamp
             """,
             (
@@ -187,6 +195,7 @@ def persist_analysis(
                 analysis.conflicts[:1200],
                 analysis.rewrite_quality[:1200],
                 analysis.recommended_next_step[:1200],
+                analysis.error[:1200],
             ),
         )
         conn.execute(

@@ -18,7 +18,7 @@ from .bundle import export_bundle, import_preview
 from .db import connect, init_db
 from .digest import latest_digest
 from .exporter import export_candidates, export_digest
-from .installer import install_skills
+from .installer import install_skills, install_user_template
 from .merge import apply_merge_suggestion, generate_merge_suggestions, merge_suggestions_payload
 from .paths import db_path, html_path, runtime_dir
 from .promotion import (
@@ -143,8 +143,12 @@ def summary_payload(root: Path) -> dict[str, Any]:
               r.recommendation,
               r.recommendation_reason,
               r.suggested_action,
+              r.engine as recommendation_engine,
+              r.error as recommendation_error,
               ca.risk_level as analysis_risk_level,
               ca.recommended_next_step as analysis_next_step,
+              ca.engine as analysis_engine,
+              ca.error as analysis_error,
               ep.target_type as proposal_target_type,
               ep.requires_manual_approval as proposal_requires_manual_approval,
               count(distinct cs.session_id) as source_count,
@@ -350,6 +354,30 @@ def run_rebuild_background(root: Path, run_id: int, backup_path: Path | None) ->
         finish_run(root, run_id, "ok", detail)
     except Exception as exc:
         finish_run(root, run_id, "failed", str(exc))
+
+
+def run_scan_background(root: Path, run_id: int, analyze_missing: bool = False) -> None:
+    try:
+        sessions = iter_session_files(root)
+        result = scan_into_run(root, run_id, sessions)
+        finalize_scan(root, run_id)
+        analyzed = 0
+        if analyze_missing:
+            analyzed = int(batch_analysis(root).get("analyzed") or 0)
+        detail = f"sessions={result['sessions']} candidates={result['candidates']}"
+        if analyze_missing:
+            detail += f" analyzed={analyzed}"
+        finish_run(root, run_id, "ok", detail)
+    except Exception as exc:
+        finish_run(root, run_id, "failed", str(exc))
+
+
+def start_background_scan(root: Path, kind: str = "scan", analyze_missing: bool = False) -> dict[str, Any]:
+    init_db(root)
+    run_id = start_run(root, kind)
+    worker = threading.Thread(target=run_scan_background, args=(root, run_id, analyze_missing), daemon=True)
+    worker.start()
+    return {"async": True, "run_id": run_id, "kind": kind, "status": "running"}
 
 
 def start_background_rebuild(root: Path) -> dict[str, Any]:
@@ -566,18 +594,10 @@ class SilHandler(BaseHTTPRequestHandler):
             self._json(200, {"database": str(init_db(root)), "webui": str(write_webui(root))})
             return
         if parsed.path == "/api/scan":
-            self._json(200, scan_once(root))
+            self._json(200, start_background_scan(root, kind="scan", analyze_missing=False))
             return
         if parsed.path == "/api/scan-and-analyze":
-            result = scan_once(root)
-            batch_result = batch_analysis(root)
-            merge_result = {}
-            try:
-                from .merge import generate_merge_suggestions
-                merge_result = generate_merge_suggestions(root)
-            except Exception:
-                pass
-            self._json(200, {"scan": result, "analysis": batch_result, "merge": merge_result})
+            self._json(200, start_background_scan(root, kind="scan-and-analyze", analyze_missing=True))
             return
         if parsed.path == "/api/rebuild":
             self._json(200, start_background_rebuild(root))
@@ -603,7 +623,10 @@ class SilHandler(BaseHTTPRequestHandler):
             self._json(200, {"result": uninstall_shortcut()})
             return
         if parsed.path == "/api/install/skills":
-            self._json(200, install_skills(repo_root, root))
+            self._json(200, install_skills(repo_root, root, agents_root=getattr(self.server, "agents_root", None)))
+            return
+        if parsed.path == "/api/install/user-template":
+            self._json(200, install_user_template(repo_root, root))
             return
         recommend_match = re.fullmatch(r"/api/candidates/(\d+)/recommend", parsed.path)
         if recommend_match:

@@ -210,6 +210,7 @@
         initializeData: "Initialize Database",
         backupDatabase: "Backup Database",
         installSkills: "Install / Update Skills",
+        installUserTemplate: "Initialize USER.md Template",
         rebuildDatabase: "Rebuild Database",
         scanOnce: "Scan Once",
         scanAndAnalyze: "Scan & Analyze",
@@ -312,7 +313,11 @@
         toastInitialized: "Database initialized.",
         toastBackupCreated: "Database backup created.",
         toastSkillsInstalled: "Skills installed or updated.",
+        toastUserTemplateInstalled: "USER.md template initialized.",
         toastScanned: "Scan completed.",
+        toastScanAnalyzedComplete: "Scan and analysis completed.",
+        toastScanStarted: "Scan started.",
+        toastScanAnalyzeStarted: "Scan and analysis started.",
         toastRebuilt: "Database rebuilt from historical sessions.",
         toastRebuildStarted: "Database rebuild started.",
         toastDigestExported: "Digest exported.",
@@ -341,6 +346,11 @@
         confirmActionLabel: "Action",
         confirmFilesLabel: "Files",
         confirmResultLabel: "Result",
+        confirmModalTitle: "Confirm Operation",
+        confirmModalCancel: "Cancel",
+        confirmModalConfirm: "Confirm",
+        confirmDryRunPreviewLabel: "Dry-run preview",
+        confirmActualEffectLabel: "Actual execution effect",
         confirmInitializeData: {
           action: "Initialize the local SQLite database and refresh the WebUI file.",
           files: "$HOME/.codex/self-improving-loop/self-improving-loop.sqlite and codex-self-improving-loop.html may be created or updated.",
@@ -373,8 +383,13 @@
         },
         confirmInstallSkills: {
           action: "Install or update the bundled session-recall and memory-capture skills.",
-          files: "Writes under $HOME/.agents/skills/ and uses the installed app copy under $HOME/.agents/codex-self-improving-loop/.",
-          result: "New Codex sessions can discover the updated skills after restart or reload.",
+          files: "Writes only under $HOME/.agents/skills/.",
+          result: "New Codex sessions can discover the updated skills after restart or reload. USER.md and AGENTS.md are not modified.",
+        },
+        confirmInstallUserTemplate: {
+          action: "Create the default USER.md memory template if it is missing.",
+          files: "Writes $HOME/.codex/memories/USER.md only when that file does not already exist.",
+          result: "Existing USER.md content is preserved; this only initializes a missing global memory file.",
         },
         confirmSaveReview: {
           action: "Save the selected candidate review status, note, and reviewed rewrite text.",
@@ -439,6 +454,24 @@
         setupWizardDesc: "Initialize the local database, rebuild history, install skills, then install the daily schedule.",
         setupReady: "Ready",
         setupNeedsWork: "Needs setup",
+        setupCheckDone: "Done",
+        setupCheckTodo: "To do",
+        setupCheckDatabaseTitle: "Initialize database",
+        setupCheckDatabaseCopy: "Create the local SQLite store and WebUI assets.",
+        setupCheckHistoryTitle: "Rebuild history",
+        setupCheckHistoryCopy: "Scan historical sessions into the review queue.",
+        setupCheckSkillsTitle: "Install skills",
+        setupCheckSkillsCopy: "Install bundled recall and memory capture skills.",
+        setupCheckScheduleTitle: "Install schedule",
+        setupCheckScheduleCopy: "Create the daily local scan runner.",
+        setupStepDatabaseDone: "SQLite database is available.",
+        setupStepDatabaseTodo: "Create the local SQLite database first.",
+        setupStepHistoryDone: "Historical sessions have been scanned.",
+        setupStepHistoryTodo: "Run a rebuild or scan to collect first evidence.",
+        setupStepSkillsDone: "Bundled skills are installed.",
+        setupStepSkillsTodo: "Install or update bundled skills.",
+        setupStepScheduleDone: "Daily schedule is installed.",
+        setupStepScheduleTodo: "Install the daily scan schedule when ready.",
         openSkillManagement: "Open Skills",
         openScheduleCenter: "Open Schedule",
         openCandidates: "Open Candidates",
@@ -704,6 +737,7 @@
         initializeData: "初始化数据库",
         backupDatabase: "备份数据库",
         installSkills: "安装 / 更新技能",
+        installUserTemplate: "初始化 USER.md 模板",
         rebuildDatabase: "重建数据库",
         scanOnce: "扫描一次",
         scanAndAnalyze: "扫描并分析",
@@ -806,7 +840,11 @@
         toastInitialized: "数据库已初始化。",
         toastBackupCreated: "数据库备份已创建。",
         toastSkillsInstalled: "技能已安装或更新。",
+        toastUserTemplateInstalled: "USER.md 模板已初始化。",
         toastScanned: "扫描已完成。",
+        toastScanAnalyzedComplete: "扫描与分析已完成。",
+        toastScanStarted: "扫描已启动。",
+        toastScanAnalyzeStarted: "扫描与分析已启动。",
         toastRebuilt: "数据库已按历史会话重建。",
         toastRebuildStarted: "数据库重建已启动。",
         toastDigestExported: "摘要已导出。",
@@ -835,6 +873,11 @@
         confirmActionLabel: "将执行",
         confirmFilesLabel: "会修改",
         confirmResultLabel: "执行结果",
+        confirmModalTitle: "确认操作",
+        confirmModalCancel: "取消",
+        confirmModalConfirm: "确认执行",
+        confirmDryRunPreviewLabel: "Dry-run 预览",
+        confirmActualEffectLabel: "实际执行影响",
         confirmInitializeData: {
           action: "初始化本地 SQLite 数据库，并刷新 WebUI 文件。",
           files: "可能创建或更新 $HOME/.codex/self-improving-loop/self-improving-loop.sqlite 和 codex-self-improving-loop.html。",
@@ -867,8 +910,13 @@
         },
         confirmInstallSkills: {
           action: "安装或更新内置的 session-recall 和 memory-capture 技能。",
-          files: "写入 $HOME/.agents/skills/，并使用 $HOME/.agents/codex-self-improving-loop/ 下的安装副本。",
-          result: "重启或重新加载后，新 Codex 会话可以发现更新后的技能。",
+          files: "只写入 $HOME/.agents/skills/。",
+          result: "重启或重新加载后，新 Codex 会话可以发现更新后的技能；不会修改 USER.md 或 AGENTS.md。",
+        },
+        confirmInstallUserTemplate: {
+          action: "当 USER.md 不存在时，创建默认全局记忆模板。",
+          files: "仅在 $HOME/.codex/memories/USER.md 不存在时写入该文件。",
+          result: "已有 USER.md 内容会保留；这个操作只负责初始化缺失的全局记忆文件。",
         },
         confirmSaveReview: {
           action: "保存所选候选的审阅状态、备注和审阅后改写内容。",
@@ -933,6 +981,24 @@
         setupWizardDesc: "初始化本地数据库、全量重扫历史、安装技能，然后安装每日调度。",
         setupReady: "已就绪",
         setupNeedsWork: "待初始化",
+        setupCheckDone: "已完成",
+        setupCheckTodo: "待执行",
+        setupCheckDatabaseTitle: "初始化数据库",
+        setupCheckDatabaseCopy: "创建本地 SQLite 存储和 WebUI 文件。",
+        setupCheckHistoryTitle: "重建历史",
+        setupCheckHistoryCopy: "把历史会话扫描进入审阅队列。",
+        setupCheckSkillsTitle: "安装技能",
+        setupCheckSkillsCopy: "安装内置的召回和记忆捕获技能。",
+        setupCheckScheduleTitle: "安装调度",
+        setupCheckScheduleCopy: "创建每日本地扫描任务。",
+        setupStepDatabaseDone: "SQLite 数据库已可用。",
+        setupStepDatabaseTodo: "先创建本地 SQLite 数据库。",
+        setupStepHistoryDone: "历史会话已完成扫描。",
+        setupStepHistoryTodo: "运行重建或扫描，收集第一批证据。",
+        setupStepSkillsDone: "内置技能已安装。",
+        setupStepSkillsTodo: "安装或更新内置技能。",
+        setupStepScheduleDone: "每日调度已安装。",
+        setupStepScheduleTodo: "准备好后安装每日扫描调度。",
         openSkillManagement: "打开 Skill 管理",
         openScheduleCenter: "打开调度中心",
         openCandidates: "打开候选中心",
@@ -1028,6 +1094,7 @@
     let latestPromotionPreview = null;
     let selectedAnalysisPayload = null;
     let selectedAnalysisLoading = false;
+    let pendingConfirmResolve = null;
     window.selectedCandidateId = null;
 
     function initialLanguage() {
@@ -1109,6 +1176,19 @@
 
     let currentSummary = {memory: 0, skill: 0, skill_patch: 0, review: 0};
 
+    function mountOperationsSections() {
+      const target = document.getElementById("operationsDynamicSections");
+      if (!target) {
+        return;
+      }
+      document.querySelectorAll(".operations-template-fragment").forEach((fragment) => {
+        while (fragment.firstElementChild) {
+          target.appendChild(fragment.firstElementChild);
+        }
+        fragment.remove();
+      });
+    }
+
     async function api(path, options = {}) {
       const headers = Object.assign({"Authorization": `Bearer ${token}`}, options.headers || {});
       const res = await fetch(path, Object.assign({}, options, {headers}));
@@ -1134,15 +1214,103 @@
       });
     }
 
+    function operationPlanSuffix(confirmKey) {
+      if (confirmKey === "confirmInstallSchedule" && scheduleInfo && scheduleInfo.operation_plan) {
+        const plan = scheduleInfo.operation_plan;
+        return `${t("confirmDryRunPreviewLabel")}:\n${plan.dry_run_preview || "-"}\n\n${t("confirmActualEffectLabel")}:\n${plan.actual_effect || "-"}`;
+      }
+      if (confirmKey === "confirmInstallShortcut" && scheduleInfo && scheduleInfo.shortcut_plan) {
+        const plan = scheduleInfo.shortcut_plan || {};
+        return `${t("confirmDryRunPreviewLabel")}:\n${plan.dry_run_preview || "-"}\n\n${t("confirmActualEffectLabel")}:\n${plan.actual_effect || "-"}`;
+      }
+      return "";
+    }
+
+    function closeConfirmModal(result) {
+      const modal = document.getElementById("confirmModal");
+      if (modal) {
+        modal.hidden = true;
+      }
+      if (pendingConfirmResolve) {
+        pendingConfirmResolve(Boolean(result));
+        pendingConfirmResolve = null;
+      }
+    }
+
     function confirmAction(confirmKey, extra = "") {
       if (!confirmKey) {
-        return true;
+        return Promise.resolve(true);
       }
       const detail = t(confirmKey);
-      const message = typeof detail === "object"
-        ? `${t("confirmActionLabel")}: ${detail.action}\n\n${t("confirmFilesLabel")}: ${detail.files}\n\n${t("confirmResultLabel")}: ${detail.result}`
-        : String(detail);
-      return confirm(extra ? `${message}\n\n${extra}` : message);
+      const body = document.getElementById("confirmModalBody");
+      const modal = document.getElementById("confirmModal");
+      const dialog = modal && modal.querySelector(".confirm-dialog");
+      if (!body || !modal) {
+        return Promise.resolve(false);
+      }
+      const parts = [];
+      if (typeof detail === "object") {
+        parts.push([t("confirmActionLabel"), detail.action || "-"]);
+        parts.push([t("confirmFilesLabel"), detail.files || "-"]);
+        parts.push([t("confirmResultLabel"), detail.result || "-"]);
+      } else {
+        parts.push([t("confirmActionLabel"), String(detail)]);
+      }
+      const plan = operationPlanSuffix(confirmKey);
+      body.innerHTML = "";
+      for (const [label, value] of parts) {
+        const section = document.createElement("section");
+        section.className = "confirm-section";
+        const heading = document.createElement("h3");
+        heading.textContent = label;
+        const text = document.createElement("p");
+        text.textContent = value;
+        section.append(heading, text);
+        body.appendChild(section);
+      }
+      for (const block of [plan, extra].filter(Boolean)) {
+        const pre = document.createElement("pre");
+        pre.className = "diff-preview confirm-preview";
+        pre.textContent = block;
+        body.appendChild(pre);
+      }
+      modal.hidden = false;
+      if (dialog) {
+        dialog.focus();
+      }
+      return new Promise((resolve) => {
+        pendingConfirmResolve = resolve;
+      });
+    }
+
+    function bindProxyClick(sourceId, targetId) {
+      const source = document.getElementById(sourceId);
+      const target = document.getElementById(targetId);
+      if (!source || !target) {
+        return;
+      }
+      source.addEventListener("click", () => target.click());
+    }
+
+    function bindConfirmModal() {
+      const confirm = document.getElementById("confirmModalConfirm");
+      const cancel = document.getElementById("confirmModalCancel");
+      const backdrop = document.getElementById("confirmModalBackdrop");
+      if (confirm) {
+        confirm.addEventListener("click", () => closeConfirmModal(true));
+      }
+      if (cancel) {
+        cancel.addEventListener("click", () => closeConfirmModal(false));
+      }
+      if (backdrop) {
+        backdrop.addEventListener("click", () => closeConfirmModal(false));
+      }
+      document.addEventListener("keydown", (event) => {
+        const modal = document.getElementById("confirmModal");
+        if (event.key === "Escape" && modal && !modal.hidden) {
+          closeConfirmModal(false);
+        }
+      });
     }
 
     function updateProgress(status) {
@@ -1228,6 +1396,28 @@
         `skills: ${setupStatus.skills_installed ? "ok" : "missing"}`,
         `schedule: ${setupStatus.schedule_installed ? "ok" : "missing"}`,
       ].join(" · ");
+      const steps = {
+        database: Boolean(setupStatus.database_exists),
+        history: Boolean((setupStatus.session_count || 0) > 0 || (setupStatus.candidate_count || 0) > 0),
+        skills: Boolean(setupStatus.skills_installed),
+        schedule: Boolean(setupStatus.schedule_installed),
+      };
+      for (const [step, done] of Object.entries(steps)) {
+        const row = document.querySelector(`[data-setup-step="${step}"]`);
+        const badge = document.getElementById(`setupCheck${step.charAt(0).toUpperCase()}${step.slice(1)}`);
+        const copyText = row && row.querySelector(".task-copy");
+        if (row) {
+          row.classList.toggle("setup-done", done);
+          row.classList.toggle("setup-todo", !done);
+        }
+        if (badge) {
+          badge.textContent = done ? t("setupCheckDone") : t("setupCheckTodo");
+          badge.className = `setup-check-status ${done ? "status" : "review"}`;
+        }
+        if (copyText) {
+          copyText.textContent = done ? t(`setupStep${step.charAt(0).toUpperCase()}${step.slice(1)}Done`) : t(`setupStep${step.charAt(0).toUpperCase()}${step.slice(1)}Todo`);
+        }
+      }
     }
 
     function metric(label, value) {
@@ -1459,7 +1649,18 @@
         time: formatDateTime(run.finished_at || run.started_at),
         detail: run.detail || run.kind || "-",
       }) : t("emptyRuns");
-      command.textContent = scheduleInfo && scheduleInfo.command ? scheduleInfo.command : "sil.py scan --once";
+      const commandLines = [scheduleInfo && scheduleInfo.command ? scheduleInfo.command : "sil.py scan --once"];
+      if (scheduleInfo && scheduleInfo.operation_plan) {
+        commandLines.push("");
+        commandLines.push(`${t("confirmDryRunPreviewLabel")}: ${scheduleInfo.operation_plan.dry_run_preview || "-"}`);
+        commandLines.push(`${t("confirmActualEffectLabel")}: ${scheduleInfo.operation_plan.actual_effect || "-"}`);
+      }
+      if (scheduleInfo && scheduleInfo.shortcut_plan) {
+        commandLines.push("");
+        commandLines.push(`${t("installShortcut")} ${t("confirmDryRunPreviewLabel")}: ${scheduleInfo.shortcut_plan.dry_run_preview || "-"}`);
+        commandLines.push(`${t("installShortcut")} ${t("confirmActualEffectLabel")}: ${scheduleInfo.shortcut_plan.actual_effect || "-"}`);
+      }
+      command.textContent = commandLines.join("\n");
     }
 
     function candidateRisk(candidate) {
@@ -2534,7 +2735,7 @@
     }
 
     async function applyMergeSuggestion(id) {
-      if (!confirmAction("confirmApplyMerge")) {
+      if (!(await confirmAction("confirmApplyMerge"))) {
         return;
       }
       setBusy(true);
@@ -2576,24 +2777,12 @@
     }
 
     async function runScanOnce() {
-      await runAction(() => api("/api/scan", {method: "POST"}), "toastScanned", {confirmKey: "confirmScanOnce"});
+      await runTrackedJob("/api/scan", "confirmScanOnce", "toastScanStarted", "toastScanned");
     }
 
     async function runScanAndAnalyze() {
-      setBusy(true);
-      try {
-        const result = await api("/api/scan-and-analyze", {method: "POST"});
-        await refresh(false);
-        const newCount = (result.scan && result.scan.candidates) || 0;
-        const analyzed = (result.analysis && result.analysis.analyzed) || 0;
-        showToast(t("toastScannedAnalyzed", {new: newCount, analyzed}), "ok");
-        setView("workflow");
-      } catch (error) {
-        console.error(error);
-        showToast(error.message || t("toastLoadFailed"), "error");
-      } finally {
-        setBusy(false);
-      }
+      await runTrackedJob("/api/scan-and-analyze", "confirmScanOnce", "toastScanAnalyzeStarted", "toastScanAnalyzedComplete");
+      setView("workflow");
     }
 
     async function runBatchAnalyze() {
@@ -2981,7 +3170,7 @@
         }
         confirmExtra = `${t("promotionPreviewTitle")}:\n${preview.diff || ""}`;
       }
-      if (!confirmAction(options.confirmKey, confirmExtra)) {
+      if (!(await confirmAction(options.confirmKey, confirmExtra))) {
         return;
       }
       setBusy(true);
@@ -3001,11 +3190,11 @@
       }
     }
 
-    async function pollRun(runId) {
+    async function pollRun(runId, successKey = "toastRebuilt") {
       const status = await api(`/api/runs/${runId}`);
       updateProgress(status);
       if (status.status === "running") {
-        activeRunTimer = setTimeout(() => pollRun(runId).catch((error) => {
+        activeRunTimer = setTimeout(() => pollRun(runId, successKey).catch((error) => {
           console.error(error);
           showToast(error.message || t("toastLoadFailed"), "error");
           setBusy(false);
@@ -3019,29 +3208,33 @@
       if (status.status === "ok") {
         await refresh(false);
         await refreshRuns();
-        showToast(t("toastRebuilt"));
+        showToast(t(successKey));
       } else {
         showToast(`${t("rebuildFailed")} ${status.detail || ""}`, "error");
       }
     }
 
-    async function runRebuild() {
-      if (!confirmAction("confirmRebuildDatabase")) {
+    async function runTrackedJob(path, confirmKey, startedKey, successKey) {
+      if (!(await confirmAction(confirmKey))) {
         return;
       }
       clearTimeout(activeRunTimer);
       setBusy(true);
       try {
-        const started = await api("/api/rebuild", {method: "POST"});
+        const started = await api(path, {method: "POST"});
         activeRunId = started.run_id;
         updateProgress({status: "running", processed: 0, skipped: 0, total: 0, latest_step: null});
-        showToast(t("toastRebuildStarted"));
-        await pollRun(activeRunId);
+        showToast(t(startedKey));
+        await pollRun(activeRunId, successKey);
       } catch (error) {
         console.error(error);
         showToast(error.message || t("toastLoadFailed"), "error");
         setBusy(false);
       }
+    }
+
+    async function runRebuild() {
+      await runTrackedJob("/api/rebuild", "confirmRebuildDatabase", "toastRebuildStarted", "toastRebuilt");
     }
 
     async function copyText(text) {
@@ -3062,6 +3255,9 @@
         throw new Error("copy command failed");
       }
     }
+
+    mountOperationsSections();
+    bindConfirmModal();
 
     document.querySelectorAll("#languageToggle button").forEach((button) => {
       button.addEventListener("click", () => {
@@ -3089,7 +3285,7 @@
 
     function switchOpsTab(tab) {
       document.querySelectorAll("[data-ops-tab]").forEach((btn) => btn.classList.toggle("active", btn.dataset.opsTab === tab));
-      const viewPanel = document.querySelector('.view-panel.active[data-view="operations"]');
+      const viewPanel = document.querySelector(".view-panel.active[data-view='operations']");
       if (!viewPanel) return;
       viewPanel.querySelectorAll("section[data-ops-section]").forEach((sec) => {
         const groups = (sec.dataset.opsSection || "").split(",").map((s) => s.trim());
@@ -3180,7 +3376,6 @@
     document.getElementById("refreshDigest").addEventListener("click", () => refreshDailyDigest().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("refreshMergeSuggestions").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("refreshMergeInline").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
-    document.getElementById("scanButton").addEventListener("click", () => runScanOnce());
     document.getElementById("scanAndAnalyzeButton").addEventListener("click", () => runScanAndAnalyze());
 
     document.getElementById("prevPage").addEventListener("click", () => {
@@ -3203,7 +3398,12 @@
     document.getElementById("initializeData").addEventListener("click", () => runAction(() => api("/api/init", {method: "POST"}), "toastInitialized", {confirmKey: "confirmInitializeData"}));
     document.getElementById("backupDatabase").addEventListener("click", () => runAction(() => api("/api/backup", {method: "POST"}), "toastBackupCreated", {refresh: false, confirmKey: "confirmBackupDatabase"}));
     document.getElementById("installSkills").addEventListener("click", () => runAction(() => api("/api/install/skills", {method: "POST"}), "toastSkillsInstalled", {refresh: false, confirmKey: "confirmInstallSkills"}));
+    document.getElementById("installUserTemplate").addEventListener("click", () => runAction(() => api("/api/install/user-template", {method: "POST"}), "toastUserTemplateInstalled", {refresh: false, confirmKey: "confirmInstallUserTemplate"}));
     document.getElementById("scanButton").addEventListener("click", () => runScanOnce());
+    bindProxyClick("setupActionInit", "initializeData");
+    bindProxyClick("setupActionRebuild", "rebuildButton");
+    bindProxyClick("setupActionSkills", "installSkills");
+    bindProxyClick("setupActionSchedule", "installSchedule");
     document.getElementById("exportDigest").addEventListener("click", () => runAction(() => api("/api/export/digest", {method: "POST"}), "toastDigestExported", {refresh: false, confirmKey: "confirmExportDigest"}));
     document.getElementById("exportCandidates").addEventListener("click", () => runAction(() => api("/api/export/candidates", {method: "POST"}), "toastCandidatesExported", {refresh: false, confirmKey: "confirmExportCandidates"}));
     document.getElementById("exportBundle").addEventListener("click", () => runAction(() => api("/api/export/bundle", {method: "POST"}), "toastBundleExported", {refresh: false, confirmKey: "confirmExportBundle"}));
@@ -3307,4 +3507,3 @@
       console.error(error);
       showToast(`${t("toastLoadFailed")} ${error.message || ""}`, "error");
     });
-

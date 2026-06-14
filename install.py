@@ -47,21 +47,17 @@ def install_app(repo: Path, dst: Path, force: bool) -> None:
     print(f"COPY app: {repo} -> {dst}")
 
 
-def append_learning_block(src: Path, dst: Path, force: bool) -> None:
-    block = src.read_text(encoding="utf-8").strip() + "\n"
-    existing = dst.read_text(encoding="utf-8") if dst.exists() else "# AGENTS.md\n\n"
-    if START in existing and END in existing:
-        if not force:
-            print(f"SKIP existing learning block: {dst}")
-            return
-        before, rest = existing.split(START, 1)
-        _, after = rest.split(END, 1)
-        dst.write_text(before.rstrip() + "\n\n" + block + after.lstrip(), encoding="utf-8")
-        print(f"REPLACE learning block: {dst}")
+def remove_learning_block(dst: Path) -> None:
+    if not dst.exists():
         return
-    ensure_dir(dst.parent)
-    dst.write_text(existing.rstrip() + "\n\n" + block, encoding="utf-8")
-    print(f"APPEND: {dst}")
+    existing = dst.read_text(encoding="utf-8")
+    if START not in existing or END not in existing:
+        return
+    before, rest = existing.split(START, 1)
+    _, after = rest.split(END, 1)
+    cleaned = before.rstrip() + "\n\n" + after.lstrip()
+    dst.write_text(cleaned.rstrip() + "\n", encoding="utf-8")
+    print(f"REMOVE learning block: {dst}")
 
 
 def main() -> int:
@@ -89,7 +85,7 @@ def main() -> int:
     copy_tree(repo / "agents" / "skills" / "memory-capture", agents_root / "skills" / "memory-capture", args.force)
     install_app(repo, agents_root / "codex-self-improving-loop", args.force)
     copy_file_if_missing(repo / "codex" / "memories" / "USER.template.md", codex_root / "memories" / "USER.md", force=False)
-    append_learning_block(repo / "codex" / "AGENTS.learning-block.md", codex_root / "AGENTS.md", args.force)
+    remove_learning_block(codex_root / "AGENTS.md")
 
     print()
     print("Installed Codex Self-Improving Loop.")

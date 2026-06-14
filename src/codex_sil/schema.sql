@@ -66,6 +66,7 @@ create table if not exists recommendations (
   recommendation_reason text not null,
   suggested_action text not null,
   engine text not null,
+  error text not null default '',
   created_at text not null default current_timestamp,
   updated_at text not null default current_timestamp
 );
@@ -81,6 +82,7 @@ create table if not exists candidate_analyses (
   conflicts text not null,
   rewrite_quality text not null,
   recommended_next_step text not null,
+  error text not null default '',
   created_at text not null default current_timestamp,
   updated_at text not null default current_timestamp
 );

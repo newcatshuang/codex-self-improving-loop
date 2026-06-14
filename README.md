@@ -59,10 +59,11 @@ The installer copies:
 
 - `sil.py` and `src/codex_sil` to `$HOME/.agents/codex-self-improving-loop`.
 - `session-recall` and `memory-capture` skills to `$HOME/.agents/skills`.
-- `codex/AGENTS.learning-block.md` into `$HOME/.codex/AGENTS.md`.
 - `codex/memories/USER.template.md` to `$HOME/.codex/memories/USER.md` only if missing.
 
 The `$HOME/.agents/codex-self-improving-loop` directory is the installed runtime copy used by schedules, shortcuts, and skills. Keeping this copy outside the Git checkout lets the local loop keep working even if the repository is moved, renamed, or deleted.
+
+The installer does not add global `AGENTS.md` rules. If an older install added the `codex-self-improving-loop` managed block to `$HOME/.codex/AGENTS.md`, the installer removes that block so normal sessions stay clean.
 
 ## Daily Use
 
@@ -77,6 +78,8 @@ The WebUI is organized around three working areas:
 - `Dashboard`: first-run setup, counters, daily digest, next-best-action guidance, pending review count, risk watch, top review priorities, recent promotions, recent runs, and error alerts.
 - `Review Workflow`: candidate queue, current-step guidance, candidate evidence, review notes, LLM analysis, proposed target, rationale, verification steps, merge suggestions, promotion diff preview, and the `Manual Approval Dock`.
 - `Operations`: database init/backup/rebuild/scan/export, import preview, schedule and shortcut management, skill health, session recall, run logs, audit logs, review history, promotion history, rollback preview, doctor diagnostics, and a recovery queue for failed runs or audit signals.
+
+In Operations, skill synchronization and `USER.md` template initialization are separate actions: `Install / Update Skills` only writes `$HOME/.agents/skills`, while `Initialize USER.md Template` only creates `$HOME/.codex/memories/USER.md` when it is missing.
 
 The `Manual Approval Dock` is the only place that writes promotions. LLM analysis can propose `USER.md`, `AGENTS.md`, skill, or skill patch targets, but every archive, reject, review save, merge, and promotion action still requires an explicit user click and confirmation dialog.
 

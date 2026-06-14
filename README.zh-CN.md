@@ -59,10 +59,11 @@ python install.py
 
 - `sil.py` 和 `src/codex_sil` 到 `$HOME/.agents/codex-self-improving-loop`。
 - `session-recall` 和 `memory-capture` skills 到 `$HOME/.agents/skills`。
-- `codex/AGENTS.learning-block.md` 到 `$HOME/.codex/AGENTS.md`。
 - `codex/memories/USER.template.md` 到 `$HOME/.codex/memories/USER.md`，仅在目标不存在时复制。
 
 `$HOME/.agents/codex-self-improving-loop` 是安装后的运行副本，定时任务、桌面快捷方式和 skills 都指向这份副本。这样即使 Git 仓库目录被移动、改名或删除，本机循环仍能继续工作。
+
+安装器不会再向全局 `AGENTS.md` 写入规则。如果旧版本曾向 `$HOME/.codex/AGENTS.md` 写入 `codex-self-improving-loop` 管理块，安装器会清理该块，避免普通会话被全局提示污染。
 
 ## 日常使用
 
@@ -77,6 +78,8 @@ WebUI 按三个工作区组织：
 - `总览`：首次运行向导、统计卡片、每日 digest、下一步建议、待审阅数量、风险观察、优先审阅候选、最近晋升、最近运行和错误提示。
 - `审阅工作流`：候选队列、当前步骤引导、候选证据、审阅备注、LLM 分析、建议目标、建议理由、验证步骤、候选合并、晋升 diff 预览，以及 `人工审批操作台`。
 - `运维与历史`：数据库初始化/备份/重建/扫描/导出、导入预览、调度和快捷方式、Skill 健康、跨会话检索、运行日志、审计日志、审阅历史、晋升历史、回滚预览、诊断，以及失败运行和审计信号的恢复复盘队列。
+
+在运维区，Skill 同步和 `USER.md` 模板初始化是两个独立动作：`安装 / 更新技能` 只写 `$HOME/.agents/skills`，`初始化 USER.md 模板` 只在 `$HOME/.codex/memories/USER.md` 缺失时创建该文件。
 
 `人工审批操作台` 是唯一会触发晋升写入的位置。LLM 分析可以建议写入 `USER.md`、`AGENTS.md`、skill 或 skill patch，但归档、拒绝、保存审阅、合并和晋升仍然都必须由用户明确点击，并经过确认弹窗。
 

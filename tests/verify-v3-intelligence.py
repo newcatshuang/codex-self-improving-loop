@@ -353,7 +353,6 @@ def main() -> int:
     readme_en = (repo / "README.md").read_text(encoding="utf-8")
     readme_zh = (repo / "README.zh-CN.md").read_text(encoding="utf-8")
     quickstart_zh = (repo / "QUICKSTART.zh-CN.md").read_text(encoding="utf-8")
-    learning_block = (repo / "codex" / "AGENTS.learning-block.md").read_text(encoding="utf-8")
     memory_skill = (repo / "agents" / "skills" / "memory-capture" / "SKILL.md").read_text(encoding="utf-8")
     stale_manual_boundary_markers = (
         "Use memory candidate auto-promotion only",
@@ -361,8 +360,10 @@ def main() -> int:
         "hard stop for automatic promotion",
     )
     for marker in stale_manual_boundary_markers:
-        if marker in learning_block or marker in memory_skill:
+        if marker in memory_skill:
             raise AssertionError(f"Installed instructions must not re-enable automatic promotion wording: {marker}")
+    if (repo / "codex" / "AGENTS.learning-block.md").exists():
+        raise AssertionError("Global AGENTS.md self-improving-loop block template should not be installed")
     if "v2 是一个" in quickstart_zh:
         raise AssertionError("Quickstart should describe the current v3 control plane, not the old v2 wording")
     if "所有晋升都必须人工确认" not in quickstart_zh:

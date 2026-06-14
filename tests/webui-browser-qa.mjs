@@ -44,6 +44,8 @@ report.checks.title = await page.locator('h1').innerText();
 report.checks.dashboardNextAction = await page.locator('#dashboardNextActionCopy').innerText();
 report.checks.dashboardPrimaryAction = await page.locator('#dashboardPrimaryAction').innerText();
 report.checks.dashboardPriorities = await page.locator('#dashboardPriorityList .dashboard-priority-item').count();
+report.checks.setupChecklistItems = await page.locator('#setupChecklist .setup-check-item').count();
+report.checks.operationsViewContainers = await page.locator('[data-view="operations"]').count();
 report.checks.noHorizontalOverflowDesktop = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
 
 await page.locator('#tab-workflow').click();
@@ -82,14 +84,19 @@ await page.locator('#candidateActionPanel').scrollIntoViewIfNeeded();
 report.checks.promotionButtonVisible = await page.locator(promotionButton).isVisible();
 report.checks.promotionButtonEnabled = await page.locator(promotionButton).isEnabled();
 await page.locator(promotionButton).click();
-await page.waitForTimeout(100);
+await page.waitForSelector('#confirmModal:not([hidden])');
 report.checks.confirmCallsAfterPromoteClick = await page.evaluate(() => window.__confirmCalls.length);
-report.checks.confirmPreviewIncluded = await page.evaluate(() => String(window.__confirmCalls[0] || '').includes('Promotion Diff Preview') || String(window.__confirmCalls[0] || '').includes('晋升 Diff 预览'));
+report.checks.confirmModalVisible = await page.locator('#confirmModal:not([hidden])').isVisible();
+report.checks.confirmPreviewIncluded = await page.locator('#confirmModalBody').innerText().then((text) => text.includes('Promotion Diff Preview') || text.includes('晋升 Diff 预览'));
+report.checks.confirmModalHasDanger = await page.locator('#confirmModalConfirm.operation-danger').isVisible();
+await page.locator('#confirmModalCancel').click();
+report.checks.approvalDockFixed = await page.locator('#candidateActionPanel').evaluate((node) => getComputedStyle(node).position === 'sticky');
 
 await page.locator('#tab-operations').click();
 await page.waitForSelector('#operationsLifecycleMap');
 report.checks.operationsLifecycleCards = await page.locator('#operationsLifecycleMap article').count();
 report.checks.recoveryQueueItems = await page.locator('#recoveryQueueList .recovery-queue-item').count();
+report.checks.operationsVisiblePanels = await page.locator('[data-view="operations"].active').count();
 
 await page.setViewportSize({ width: 390, height: 900 });
 await page.waitForTimeout(250);
