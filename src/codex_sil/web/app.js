@@ -6,13 +6,13 @@
         subtitle: "Review memory, skill, and skill patch candidates from a token-protected local service. All promotion actions run through this WebUI.",
         tokenProtected: "127.0.0.1 only, token protected",
         navHome: "Home",
-        navData: "Data Center",
+        navData: "Data",
         navCandidates: "Candidates",
         navPromotion: "Promotion",
         navSkills: "Skills",
         navSchedule: "Schedule",
         navRuns: "Run Logs",
-        navRecall: "Session Recall",
+        navRecall: "Recall",
         navAudit: "Audit",
         navPromotions: "Promotions",
         navReviews: "Reviews",
@@ -20,6 +20,10 @@
         navDashboard: "Dashboard",
         navWorkflow: "Review Workflow",
         navOperations: "Operations",
+        navEvidence: "Evidence",
+        navApproval: "Approval",
+        navAutomation: "Automation",
+        navHistory: "History",
         opsTabData: "Data",
         opsTabAutomation: "Automation",
         opsTabKnowledge: "Knowledge",
@@ -44,16 +48,9 @@
         homePromotionCopy: "Latest: {item}",
         dashboardTopPrioritiesTitle: "Top Review Priorities",
         dashboardTopPrioritiesEmpty: "No review priorities yet.",
-        openPriorityWorkflow: "Open Workflow",
         dashboardPrioritySummary: "{label} · score {score}",
         dashboardNextActionTitle: "Next Best Action",
         dashboardNextActionLoading: "Loading the current workflow state...",
-        dashboardActionRefresh: "Refresh",
-        dashboardActionInitialize: "Open Data Center",
-        dashboardActionResolveFailures: "Open Recovery Queue",
-        dashboardActionReviewCandidates: "Review Candidates",
-        dashboardActionScan: "Scan Once",
-        dashboardActionOpenWorkflow: "Open Workflow",
         dashboardStateSetup: "Setup",
         dashboardStateRecovery: "Recovery",
         dashboardStateReview: "Review",
@@ -533,13 +530,13 @@
         subtitle: "从受令牌保护的本地服务中审阅记忆、技能和技能补丁候选；所有晋升操作都可以在 WebUI 中点击完成。",
         tokenProtected: "仅绑定 127.0.0.1，并启用令牌保护",
         navHome: "首页",
-        navData: "数据中心",
-        navCandidates: "候选中心",
+        navData: "数据",
+        navCandidates: "候选",
         navPromotion: "晋升中心",
-        navSkills: "Skill 管理",
+        navSkills: "技能",
         navSchedule: "调度中心",
         navRuns: "运行日志",
-        navRecall: "跨会话检索",
+        navRecall: "检索",
         navAudit: "审计",
         navPromotions: "晋升历史",
         navReviews: "审阅历史",
@@ -547,6 +544,10 @@
         navDashboard: "总览",
         navWorkflow: "审阅工作流",
         navOperations: "运维与历史",
+        navEvidence: "证据",
+        navApproval: "审批",
+        navAutomation: "自动化",
+        navHistory: "历史",
         opsTabData: "数据",
         opsTabAutomation: "自动化",
         opsTabKnowledge: "知识",
@@ -571,16 +572,9 @@
         homePromotionCopy: "最近：{item}",
         dashboardTopPrioritiesTitle: "优先审阅候选",
         dashboardTopPrioritiesEmpty: "暂无优先审阅项。",
-        openPriorityWorkflow: "打开审阅工作流",
         dashboardPrioritySummary: "{label} · 分数 {score}",
         dashboardNextActionTitle: "下一步建议",
         dashboardNextActionLoading: "正在读取当前流程状态...",
-        dashboardActionRefresh: "刷新",
-        dashboardActionInitialize: "打开数据中心",
-        dashboardActionResolveFailures: "打开恢复队列",
-        dashboardActionReviewCandidates: "审阅候选",
-        dashboardActionScan: "扫描一次",
-        dashboardActionOpenWorkflow: "打开审阅工作流",
         dashboardStateSetup: "初始化",
         dashboardStateRecovery: "恢复",
         dashboardStateReview: "审阅",
@@ -1283,15 +1277,6 @@
       });
     }
 
-    function bindProxyClick(sourceId, targetId) {
-      const source = document.getElementById(sourceId);
-      const target = document.getElementById(targetId);
-      if (!source || !target) {
-        return;
-      }
-      source.addEventListener("click", () => target.click());
-    }
-
     function bindConfirmModal() {
       const confirm = document.getElementById("confirmModalConfirm");
       const cancel = document.getElementById("confirmModalCancel");
@@ -1462,9 +1447,6 @@
           tone: "review",
           badge: t("dashboardStateSetup"),
           copy: t("dashboardNextSetup"),
-          primary: t("dashboardActionInitialize"),
-          secondary: t("dashboardActionRefresh"),
-          action: "operations",
         };
       }
       if (failures) {
@@ -1472,9 +1454,6 @@
           tone: "review",
           badge: t("dashboardStateRecovery"),
           copy: t("dashboardNextRecovery"),
-          primary: t("dashboardActionResolveFailures"),
-          secondary: t("dashboardActionReviewCandidates"),
-          action: "recovery",
         };
       }
       if (openReviews) {
@@ -1482,37 +1461,25 @@
           tone: "status",
           badge: t("dashboardStateReview"),
           copy: t("dashboardNextReview", {count: openReviews}),
-          primary: t("dashboardActionReviewCandidates"),
-          secondary: t("dashboardActionScan"),
-          action: "workflow",
         };
       }
       return {
         tone: "status",
         badge: t("dashboardStateScan"),
         copy: t("dashboardNextScan"),
-        primary: t("dashboardActionScan"),
-        secondary: t("dashboardActionOpenWorkflow"),
-        action: "scan",
       };
     }
 
     function renderDashboardNextAction() {
       const badge = document.getElementById("dashboardNextActionBadge");
       const copy = document.getElementById("dashboardNextActionCopy");
-      const primary = document.getElementById("dashboardPrimaryAction");
-      const secondary = document.getElementById("dashboardSecondaryAction");
-      if (!badge || !copy || !primary || !secondary) {
+      if (!badge || !copy) {
         return;
       }
       const state = dashboardNextActionState();
       badge.textContent = state.badge;
       badge.className = `tag ${state.tone}`;
       copy.textContent = state.copy;
-      primary.textContent = state.primary;
-      secondary.textContent = state.secondary;
-      primary.dataset.dashboardAction = state.action;
-      secondary.dataset.dashboardAction = state.action === "scan" ? "workflow" : "refresh";
     }
 
     function formatType(type) {
@@ -1557,13 +1524,8 @@
     }
 
     function dashboardPriorityItem(item) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "dashboard-priority-item";
-      button.addEventListener("click", () => {
-        selectCandidate(item.id);
-        setView("workflow");
-      });
+      const card = document.createElement("article");
+      card.className = "dashboard-priority-item";
       const title = document.createElement("strong");
       title.textContent = item.title || item.text || "-";
       const summary = document.createElement("span");
@@ -1573,8 +1535,8 @@
       });
       const reasons = document.createElement("small");
       reasons.textContent = candidatePriorityReasons(item).join(" / ");
-      button.append(title, summary, reasons);
-      return button;
+      card.append(title, summary, reasons);
+      return card;
     }
 
     function renderDashboardTopPriorities() {
@@ -2075,33 +2037,49 @@
       return td;
     }
 
+    const navViewMap = {
+      dashboard: {view: "dashboard"},
+      home: {view: "dashboard", nav: "dashboard"},
+      workflow: {view: "workflow", workflowModule: "queue", nav: "workflow"},
+      candidates: {view: "workflow", workflowModule: "queue", nav: "workflow"},
+      evidence: {view: "workflow", workflowModule: "evidence", nav: "evidence"},
+      approval: {view: "workflow", workflowModule: "approval", nav: "approval"},
+      promotion: {view: "workflow", workflowModule: "approval", nav: "approval"},
+      data: {view: "operations", opsModule: "data", nav: "data"},
+      operations: {view: "operations", opsModule: "data", nav: "data"},
+      automation: {view: "operations", opsModule: "automation", nav: "automation"},
+      schedule: {view: "operations", opsModule: "automation", nav: "automation"},
+      skills: {view: "operations", opsModule: "skills", nav: "skills"},
+      recall: {view: "operations", opsModule: "recall", nav: "recall"},
+      history: {view: "operations", opsModule: "history", nav: "history"},
+      runs: {view: "operations", opsModule: "history", nav: "history"},
+      audit: {view: "operations", opsModule: "history", nav: "history"},
+      promotions: {view: "operations", opsModule: "history", nav: "history"},
+      reviews: {view: "operations", opsModule: "history", nav: "history"},
+      doctor: {view: "operations", opsModule: "doctor", nav: "doctor"},
+    };
+
     function setView(view) {
-      const aliases = {
-        home: "dashboard",
-        data: "operations",
-        candidates: "workflow",
-        promotion: "workflow",
-        skills: "operations",
-        schedule: "operations",
-        runs: "operations",
-        recall: "operations",
-        audit: "operations",
-        promotions: "operations",
-        reviews: "operations",
-        doctor: "operations",
-      };
-      view = aliases[view] || view;
-      currentView = view;
+      const target = navViewMap[view] || navViewMap.dashboard;
+      currentView = target.view;
+      const activeNav = target.nav || target.view;
+      const shell = document.getElementById("appShell");
+      if (shell) {
+        shell.dataset.currentNav = activeNav;
+      }
       document.querySelectorAll("[data-nav]").forEach((button) => {
-        const active = button.dataset.nav === view;
+        const active = button.dataset.nav === activeNav;
         button.classList.toggle("active", active);
         button.setAttribute("aria-current", active ? "page" : "false");
       });
       document.querySelectorAll("[data-view]").forEach((panel) => {
-        panel.classList.toggle("active", panel.dataset.view === view);
+        panel.classList.toggle("active", panel.dataset.view === target.view);
       });
-      if (view === "operations") {
-        switchOpsTab("data");
+      if (target.view === "workflow") {
+        switchWorkflowModule(target.workflowModule || "queue");
+      }
+      if (target.view === "operations") {
+        switchOpsTab(target.opsModule || "data");
         refreshRuns().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
         refreshDoctor().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
         refreshAudit().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
@@ -2200,11 +2178,17 @@
       }
     }
 
-    function scrollToOperationsAnchor(id) {
+    function moduleForOperationsAnchor(id) {
       const target = document.getElementById(id);
-      if (target) {
-        target.scrollIntoView({behavior: "smooth", block: "start"});
+      const section = target && (target.matches("[data-ops-section]") ? target : target.closest("[data-ops-section]"));
+      if (!section) {
+        return "data";
       }
+      return (section.dataset.opsSection || "data").split(",").map((item) => item.trim())[0] || "data";
+    }
+
+    function scrollToOperationsAnchor(id) {
+      setView(moduleForOperationsAnchor(id));
     }
 
     function recoveryQueueItem(kind, title, detail, actionLabel, targetId) {
@@ -2766,6 +2750,7 @@
       try {
         const preview = await previewPromotion(target);
         if (preview) {
+          setView("approval");
           showToast(t("toastPreviewLoaded"));
         }
       } catch (error) {
@@ -2799,30 +2784,6 @@
       }
     }
 
-    async function runDashboardPrimaryAction() {
-      const action = document.getElementById("dashboardPrimaryAction").dataset.dashboardAction || "workflow";
-      if (action === "scan") {
-        await runScanOnce();
-      } else if (action === "recovery") {
-        setView("operations");
-        scrollToOperationsAnchor("operationsRecoveryQueue");
-      } else if (action === "operations") {
-        setView("operations");
-        scrollToOperationsAnchor("operationsData");
-      } else {
-        setView("workflow");
-      }
-    }
-
-    async function runDashboardSecondaryAction() {
-      const action = document.getElementById("dashboardSecondaryAction").dataset.dashboardAction || "refresh";
-      if (action === "workflow") {
-        setView("workflow");
-      } else {
-        await refresh(true);
-      }
-    }
-
     function topReviewCandidate() {
       return sortedCandidates(
         allCandidates.filter((item) => ["review", "blocked"].includes(String(item.status || "").toLowerCase()))
@@ -2845,10 +2806,7 @@
         return;
       }
       if (action === "approval") {
-        const dock = document.getElementById("candidateActionPanel");
-        if (dock) {
-          dock.scrollIntoView({behavior: "smooth", block: "start"});
-        }
+        setView("approval");
         return;
       }
       showToast(t("analysisLoading"), "warn");
@@ -3280,8 +3238,36 @@
     });
 
     document.querySelectorAll("[data-ops-tab]").forEach((button) => {
-      button.addEventListener("click", () => switchOpsTab(button.dataset.opsTab));
+      button.addEventListener("click", () => setView(button.dataset.opsTab));
     });
+
+    function switchWorkflowModule(moduleName) {
+      const workspace = document.getElementById("candidateWorkspace");
+      if (!workspace) {
+        return;
+      }
+      workspace.dataset.workflowModule = moduleName;
+      document.querySelectorAll("[data-rp-tab]").forEach((button) => {
+        const detailActive = moduleName !== "approval";
+        const active = button.dataset.rpTab === (detailActive ? "detail" : "proposal");
+        button.classList.toggle("active", active);
+      });
+      document.querySelectorAll("[data-rp-content]").forEach((content) => {
+        const detailActive = moduleName !== "approval";
+        content.classList.toggle("active", content.dataset.rpContent === (detailActive ? "detail" : "proposal"));
+      });
+      const focusTarget = {
+        queue: "workflowReviewQueue",
+        evidence: "rightPanelContainer",
+        approval: "candidateActionPanel",
+      }[moduleName];
+      if (focusTarget) {
+        const panel = document.getElementById(focusTarget);
+        if (panel) {
+          panel.setAttribute("tabindex", "-1");
+        }
+      }
+    }
 
     function switchOpsTab(tab) {
       document.querySelectorAll("[data-ops-tab]").forEach((btn) => btn.classList.toggle("active", btn.dataset.opsTab === tab));
@@ -3308,13 +3294,6 @@
       });
     });
 
-    document.querySelectorAll("[data-nav-jump]").forEach((button) => {
-      button.addEventListener("click", () => setView(button.dataset.navJump));
-    });
-
-    document.getElementById("openPriorityWorkflow").addEventListener("click", () => setView("workflow"));
-    document.getElementById("dashboardPrimaryAction").addEventListener("click", () => runDashboardPrimaryAction().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
-    document.getElementById("dashboardSecondaryAction").addEventListener("click", () => runDashboardSecondaryAction().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("workflowPrimaryAction").addEventListener("click", () => runWorkflowPrimaryAction().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("workflowSecondaryAction").addEventListener("click", () => runWorkflowSecondaryAction().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
 
@@ -3372,8 +3351,7 @@
     });
 
     document.getElementById("doctorRefresh").addEventListener("click", () => refreshDoctor().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
-    document.getElementById("doctorOpenData").addEventListener("click", () => setView("operations"));
-    document.getElementById("refreshDigest").addEventListener("click", () => refreshDailyDigest().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("doctorOpenData").addEventListener("click", () => setView("data"));
     document.getElementById("refreshMergeSuggestions").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("refreshMergeInline").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("scanAndAnalyzeButton").addEventListener("click", () => runScanAndAnalyze());
@@ -3400,10 +3378,6 @@
     document.getElementById("installSkills").addEventListener("click", () => runAction(() => api("/api/install/skills", {method: "POST"}), "toastSkillsInstalled", {refresh: false, confirmKey: "confirmInstallSkills"}));
     document.getElementById("installUserTemplate").addEventListener("click", () => runAction(() => api("/api/install/user-template", {method: "POST"}), "toastUserTemplateInstalled", {refresh: false, confirmKey: "confirmInstallUserTemplate"}));
     document.getElementById("scanButton").addEventListener("click", () => runScanOnce());
-    bindProxyClick("setupActionInit", "initializeData");
-    bindProxyClick("setupActionRebuild", "rebuildButton");
-    bindProxyClick("setupActionSkills", "installSkills");
-    bindProxyClick("setupActionSchedule", "installSchedule");
     document.getElementById("exportDigest").addEventListener("click", () => runAction(() => api("/api/export/digest", {method: "POST"}), "toastDigestExported", {refresh: false, confirmKey: "confirmExportDigest"}));
     document.getElementById("exportCandidates").addEventListener("click", () => runAction(() => api("/api/export/candidates", {method: "POST"}), "toastCandidatesExported", {refresh: false, confirmKey: "confirmExportCandidates"}));
     document.getElementById("exportBundle").addEventListener("click", () => runAction(() => api("/api/export/bundle", {method: "POST"}), "toastBundleExported", {refresh: false, confirmKey: "confirmExportBundle"}));

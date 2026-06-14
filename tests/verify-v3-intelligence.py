@@ -209,11 +209,19 @@ def main() -> int:
         "dailyCommandCenter",
         "dashboardNextActionPanel",
         "dashboardNextActionCopy",
-        "dashboardPrimaryAction",
-        "dashboardSecondaryAction",
         "dashboardTopPriorities",
         "dashboardPriorityList",
-        "openPriorityWorkflow",
+        "sideNav",
+        'data-nav="dashboard"',
+        'data-nav="workflow"',
+        'data-nav="evidence"',
+        'data-nav="approval"',
+        'data-nav="data"',
+        'data-nav="automation"',
+        'data-nav="skills"',
+        'data-nav="recall"',
+        'data-nav="history"',
+        'data-nav="doctor"',
         "workflowReviewQueue",
         "workflowActionStrip",
         "workflowNextActionCopy",
@@ -236,7 +244,6 @@ def main() -> int:
         "previewPatchDiff",
         "candidateSortMode",
         "selectedPriorityReasons",
-        "operationsIndex",
         "operationsRecoveryQueue",
         "recoveryQueueList",
         "operationsData",
@@ -247,8 +254,11 @@ def main() -> int:
     for marker in required_workflow_markers:
         if marker not in html:
             raise AssertionError(f"WebUI should expose the full self-improvement workflow surface: missing {marker}")
-    if html.index("operationsIndex") > html.index("operationsConsole"):
-        raise AssertionError("Operations index should appear before operations panels")
+    dashboard_html = html.split('data-view="dashboard"', 1)[1].split('data-view="operations"', 1)[0]
+    if "<button" in dashboard_html:
+        raise AssertionError("Dashboard should be a read-only status panel; move operation buttons into their real modules")
+    if html.index("sideNav") > html.index("operationsConsole"):
+        raise AssertionError("Primary module navigation should appear before operations panels")
     if html.index('id="operationsAutomation"') < html.index("schedule-panel"):
         raise AssertionError("Operations automation shortcut should point to Schedule Center, not promotion guidance")
     required_workflow_js = (
@@ -262,7 +272,6 @@ def main() -> int:
         "approvalReady",
         "approvalBlocked",
         "renderDashboardNextAction",
-        "runDashboardPrimaryAction",
         "renderWorkflowNextAction",
         "runWorkflowPrimaryAction",
         "runWorkflowSecondaryAction",
@@ -289,8 +298,12 @@ def main() -> int:
     ):
         if marker not in js:
             raise AssertionError(f"Candidate queue should support AI-assisted review ordering: missing {marker}")
-    if 'runDashboardPrimaryAction()' not in js or 'document.getElementById("dashboardPrimaryAction").addEventListener("click"' not in js:
-        raise AssertionError("Dashboard should expose a guided next action, not only static counters")
+    if "dashboardPrimaryAction" in html or "dashboardSecondaryAction" in html or "openPriorityWorkflow" in html:
+        raise AssertionError("Dashboard should not expose action buttons")
+    if "runDashboardPrimaryAction" in js or "runDashboardSecondaryAction" in js:
+        raise AssertionError("Dashboard status guidance should stay read-only")
+    if "renderDashboardNextAction()" not in js:
+        raise AssertionError("Dashboard should render read-only workflow guidance")
     if "renderWorkflowNextAction()" not in js or "workflowNextActionCopy" not in js:
         raise AssertionError("Review Workflow should guide the next manual review step")
     if 'api(`/api/candidates/${window.selectedCandidateId}/promote' in js.split("async function runWorkflowPrimaryAction", 1)[1].split("async function runWorkflowSecondaryAction", 1)[0]:

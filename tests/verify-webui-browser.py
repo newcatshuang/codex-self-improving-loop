@@ -61,14 +61,21 @@ def prepare_data(repo: Path, root: Path) -> None:
 def assert_report(payload: dict[str, object], screenshot: Path) -> None:
     checks = payload.get("checks") or {}
     errors = payload.get("errors") or []
+    dark_screenshot = screenshot.with_name(screenshot.stem + ".dark" + screenshot.suffix)
     if errors:
         raise AssertionError(f"browser console/page errors found: {errors}")
     if checks.get("title") != "Codex Self-Improving Loop":
         raise AssertionError(f"unexpected WebUI title: {checks}")
+    if int(checks.get("primaryNavCount") or 0) != 10 or checks.get("hasFunctionalNavigation") is not True:
+        raise AssertionError(f"left navigation should expose ten functional modules: {checks}")
     if not checks.get("dashboardNextAction"):
         raise AssertionError(f"dashboard next action should render: {checks}")
+    if int(checks.get("dashboardButtons") or 0) != 0:
+        raise AssertionError(f"dashboard should stay read-only and contain no buttons: {checks}")
+    if int(checks.get("dashboardActionButtons") or 0) != 0 or int(checks.get("dashboardNavJumpButtons") or 0) != 0:
+        raise AssertionError(f"dashboard should not expose action or same-page jump controls: {checks}")
     if int(checks.get("setupChecklistItems") or 0) < 4:
-        raise AssertionError(f"first-run wizard should render executable checklist items: {checks}")
+        raise AssertionError(f"first-run wizard should render status checklist items: {checks}")
     if int(checks.get("operationsViewContainers") or 0) != 1:
         raise AssertionError(f"operations should render as one single view container: {checks}")
     if int(checks.get("candidateCards") or 0) < 1:
@@ -85,18 +92,44 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"manual confirmation should include the diff preview: {checks}")
     if checks.get("confirmModalHasDanger") is not True:
         raise AssertionError(f"promotion confirmation should use the high-risk button style: {checks}")
-    if checks.get("approvalDockFixed") is not True:
-        raise AssertionError(f"manual approval dock should remain fixed/sticky during review: {checks}")
+    if checks.get("approvalDockVisible") is not True:
+        raise AssertionError(f"manual approval dock should stay visible during review: {checks}")
     if int(checks.get("operationsLifecycleCards") or 0) != 4:
         raise AssertionError(f"operations lifecycle should expose four flow cards: {checks}")
     if int(checks.get("operationsVisiblePanels") or 0) != 1:
         raise AssertionError(f"operations navigation should activate one operations view: {checks}")
+    module_navigation = checks.get("moduleNavigation") or {}
+    for module_name, result in module_navigation.items():
+        if result.get("currentNav") != module_name or result.get("activeNav") is not True:
+            raise AssertionError(f"module navigation should update stable nav state for {module_name}: {checks}")
+        if result.get("hash"):
+            raise AssertionError(f"module navigation should not rely on URL hash anchors for {module_name}: {checks}")
+        if int(result.get("scrollY") or 0) > 80:
+            raise AssertionError(f"module navigation should switch panels instead of scrolling to anchors for {module_name}: {checks}")
+        if not result.get("targetVisible"):
+            raise AssertionError(f"module navigation should show target for {module_name}: {checks}")
+        if int(result.get("visibleSections") or 0) < 1:
+            raise AssertionError(f"module navigation should leave visible content for {module_name}: {checks}")
+    if checks.get("workflowModuleState") != "queue" or checks.get("evidenceModuleState") != "evidence" or checks.get("approvalModuleState") != "approval":
+        raise AssertionError(f"workflow left navigation should switch real modules: {checks}")
+    if checks.get("darkThemeNoWhiteControls") is not True:
+        raise AssertionError(f"dark theme should cover sampled interactive panels and controls: {checks}")
     if checks.get("noHorizontalOverflowDesktop") is not True:
         raise AssertionError(f"desktop viewport should not horizontally overflow: {checks}")
-    if checks.get("noHorizontalOverflowMobile") is not True:
-        raise AssertionError(f"mobile viewport should not horizontally overflow: {checks}")
+    if checks.get("dashboardCompactPanelsFit") is not True:
+        raise AssertionError(f"dashboard short-information panels should not stretch into full-width strips: {checks}")
+    workflow_action_strip = checks.get("workflowActionStripLayout") or {}
+    if workflow_action_strip.get("compact") is not True:
+        raise AssertionError(f"workflow status strip should not stretch sparse guidance across the full desktop width: {checks}")
+    approval_layout = checks.get("approvalDesktopLayout") or {}
+    if approval_layout.get("compact") is not True:
+        raise AssertionError(f"approval module should not reserve a large empty leading column on desktop: {checks}")
+    if checks.get("darkNavTextReadable") is not True:
+        raise AssertionError(f"dark theme side navigation should keep readable contrast: {checks}")
     if not screenshot.exists() or screenshot.stat().st_size < 10_000:
         raise AssertionError(f"browser screenshot should be generated: {screenshot}")
+    if not dark_screenshot.exists() or dark_screenshot.stat().st_size < 10_000:
+        raise AssertionError(f"dark theme browser screenshot should be generated: {dark_screenshot}")
 
 
 def main() -> int:

@@ -222,6 +222,10 @@
       font-weight: 650;
     }
 
+    .nav-button:focus-visible {
+      outline-offset: 1px;
+    }
+
     .view-stack {
       min-width: 0;
       display: grid;
@@ -437,13 +441,6 @@
       transform: none;
     }
 
-    .dashboard-priority-item:hover,
-    .dashboard-priority-item:focus {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-      outline: none;
-    }
-
     .dashboard-priority-item strong {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -515,8 +512,29 @@
       gap: 12px;
     }
 
-    .daily-digest-panel {
-      margin-top: 4px;
+    .dashboard-compact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .dashboard-compact-grid > .panel,
+    .dashboard-compact-grid > .workflow-map,
+    .dashboard-compact-grid > .dashboard-priorities {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .dashboard-compact-grid .workflow-map {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+      margin-bottom: 0;
+    }
+
+    .dashboard-compact-grid .workflow-map-step {
+      min-height: 0;
+      padding: 9px 10px;
     }
 
     .next-action-panel {
@@ -524,15 +542,13 @@
     }
 
     .next-action-body {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 12px;
-      align-items: center;
+      display: block;
+      min-height: 96px;
     }
 
     .digest-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
       gap: 10px;
     }
 
@@ -705,11 +721,57 @@
       grid-template-columns: minmax(360px, 0.78fr) minmax(360px, 0.82fr) minmax(400px, 1fr);
     }
 
+    .workflow-shell[data-workflow-module="queue"] {
+      grid-template-columns: minmax(420px, 0.9fr) minmax(340px, 1fr);
+    }
+
+    .workflow-shell[data-workflow-module="evidence"],
+    .workflow-shell[data-workflow-module="approval"] {
+      grid-template-columns: minmax(360px, 0.55fr) minmax(420px, 1fr);
+    }
+
+    .workflow-shell[data-workflow-module="approval"] {
+      grid-template-columns: minmax(420px, 0.95fr) minmax(420px, 1fr);
+    }
+
+    .workflow-shell[data-workflow-module="queue"] #rightPanelContainer,
+    .workflow-shell[data-workflow-module="queue"] #candidateActionPanel {
+      display: none;
+    }
+
+    .workflow-shell[data-workflow-module="evidence"] #candidateActionPanel {
+      display: none;
+    }
+
+    .workflow-shell[data-workflow-module="approval"] #workflowReviewQueue,
+    .workflow-shell[data-workflow-module="approval"] #mergeInlineCard,
+    .workflow-shell[data-workflow-module="approval"] #mergeSuggestionsPanel {
+      display: none;
+    }
+
+    .workflow-shell[data-workflow-module="approval"] #rightPanelContainer {
+      grid-column: 1 / 2;
+    }
+
+    .workflow-shell[data-workflow-module="approval"] #candidateActionPanel {
+      grid-column: 2 / 3;
+      grid-row: 1 / span 2;
+    }
+
+    .workflow-shell[data-workflow-module="queue"] #mergeInlineCard,
+    .workflow-shell[data-workflow-module="queue"] #mergeSuggestionsPanel,
+    .workflow-shell[data-workflow-module="evidence"] #mergeInlineCard,
+    .workflow-shell[data-workflow-module="evidence"] #mergeSuggestionsPanel {
+      grid-column: 1 / -1;
+    }
+
     .workflow-action-strip {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      width: fit-content;
+      max-width: 780px;
       border: 1px solid var(--line-soft);
       border-radius: 8px;
       padding: 10px 12px;
@@ -758,8 +820,13 @@
       min-height: 180px;
     }
 
-    .manual-approval-dock {
+    .workflow-shell:not([data-workflow-module="approval"]) .manual-approval-dock {
       grid-column: 1 / -1;
+      position: static;
+      max-height: none;
+    }
+
+    .workflow-shell[data-workflow-module="approval"] .manual-approval-dock {
       position: static;
       max-height: none;
     }
@@ -1647,17 +1714,42 @@
       .workspace-grid,
       .candidate-workspace,
       .workflow-shell,
+      .workflow-shell[data-workflow-module="queue"],
+      .workflow-shell[data-workflow-module="evidence"],
+      .workflow-shell[data-workflow-module="approval"],
       .run-workspace,
       .operation-grid,
       .workflow-map,
       .task-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
       }
 
       .detail-panel,
       .proposal-board,
       .action-panel {
         position: static;
+      }
+
+      .workflow-shell #rightPanelContainer,
+      .workflow-shell #candidateActionPanel,
+      .workflow-shell[data-workflow-module="queue"] #mergeInlineCard,
+      .workflow-shell[data-workflow-module="queue"] #mergeSuggestionsPanel,
+      .workflow-shell[data-workflow-module="evidence"] #mergeInlineCard,
+      .workflow-shell[data-workflow-module="evidence"] #mergeSuggestionsPanel {
+        grid-column: 1 / -1;
+      }
+
+      .right-panel-tabs {
+        grid-column: 1 / -1;
+      }
+
+      .dock-actions {
+        align-items: stretch;
+        justify-content: flex-start;
+      }
+
+      .dock-actions button {
+        flex: 1 1 180px;
       }
 
       .table-wrap {
@@ -1706,6 +1798,34 @@
 
       .table-wrap {
         overflow-x: auto;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .proposal-grid,
+      .action-card-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .action-card-grid > .toolbar,
+      .dock-actions {
+        grid-column: 1 / -1;
+      }
+
+      .manual-approval-dock {
+        overflow: hidden;
+      }
+
+      .dock-actions button {
+        flex-basis: 100%;
+        width: 100%;
+      }
+
+      .toast {
+        right: 12px;
+        bottom: 12px;
+        left: 12px;
+        max-width: none;
       }
     }
 
@@ -2009,7 +2129,7 @@
     }
 
     [data-theme="dark"] .nav-button {
-      color: rgba(255, 255, 255, 0.65);
+      color: rgba(255, 255, 255, 0.82);
     }
 
     [data-theme="dark"] .nav-button:hover {
@@ -2019,7 +2139,7 @@
 
     [data-theme="dark"] .nav-button.active {
       background: var(--accent-soft);
-      color: var(--accent);
+      color: #9ec5ff;
     }
 
     [data-theme="dark"] button {
@@ -2575,6 +2695,7 @@
     [data-theme="dark"] .setup-check-status {
       background: var(--surface);
       border-color: var(--line);
+      color: var(--ink);
     }
 
     [data-theme="dark"] .setup-check-item.setup-done {
@@ -2582,9 +2703,24 @@
       border-color: rgba(34, 197, 94, 0.3);
     }
 
+    [data-theme="dark"] .setup-check-item.setup-done .setup-check-status,
+    [data-theme="dark"] .setup-check-status.ok {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: rgba(34, 197, 94, 0.32);
+      color: #86efac;
+    }
+
     [data-theme="dark"] .setup-check-item.setup-todo {
       background: rgba(234, 179, 8, 0.06);
       border-color: rgba(234, 179, 8, 0.3);
+    }
+
+    [data-theme="dark"] .setup-check-item.setup-todo .setup-check-status,
+    [data-theme="dark"] .setup-check-status.warn,
+    [data-theme="dark"] .setup-check-status.review {
+      background: rgba(234, 179, 8, 0.12);
+      border-color: rgba(234, 179, 8, 0.32);
+      color: #fde68a;
     }
 
     [data-theme="dark"] .confirm-backdrop {
@@ -2594,6 +2730,13 @@
     [data-theme="dark"] .confirm-section {
       background: var(--surface-soft);
       border-color: var(--line);
+    }
+
+    [data-theme="dark"] .confirm-dialog,
+    [data-theme="dark"] .confirm-modal-body {
+      background: var(--surface);
+      border-color: var(--line);
+      color: var(--ink);
     }
 
     @media (max-width: 760px) {
@@ -2674,10 +2817,36 @@
       border-color: var(--line);
       color: var(--ink);
     }
-    [data-theme="dark"] .dashboard-priority-item:hover,
-    [data-theme="dark"] .dashboard-priority-item:focus {
-      background: var(--accent-soft);
-      border-color: var(--accent);
+
+    [data-theme="dark"] .dashboard-priority-item span,
+    [data-theme="dark"] .dashboard-priority-item small {
+      color: var(--muted);
+    }
+
+    [data-theme="dark"] .workflow-action-strip,
+    [data-theme="dark"] .workflow-stage-rail,
+    [data-theme="dark"] .module-toolbar,
+    [data-theme="dark"] .detail-panel,
+    [data-theme="dark"] .change-summary,
+    [data-theme="dark"] .right-panel-tab-content,
+    [data-theme="dark"] .skill-health-panel,
+    [data-theme="dark"] .doctor-health-grid {
+      background: var(--surface);
+      border-color: var(--line);
+      color: var(--ink);
+    }
+
+    [data-theme="dark"] input,
+    [data-theme="dark"] select,
+    [data-theme="dark"] textarea {
+      background: var(--surface);
+      border-color: var(--line);
+      color: var(--ink);
+    }
+
+    [data-theme="dark"] input::placeholder,
+    [data-theme="dark"] textarea::placeholder {
+      color: rgba(255, 255, 255, 0.38);
     }
 
     /* Schedule status panel */

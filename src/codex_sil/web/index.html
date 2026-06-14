@@ -36,8 +36,15 @@
   <main class="app-shell" id="appShell">
     <nav class="side-nav" id="sideNav" aria-label="Workspace sections">
       <button class="nav-button active" id="tab-dashboard" type="button" data-nav="dashboard" data-i18n="navDashboard">Dashboard</button>
-      <button class="nav-button" id="tab-workflow" type="button" data-nav="workflow" data-i18n="navWorkflow">Review Workflow</button>
-      <button class="nav-button" id="tab-operations" type="button" data-nav="operations" data-i18n="navOperations">Operations</button>
+      <button class="nav-button" id="tab-workflow" type="button" data-nav="workflow" data-i18n="navCandidates">Candidates</button>
+      <button class="nav-button" type="button" data-nav="evidence" data-i18n="navEvidence">Evidence</button>
+      <button class="nav-button" type="button" data-nav="approval" data-i18n="navApproval">Approval</button>
+      <button class="nav-button" id="tab-operations" type="button" data-nav="data" data-i18n="navData">Data</button>
+      <button class="nav-button" type="button" data-nav="automation" data-i18n="navAutomation">Automation</button>
+      <button class="nav-button" type="button" data-nav="skills" data-i18n="navSkills">Skills</button>
+      <button class="nav-button" type="button" data-nav="recall" data-i18n="navRecall">Recall</button>
+      <button class="nav-button" type="button" data-nav="history" data-i18n="navHistory">History</button>
+      <button class="nav-button" type="button" data-nav="doctor" data-i18n="navDoctor">Doctor</button>
     </nav>
 
     <div class="view-stack">
@@ -56,7 +63,6 @@
                   <strong data-i18n="setupCheckDatabaseTitle">Initialize database</strong>
                   <p class="task-copy" data-i18n="setupCheckDatabaseCopy">Create the local SQLite store and WebUI assets.</p>
                 </div>
-                <button class="operation-secondary" id="setupActionInit" type="button" data-action data-i18n="initializeData">Initialize Database</button>
               </article>
               <article class="setup-check-item" data-setup-step="history">
                 <span class="setup-check-status" id="setupCheckHistory">-</span>
@@ -64,7 +70,6 @@
                   <strong data-i18n="setupCheckHistoryTitle">Rebuild history</strong>
                   <p class="task-copy" data-i18n="setupCheckHistoryCopy">Scan historical sessions into the review queue.</p>
                 </div>
-                <button class="operation-danger" id="setupActionRebuild" type="button" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
               </article>
               <article class="setup-check-item" data-setup-step="skills">
                 <span class="setup-check-status" id="setupCheckSkills">-</span>
@@ -72,7 +77,6 @@
                   <strong data-i18n="setupCheckSkillsTitle">Install skills</strong>
                   <p class="task-copy" data-i18n="setupCheckSkillsCopy">Install bundled recall and memory capture skills.</p>
                 </div>
-                <button class="operation-secondary" id="setupActionSkills" type="button" data-action data-i18n="installSkills">Install / Update Skills</button>
               </article>
               <article class="setup-check-item" data-setup-step="schedule">
                 <span class="setup-check-status" id="setupCheckSchedule">-</span>
@@ -80,14 +84,7 @@
                   <strong data-i18n="setupCheckScheduleTitle">Install schedule</strong>
                   <p class="task-copy" data-i18n="setupCheckScheduleCopy">Create the daily local scan runner.</p>
                 </div>
-                <button class="operation-secondary" id="setupActionSchedule" type="button" data-action data-i18n="installSchedule">Install Schedule</button>
               </article>
-            </div>
-            <div class="toolbar">
-              <button class="secondary" data-nav-jump="operations" data-i18n="openDataCenter">Open Data Center</button>
-              <button class="secondary" data-nav-jump="operations" data-i18n="openSkillManagement">Open Skills</button>
-              <button class="secondary" data-nav-jump="operations" data-i18n="openScheduleCenter">Open Schedule</button>
-              <button data-nav-jump="workflow" data-i18n="openCandidates">Open Candidates</button>
             </div>
           </div>
         </section>
@@ -122,62 +119,60 @@
           </div>
         </section>
 
-        <section class="panel daily-digest-panel" id="dailyDigestPanel">
-          <div class="panel-header">
-            <h2 data-i18n="dailyDigestTitle">Daily Review Digest</h2>
-            <button class="secondary" id="refreshDigest" type="button" data-i18n="refresh">Refresh</button>
-          </div>
-          <div class="panel-body">
-            <p class="panel-description" id="dailyDigestCopy" data-i18n="dailyDigestEmpty">No digest has been generated yet.</p>
-            <div class="digest-grid" id="dailyDigestMetrics"></div>
-          </div>
-        </section>
-
-        <section class="panel next-action-panel" id="dashboardNextActionPanel">
-          <div class="panel-header">
-            <h2 data-i18n="dashboardNextActionTitle">Next Best Action</h2>
-            <span class="tag status" id="dashboardNextActionBadge">-</span>
-          </div>
-          <div class="panel-body next-action-body">
-            <p class="panel-description" id="dashboardNextActionCopy" data-i18n="dashboardNextActionLoading">Loading the current workflow state...</p>
-            <div class="toolbar">
-              <button id="dashboardPrimaryAction" type="button" data-action data-i18n="dashboardActionOpenWorkflow">Open Workflow</button>
-              <button class="secondary" id="dashboardSecondaryAction" type="button" data-action data-i18n="dashboardActionRefresh">Refresh</button>
-            </div>
-          </div>
-        </section>
-
         <section class="home-workbench command-center" id="dailyCommandCenter">
-          <section class="workflow-map" id="workflowMap" aria-label="Self-improvement workflow">
-            <article class="workflow-map-step">
-              <span class="step-number">1</span>
-              <div>
-                <h3 data-i18n="workflowMapScanTitle">Scan & Analyze</h3>
-                <p class="task-copy" data-i18n="workflowMapScanCopy">Run scan/rebuild, let Codex extract and analyze candidates, and keep fallback rules available.</p>
+          <div class="dashboard-compact-grid">
+            <section class="panel next-action-panel" id="dashboardNextActionPanel">
+              <div class="panel-header">
+                <h2 data-i18n="dashboardNextActionTitle">Next Best Action</h2>
+                <span class="tag status" id="dashboardNextActionBadge">-</span>
               </div>
-            </article>
-            <article class="workflow-map-step">
-              <span class="step-number">2</span>
-              <div>
-                <h3 data-i18n="workflowMapReviewTitle">Review Evidence</h3>
-                <p class="task-copy" data-i18n="workflowMapReviewCopy">Inspect evidence, risk, proposal text, rationale, and verification before changing durable memory.</p>
+              <div class="panel-body next-action-body">
+                <p class="panel-description" id="dashboardNextActionCopy" data-i18n="dashboardNextActionLoading">Loading the current workflow state...</p>
               </div>
-            </article>
-            <article class="workflow-map-step">
-              <span class="step-number">3</span>
-              <div>
-                <h3 data-i18n="workflowMapApproveTitle">Approve Manually</h3>
-                <p class="task-copy" data-i18n="workflowMapApproveCopy">Use the Manual Approval Dock for confirmed writes, then audit history and rollback previews.</p>
+            </section>
+
+            <section class="panel daily-digest-panel" id="dailyDigestPanel">
+              <div class="panel-header">
+                <h2 data-i18n="dailyDigestTitle">Daily Review Digest</h2>
               </div>
-            </article>
-          </section>
-          <section class="dashboard-priorities" id="dashboardTopPriorities">
-            <div class="panel-header inline-panel-header">
-              <h2 data-i18n="dashboardTopPrioritiesTitle">Top Review Priorities</h2>
-              <button class="secondary" id="openPriorityWorkflow" type="button" data-i18n="openPriorityWorkflow">Open Workflow</button>
-            </div>
-            <div class="dashboard-priority-list" id="dashboardPriorityList"></div>
-          </section>
+              <div class="panel-body">
+                <p class="panel-description" id="dailyDigestCopy" data-i18n="dailyDigestEmpty">No digest has been generated yet.</p>
+                <div class="digest-grid" id="dailyDigestMetrics"></div>
+              </div>
+            </section>
+
+            <section class="workflow-map" id="workflowMap" aria-label="Self-improvement workflow">
+              <article class="workflow-map-step">
+                <span class="step-number">1</span>
+                <div>
+                  <h3 data-i18n="workflowMapScanTitle">Scan & Analyze</h3>
+                  <p class="task-copy" data-i18n="workflowMapScanCopy">Run scan/rebuild, let Codex extract and analyze candidates, and keep fallback rules available.</p>
+                </div>
+              </article>
+              <article class="workflow-map-step">
+                <span class="step-number">2</span>
+                <div>
+                  <h3 data-i18n="workflowMapReviewTitle">Review Evidence</h3>
+                  <p class="task-copy" data-i18n="workflowMapReviewCopy">Inspect evidence, risk, proposal text, rationale, and verification before changing durable memory.</p>
+                </div>
+              </article>
+              <article class="workflow-map-step">
+                <span class="step-number">3</span>
+                <div>
+                  <h3 data-i18n="workflowMapApproveTitle">Approve Manually</h3>
+                  <p class="task-copy" data-i18n="workflowMapApproveCopy">Use the Manual Approval Dock for confirmed writes, then audit history and rollback previews.</p>
+                </div>
+              </article>
+            </section>
+
+            <section class="dashboard-priorities" id="dashboardTopPriorities">
+              <div class="panel-header inline-panel-header">
+                <h2 data-i18n="dashboardTopPrioritiesTitle">Top Review Priorities</h2>
+              </div>
+              <div class="dashboard-priority-list" id="dashboardPriorityList"></div>
+            </section>
+          </div>
+
           <section class="task-grid">
             <article class="task-card review">
               <h3 data-i18n="homeTodoTitle">Pending Workbench</h3>
@@ -235,18 +230,6 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="operations-subnav" id="operationsSubNav">
-          <button type="button" class="ops-tab active" data-ops-tab="data" data-i18n="opsTabData">Data</button>
-          <button type="button" class="ops-tab" data-ops-tab="automation" data-i18n="opsTabAutomation">Automation</button>
-          <button type="button" class="ops-tab" data-ops-tab="knowledge" data-i18n="opsTabKnowledge">Knowledge</button>
-          <button type="button" class="ops-tab" data-ops-tab="history" data-i18n="opsTabHistory">History</button>
-        </section>
-        <section class="operations-index" id="operationsIndex" aria-label="Operations sections">
-          <a href="#operationsData" data-i18n="operationsIndexData">Data</a>
-          <a href="#operationsAutomation" data-i18n="operationsIndexAutomation">Automation</a>
-          <a href="#operationsKnowledge" data-i18n="operationsIndexKnowledge">Knowledge</a>
-          <a href="#operationsEvidence" data-i18n="operationsIndexEvidence">Evidence</a>
-        </section>
         <section class="operations-lifecycle-map operations-section" id="operationsLifecycleMap" data-ops-section="data" aria-label="Operations lifecycle">
           <article>
             <span class="step-number">1</span>
@@ -612,7 +595,7 @@
       </section>
 
       <section class="operations-template-fragment" hidden>
-        <section class="panel operations-section" data-ops-section="knowledge">
+        <section class="panel operations-section" data-ops-section="skills">
           <div class="operations-anchor" id="operationsKnowledge"></div>
           <div class="panel-header">
             <h2 data-i18n="skillManagement">Skill Management</h2>
@@ -730,7 +713,7 @@
       </section>
 
       <section class="operations-template-fragment" hidden>
-        <section class="panel recall-workbench operations-section" id="recallWorkbench" data-ops-section="knowledge">
+        <section class="panel recall-workbench operations-section" id="recallWorkbench" data-ops-section="recall">
           <div class="panel-header">
             <h2 data-i18n="recallTitle">Cross-Session Recall</h2>
           </div>
@@ -872,7 +855,7 @@
       </section>
 
       <section class="operations-template-fragment" hidden>
-        <section class="panel" id="doctorPanel" data-ops-section="data">
+        <section class="panel" id="doctorPanel" data-ops-section="doctor">
           <div class="panel-header">
             <h2 data-i18n="doctorTitle">Doctor</h2>
           </div>
