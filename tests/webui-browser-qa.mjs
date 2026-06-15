@@ -41,20 +41,24 @@ await page.evaluate(() => {
 
 await page.waitForSelector('#dashboardNextActionPanel');
 report.checks.title = await page.locator('h1').innerText();
+report.checks.htmlLang = await page.locator('html').getAttribute('lang');
 report.checks.primaryNavItems = await page.locator('#sideNav [data-nav]').evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
 report.checks.primaryNavKeys = await page.locator('#sideNav [data-nav]').evaluateAll((nodes) => nodes.map((node) => node.dataset.nav));
 report.checks.primaryNavCount = report.checks.primaryNavItems.length;
 report.checks.hasFunctionalNavigation = ['dashboard', 'workflow', 'evidence', 'approval', 'data', 'automation', 'skills', 'recall', 'history', 'doctor'].every((key) => report.checks.primaryNavKeys.includes(key));
+report.checks.navGroupCount = await page.locator('#sideNav .nav-group-label').count();
+report.checks.navEnglishLabels = report.checks.primaryNavItems.filter((label) => /Dashboard|Candidates|Evidence|Approval|Data|Automation|Skills|Recall|History|Doctor/.test(label));
 report.checks.dashboardNextAction = await page.locator('#dashboardNextActionCopy').innerText();
 report.checks.dashboardButtons = await page.locator('[data-view="dashboard"] button').count();
 report.checks.dashboardActionButtons = await page.locator('[data-view="dashboard"] [data-action]').count();
 report.checks.dashboardNavJumpButtons = await page.locator('[data-view="dashboard"] [data-nav-jump]').count();
+report.checks.dashboardWorkflowMapVisible = await page.locator('[data-view="dashboard"] #workflowMap').isVisible().catch(() => false);
 report.checks.dashboardPriorities = await page.locator('#dashboardPriorityList .dashboard-priority-item').count();
 report.checks.setupChecklistItems = await page.locator('#setupChecklist .setup-check-item').count();
 report.checks.operationsViewContainers = await page.locator('[data-view="operations"]').count();
 report.checks.noHorizontalOverflowDesktop = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
 report.checks.dashboardCompactPanels = await page.evaluate(() => {
-  const selectors = ['#dailyDigestPanel', '#dashboardNextActionPanel', '#dashboardTopPriorities'];
+  const selectors = ['#dailyDigestPanel', '#dashboardNextActionPanel'];
   return selectors.map((selector) => {
     const node = document.querySelector(selector);
     if (!node) {
@@ -70,12 +74,14 @@ report.checks.dashboardCompactPanels = await page.evaluate(() => {
   });
 });
 report.checks.dashboardCompactPanelsFit = report.checks.dashboardCompactPanels.every((item) => item.missing || item.compact);
+await page.screenshot({ path: screenshotPath.replace(/\.png$/i, '.dashboard.png'), fullPage: true });
 
 await page.locator('#tab-workflow').click();
 await page.waitForSelector('#workflowActionStrip');
 report.checks.workflowNextActionInitial = await page.locator('#workflowNextActionCopy').innerText();
 report.checks.workflowPrimaryInitial = await page.locator('#workflowPrimaryAction').innerText();
-report.checks.candidateCards = await page.locator('#candidateRows .candidate-card').count();
+report.checks.candidateRows = await page.locator('#candidateRows .candidate-row').count();
+report.checks.candidateTableVisible = await page.locator('#workflowReviewQueue table.candidate-table').isVisible();
 report.checks.workflowActionStripLayout = await page.locator('#workflowActionStrip').evaluate((node) => {
   const rect = node.getBoundingClientRect();
   return {
@@ -84,6 +90,7 @@ report.checks.workflowActionStripLayout = await page.locator('#workflowActionStr
     compact: rect.width <= 780,
   };
 });
+await page.screenshot({ path: screenshotPath.replace(/\.png$/i, '.workflow.png'), fullPage: true });
 
 await page.locator('#workflowPrimaryAction').click();
 await page.waitForFunction(() => {
@@ -124,10 +131,11 @@ await page.locator('#confirmModalCancel').click();
 report.checks.approvalDockVisible = await page.locator('#candidateActionPanel').isVisible();
 
 await page.locator('#tab-operations').click();
-await page.waitForSelector('#operationsLifecycleMap');
-report.checks.operationsLifecycleCards = await page.locator('#operationsLifecycleMap article').count();
+await page.waitForSelector('#operationsConsole');
+report.checks.operationsLifecycleVisible = await page.locator('#operationsLifecycleMap').isVisible().catch(() => false);
 report.checks.recoveryQueueItems = await page.locator('#recoveryQueueList .recovery-queue-item').count();
 report.checks.operationsVisiblePanels = await page.locator('[data-view="operations"].active').count();
+await page.screenshot({ path: screenshotPath.replace(/\.png$/i, '.data.png'), fullPage: true });
 
 const moduleExpectations = [
   ['data', '#operationsConsole'],

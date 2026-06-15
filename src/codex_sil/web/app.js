@@ -20,6 +20,9 @@
         navDashboard: "Dashboard",
         navWorkflow: "Review Workflow",
         navOperations: "Operations",
+        navGroupWorkspace: "Workspace",
+        navGroupReview: "Review",
+        navGroupOps: "Operations",
         navEvidence: "Evidence",
         navApproval: "Approval",
         navAutomation: "Automation",
@@ -234,6 +237,7 @@
         filterSkill: "Skill",
         filterPatch: "Skill Patch",
         priorityReviewFirst: "Priority first",
+        priorityHeader: "Priority",
         sortNewest: "Newest",
         sortOldest: "Oldest",
         sortConfidence: "Confidence",
@@ -544,6 +548,9 @@
         navDashboard: "总览",
         navWorkflow: "审阅工作流",
         navOperations: "运维与历史",
+        navGroupWorkspace: "工作台",
+        navGroupReview: "审阅",
+        navGroupOps: "运维",
         navEvidence: "证据",
         navApproval: "审批",
         navAutomation: "自动化",
@@ -758,6 +765,7 @@
         filterSkill: "技能",
         filterPatch: "技能补丁",
         priorityReviewFirst: "优先处理",
+        priorityHeader: "优先级",
         sortNewest: "最新",
         sortOldest: "最早",
         sortConfidence: "置信度",
@@ -1096,8 +1104,7 @@
       if (savedLanguage === "zh" || savedLanguage === "en") {
         return savedLanguage;
       }
-      const browserLanguage = (navigator.language || "en").toLowerCase();
-      return browserLanguage.startsWith("zh") ? "zh" : "en";
+      return "zh";
     }
 
     function initialTheme() {
@@ -1478,7 +1485,7 @@
       }
       const state = dashboardNextActionState();
       badge.textContent = state.badge;
-      badge.className = `tag ${state.tone}`;
+      badge.className = `next-action-state ${state.tone}`;
       copy.textContent = state.copy;
     }
 
@@ -2959,51 +2966,67 @@
       renderPagination(items.length, totalPages);
       body.innerHTML = "";
       if (!items.length) {
-        const empty = document.createElement("div");
-        empty.className = "empty-row";
-        empty.textContent = t("emptyCandidates");
-        body.appendChild(empty);
+        renderEmptyRow(body, 6, "emptyCandidates");
         return;
       }
 
       for (const item of pageItems) {
-        const card = document.createElement("article");
-        card.className = "candidate-card";
-        card.dataset.id = item.id;
-        card.tabIndex = 0;
-        card.setAttribute("role", "listitem");
-        card.setAttribute("aria-selected", String(String(item.id) === String(window.selectedCandidateId)));
-        card.classList.toggle("selected-card", String(item.id) === String(window.selectedCandidateId));
-        card.addEventListener("click", () => selectCandidate(item.id));
-        card.addEventListener("keydown", (event) => {
+        const row = document.createElement("tr");
+        row.className = "candidate-row";
+        row.dataset.id = item.id;
+        row.tabIndex = 0;
+        row.setAttribute("aria-selected", String(String(item.id) === String(window.selectedCandidateId)));
+        row.classList.toggle("selected-row", String(item.id) === String(window.selectedCandidateId));
+        row.addEventListener("click", () => selectCandidate(item.id));
+        row.addEventListener("keydown", (event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             selectCandidate(item.id);
           }
         });
 
+        const priorityCell = cell("candidate-col-priority");
+        priorityCell.appendChild(tag(candidatePriorityLabel(item), "priority"));
+        const priorityScore = document.createElement("div");
+        priorityScore.className = "candidate-row-note";
+        priorityScore.textContent = `${candidatePriorityScore(item)}`;
+        priorityCell.appendChild(priorityScore);
+        row.appendChild(priorityCell);
+
+        const typeCell = cell("candidate-col-type");
+        typeCell.appendChild(tag(formatType(item.type), item.type));
+        row.appendChild(typeCell);
+
+        const titleCell = cell("candidate-col-title");
         const title = document.createElement("div");
-        title.className = "candidate-card-title";
+        title.className = "candidate-title";
         title.textContent = item.title || item.text || "-";
         const snippet = document.createElement("div");
-        snippet.className = "candidate-card-snippet";
+        snippet.className = "candidate-snippet";
         snippet.textContent = item.text || "";
-        const meta = document.createElement("div");
-        meta.className = "candidate-card-meta";
-        meta.append(
-          tag(formatType(item.type), item.type),
-          tag(candidatePriorityLabel(item), "priority"),
-          tag(item.destination || "-", "status"),
-          tag(item.status || "-", item.status === "review" ? "review" : "status")
-        );
-        const priority = document.createElement("div");
-        priority.className = "candidate-card-priority";
-        priority.textContent = `${t("priorityReviewFirst")}: ${candidatePriorityLabel(item)} · ${candidatePriorityScore(item)} · ${candidatePriorityReasons(item).join(" / ")}`;
-        const time = document.createElement("div");
-        time.className = "candidate-card-time";
-        time.textContent = `${formatDateTime(item.created_at)} / ${formatDateTime(item.updated_at)}`;
-        card.append(meta, title, snippet, priority, time);
-        body.appendChild(card);
+        const reasons = document.createElement("div");
+        reasons.className = "candidate-row-note";
+        reasons.textContent = candidatePriorityReasons(item).join(" / ");
+        titleCell.append(title, snippet, reasons);
+        row.appendChild(titleCell);
+
+        const riskCell = cell("candidate-col-risk");
+        riskCell.appendChild(tag(item.safety || "-", String(item.safety || "").toLowerCase().includes("unsafe") ? "review" : "status"));
+        row.appendChild(riskCell);
+
+        const statusCell = cell("candidate-col-status");
+        statusCell.appendChild(tag(item.status || "-", item.status === "review" ? "review" : "status"));
+        const destination = document.createElement("div");
+        destination.className = "candidate-row-note";
+        destination.textContent = item.destination || "-";
+        statusCell.appendChild(destination);
+        row.appendChild(statusCell);
+
+        const timeCell = cell("candidate-col-time");
+        timeCell.textContent = formatDateTime(item.updated_at || item.created_at);
+        row.appendChild(timeCell);
+
+        body.appendChild(row);
       }
     }
 

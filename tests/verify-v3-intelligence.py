@@ -178,9 +178,9 @@ def main() -> int:
         if forbidden in scanner_text or forbidden in analysis_text:
             raise AssertionError(f"Scan/analysis paths must never call promotion functions automatically: {forbidden}")
     required_layout_rules = (
-        ".candidate-card-list",
-        ".candidate-card",
-        ".candidate-card-meta",
+        ".candidate-table",
+        ".candidate-row",
+        ".candidate-col-priority",
         "td > *",
         ".col-destination .tag",
         "text-overflow: ellipsis",
@@ -189,16 +189,16 @@ def main() -> int:
         "@media (max-width: 900px)",
         ".candidate-workspace",
         ".workflow-shell",
-        ".operations-lifecycle-map",
+        ".nav-group-label",
         ".next-action-body",
     )
     for rule in required_layout_rules:
         if rule not in css:
             raise AssertionError(f"WebUI table layout should prevent long candidate text overflow: missing {rule}")
     js = js_path.read_text(encoding="utf-8")
-    for marker in ("role", "listitem", "candidate-card-title", "candidate-card-snippet"):
+    for marker in ("candidate-row", "candidate-title", "candidate-snippet"):
         if marker not in js:
-            raise AssertionError(f"Candidate Center should render accessible review cards: missing {marker}")
+            raise AssertionError(f"Candidate Center should render dense review table rows: missing {marker}")
     for marker in ("setupWizard", "dailyDigestPanel", "mergeSuggestionsPanel", "promotionPreview", "skillHealthTable", "skillHealthRows", "exportBundle", "importPreview"):
         if marker not in html and marker not in js:
             raise AssertionError(f"WebUI missing v3 marker: {marker}")
@@ -230,10 +230,8 @@ def main() -> int:
         "evolutionProposalBoard",
         "manualApprovalDock",
         "operationsConsole",
-        "operationsLifecycleMap",
         "auditRecoveryPanel",
         "recallWorkbench",
-        "workflowMap",
         "workflowStageRail",
         "workflowReadinessPanel",
         "approvalReadiness",
@@ -278,7 +276,7 @@ def main() -> int:
         "toastPreviewLoaded",
         "candidatePriorityScore",
         "priorityReviewFirst",
-        "candidate-card-priority",
+        "candidate-row-note",
         "candidatePriorityReasons",
         "priorityReasonReview",
         "priorityReasonProposal",
@@ -343,7 +341,7 @@ def main() -> int:
         ".workflow-stage-current",
         ".workflow-readiness-panel",
         ".readiness-list",
-        ".candidate-card-priority",
+        ".candidate-row-note",
         ".priority-reason-list",
         ".selected-priority-panel",
         ".dashboard-priority-list",
@@ -357,8 +355,8 @@ def main() -> int:
     for marker in required_workflow_css:
         if marker not in css:
             raise AssertionError(f"WebUI should style the redesigned workflow surface: missing {marker}")
-    if ".workflow-map," not in css:
-        raise AssertionError("Workflow map should collapse with the other grids on narrow screens")
+    if "workflowMap" in html or "operationsLifecycleMap" in html:
+        raise AssertionError("Dashboard and Operations should not include flow-card explainer sections")
     for marker in ("skillNameHeader", "skillStatusHeader", "skillUsageHeader", "skillPatchHeader", "skillActionHeader"):
         if marker not in html and marker not in js:
             raise AssertionError(f"Skill health should render as a table with column marker: {marker}")

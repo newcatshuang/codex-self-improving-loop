@@ -66,20 +66,26 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"browser console/page errors found: {errors}")
     if checks.get("title") != "Codex Self-Improving Loop":
         raise AssertionError(f"unexpected WebUI title: {checks}")
+    if checks.get("htmlLang") != "zh-CN":
+        raise AssertionError(f"WebUI should default to Chinese: {checks}")
     if int(checks.get("primaryNavCount") or 0) != 10 or checks.get("hasFunctionalNavigation") is not True:
         raise AssertionError(f"left navigation should expose ten functional modules: {checks}")
+    if int(checks.get("navGroupCount") or 0) < 3 or checks.get("navEnglishLabels"):
+        raise AssertionError(f"left navigation should be grouped and default to Chinese labels: {checks}")
     if not checks.get("dashboardNextAction"):
         raise AssertionError(f"dashboard next action should render: {checks}")
     if int(checks.get("dashboardButtons") or 0) != 0:
         raise AssertionError(f"dashboard should stay read-only and contain no buttons: {checks}")
     if int(checks.get("dashboardActionButtons") or 0) != 0 or int(checks.get("dashboardNavJumpButtons") or 0) != 0:
         raise AssertionError(f"dashboard should not expose action or same-page jump controls: {checks}")
+    if checks.get("dashboardWorkflowMapVisible") is not False:
+        raise AssertionError(f"dashboard should not include workflow teaching cards: {checks}")
     if int(checks.get("setupChecklistItems") or 0) < 4:
         raise AssertionError(f"first-run wizard should render status checklist items: {checks}")
     if int(checks.get("operationsViewContainers") or 0) != 1:
         raise AssertionError(f"operations should render as one single view container: {checks}")
-    if int(checks.get("candidateCards") or 0) < 1:
-        raise AssertionError(f"workflow should render candidate cards: {checks}")
+    if int(checks.get("candidateRows") or 0) < 1 or checks.get("candidateTableVisible") is not True:
+        raise AssertionError(f"workflow should render candidates in a dense table: {checks}")
     if "diff" not in str(checks.get("workflowNextActionAfterSelect", "")).lower() and "预览" not in str(checks.get("workflowNextActionAfterSelect", "")):
         raise AssertionError(f"workflow should guide the user to preview after selection: {checks}")
     if not checks.get("previewTextHead"):
@@ -94,8 +100,8 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"promotion confirmation should use the high-risk button style: {checks}")
     if checks.get("approvalDockVisible") is not True:
         raise AssertionError(f"manual approval dock should stay visible during review: {checks}")
-    if int(checks.get("operationsLifecycleCards") or 0) != 4:
-        raise AssertionError(f"operations lifecycle should expose four flow cards: {checks}")
+    if checks.get("operationsLifecycleVisible") is not False:
+        raise AssertionError(f"operations should open as a task page, not a flow-card explainer: {checks}")
     if int(checks.get("operationsVisiblePanels") or 0) != 1:
         raise AssertionError(f"operations navigation should activate one operations view: {checks}")
     module_navigation = checks.get("moduleNavigation") or {}

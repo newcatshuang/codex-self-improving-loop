@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,9 +11,9 @@
   <header class="app-header">
     <div class="header-inner">
       <div>
-        <div class="eyebrow" data-i18n="localOnly">Local-only control plane</div>
+        <div class="eyebrow" data-i18n="localOnly">本机控制台</div>
         <h1>Codex Self-Improving Loop</h1>
-        <p class="subtitle" data-i18n="subtitle">Review memory, skill, and skill patch candidates from a token-protected local service. All promotion actions run through this WebUI.</p>
+        <p class="subtitle" data-i18n="subtitle">从受令牌保护的本机服务审阅记忆、Skill 和 Skill Patch 候选。所有晋升写入都必须经过这个 WebUI。</p>
       </div>
       <div class="header-actions">
         <div class="segmented" id="themeToggle" aria-label="Theme">
@@ -35,16 +35,19 @@
 
   <main class="app-shell" id="appShell">
     <nav class="side-nav" id="sideNav" aria-label="Workspace sections">
-      <button class="nav-button active" id="tab-dashboard" type="button" data-nav="dashboard" data-i18n="navDashboard">Dashboard</button>
-      <button class="nav-button" id="tab-workflow" type="button" data-nav="workflow" data-i18n="navCandidates">Candidates</button>
-      <button class="nav-button" type="button" data-nav="evidence" data-i18n="navEvidence">Evidence</button>
-      <button class="nav-button" type="button" data-nav="approval" data-i18n="navApproval">Approval</button>
-      <button class="nav-button" id="tab-operations" type="button" data-nav="data" data-i18n="navData">Data</button>
-      <button class="nav-button" type="button" data-nav="automation" data-i18n="navAutomation">Automation</button>
-      <button class="nav-button" type="button" data-nav="skills" data-i18n="navSkills">Skills</button>
-      <button class="nav-button" type="button" data-nav="recall" data-i18n="navRecall">Recall</button>
-      <button class="nav-button" type="button" data-nav="history" data-i18n="navHistory">History</button>
-      <button class="nav-button" type="button" data-nav="doctor" data-i18n="navDoctor">Doctor</button>
+      <div class="nav-group-label" data-i18n="navGroupWorkspace">工作台</div>
+      <button class="nav-button active" id="tab-dashboard" type="button" data-nav="dashboard" data-i18n="navDashboard">总览</button>
+      <div class="nav-group-label" data-i18n="navGroupReview">审阅</div>
+      <button class="nav-button" id="tab-workflow" type="button" data-nav="workflow" data-i18n="navCandidates">候选审阅</button>
+      <button class="nav-button" type="button" data-nav="evidence" data-i18n="navEvidence">证据与建议</button>
+      <button class="nav-button" type="button" data-nav="approval" data-i18n="navApproval">人工审批</button>
+      <div class="nav-group-label" data-i18n="navGroupOps">运维</div>
+      <button class="nav-button" id="tab-operations" type="button" data-nav="data" data-i18n="navData">数据中心</button>
+      <button class="nav-button" type="button" data-nav="automation" data-i18n="navAutomation">自动化</button>
+      <button class="nav-button" type="button" data-nav="skills" data-i18n="navSkills">技能管理</button>
+      <button class="nav-button" type="button" data-nav="recall" data-i18n="navRecall">会话检索</button>
+      <button class="nav-button" type="button" data-nav="history" data-i18n="navHistory">历史审计</button>
+      <button class="nav-button" type="button" data-nav="doctor" data-i18n="navDoctor">诊断</button>
     </nav>
 
     <div class="view-stack">
@@ -124,9 +127,9 @@
             <section class="panel next-action-panel" id="dashboardNextActionPanel">
               <div class="panel-header">
                 <h2 data-i18n="dashboardNextActionTitle">Next Best Action</h2>
-                <span class="tag status" id="dashboardNextActionBadge">-</span>
               </div>
               <div class="panel-body next-action-body">
+                <strong class="next-action-state" id="dashboardNextActionBadge">-</strong>
                 <p class="panel-description" id="dashboardNextActionCopy" data-i18n="dashboardNextActionLoading">Loading the current workflow state...</p>
               </div>
             </section>
@@ -139,30 +142,6 @@
                 <p class="panel-description" id="dailyDigestCopy" data-i18n="dailyDigestEmpty">No digest has been generated yet.</p>
                 <div class="digest-grid" id="dailyDigestMetrics"></div>
               </div>
-            </section>
-
-            <section class="workflow-map" id="workflowMap" aria-label="Self-improvement workflow">
-              <article class="workflow-map-step">
-                <span class="step-number">1</span>
-                <div>
-                  <h3 data-i18n="workflowMapScanTitle">Scan & Analyze</h3>
-                  <p class="task-copy" data-i18n="workflowMapScanCopy">Run scan/rebuild, let Codex extract and analyze candidates, and keep fallback rules available.</p>
-                </div>
-              </article>
-              <article class="workflow-map-step">
-                <span class="step-number">2</span>
-                <div>
-                  <h3 data-i18n="workflowMapReviewTitle">Review Evidence</h3>
-                  <p class="task-copy" data-i18n="workflowMapReviewCopy">Inspect evidence, risk, proposal text, rationale, and verification before changing durable memory.</p>
-                </div>
-              </article>
-              <article class="workflow-map-step">
-                <span class="step-number">3</span>
-                <div>
-                  <h3 data-i18n="workflowMapApproveTitle">Approve Manually</h3>
-                  <p class="task-copy" data-i18n="workflowMapApproveCopy">Use the Manual Approval Dock for confirmed writes, then audit history and rollback previews.</p>
-                </div>
-              </article>
             </section>
 
             <section class="dashboard-priorities" id="dashboardTopPriorities">
@@ -230,36 +209,6 @@
       </section>
 
       <section class="view-panel" data-view="operations">
-        <section class="operations-lifecycle-map operations-section" id="operationsLifecycleMap" data-ops-section="data" aria-label="Operations lifecycle">
-          <article>
-            <span class="step-number">1</span>
-            <div>
-              <h3 data-i18n="operationsLifecycleDataTitle">Data Lifecycle</h3>
-              <p class="task-copy" data-i18n="operationsLifecycleDataCopy">Initialize, back up, scan, rebuild, export, and dry-run imports from one place.</p>
-            </div>
-          </article>
-          <article>
-            <span class="step-number">2</span>
-            <div>
-              <h3 data-i18n="operationsLifecycleAutomationTitle">Automation</h3>
-              <p class="task-copy" data-i18n="operationsLifecycleAutomationCopy">Install the daily scan and launcher, then review results from the WebUI queue.</p>
-            </div>
-          </article>
-          <article>
-            <span class="step-number">3</span>
-            <div>
-              <h3 data-i18n="operationsLifecycleKnowledgeTitle">Knowledge</h3>
-              <p class="task-copy" data-i18n="operationsLifecycleKnowledgeCopy">Track skill health, recall prior sessions, and route candidates back into manual review.</p>
-            </div>
-          </article>
-          <article>
-            <span class="step-number">4</span>
-            <div>
-              <h3 data-i18n="operationsLifecycleEvidenceTitle">Evidence</h3>
-              <p class="task-copy" data-i18n="operationsLifecycleEvidenceCopy">Use run logs, audit history, promotion history, and rollback previews for recovery decisions.</p>
-            </div>
-          </article>
-        </section>
         <div id="operationsDynamicSections"></div>
       </section>
 
@@ -395,10 +344,22 @@
             </select>
             <input class="search-input" id="searchInput" type="search" data-i18n-placeholder="searchPlaceholder" placeholder="Search candidates">
           </div>
-          <div class="candidate-list-wrap">
-            <div class="candidate-card-list" id="candidateRows" role="list" aria-labelledby="tab-workflow">
-              <div class="empty-row" data-i18n="loading">Loading data...</div>
-            </div>
+          <div class="candidate-list-wrap table-wrap">
+            <table class="candidate-table">
+              <thead>
+                <tr>
+                  <th class="candidate-col-priority" data-i18n="priorityHeader">优先级</th>
+                  <th class="candidate-col-type" data-i18n="typeHeader">类型</th>
+                  <th class="candidate-col-title" data-i18n="candidateHeader">候选内容</th>
+                  <th class="candidate-col-risk" data-i18n="safetyLabel">安全状态</th>
+                  <th class="candidate-col-status" data-i18n="statusHeader">状态</th>
+                  <th class="candidate-col-time" data-i18n="updatedAtHeader">更新时间</th>
+                </tr>
+              </thead>
+              <tbody id="candidateRows">
+                <tr><td class="empty-row" colspan="6" data-i18n="loading">正在加载数据...</td></tr>
+              </tbody>
+            </table>
           </div>
           <div class="pagination" id="paginationControls">
             <div class="pagination-group">

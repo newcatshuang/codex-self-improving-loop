@@ -64,8 +64,7 @@
     button:focus-visible,
     input:focus-visible,
     select:focus-visible,
-    textarea:focus-visible,
-    .candidate-card:focus-visible {
+    textarea:focus-visible {
       outline: 2px solid rgba(22, 119, 255, 0.20);
       outline-offset: 2px;
     }
@@ -98,7 +97,7 @@
     .header-inner {
       width: min(100%, 1840px);
       margin: 0 auto;
-      padding: 22px 28px;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -127,9 +126,9 @@
 
     .subtitle {
       max-width: 780px;
-      margin-top: 8px;
+      margin-top: 4px;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.5;
     }
 
@@ -181,8 +180,8 @@
       margin: 0 auto;
       padding: 14px 24px 24px;
       display: grid;
-      grid-template-columns: 220px minmax(0, 1fr);
-      gap: 14px;
+      grid-template-columns: 216px minmax(0, 1fr);
+      gap: 16px;
       align-items: start;
     }
 
@@ -193,20 +192,33 @@
       gap: 6px;
       border: 1px solid var(--line-soft);
       border-radius: 8px;
-      padding: 8px;
+      padding: 10px 8px;
       background: #ffffff;
-      box-shadow: var(--shadow);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .nav-group-label {
+      margin: 8px 8px 2px;
+      color: rgba(0, 0, 0, 0.42);
+      font-size: 11px;
+      font-weight: 750;
+      line-height: 1.2;
+    }
+
+    .nav-group-label:first-child {
+      margin-top: 2px;
     }
 
     .nav-button {
       justify-content: flex-start;
-      min-height: 32px;
+      min-height: 36px;
       border-color: transparent;
-      padding: 7px 10px;
+      padding: 7px 12px;
       background: transparent;
-      color: rgba(0, 0, 0, 0.65);
+      color: rgba(0, 0, 0, 0.78);
       box-shadow: none;
       transform: none;
+      text-align: left;
     }
 
     .nav-button:hover {
@@ -325,18 +337,18 @@
 
     .summary-grid {
       display: grid;
-      grid-template-columns: repeat(6, minmax(160px, 1fr));
+      grid-template-columns: repeat(6, minmax(132px, 1fr));
       gap: 10px;
     }
 
     .summary-card {
-      min-height: 88px;
+      min-height: 76px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px 12px;
       display: grid;
       align-content: space-between;
-      box-shadow: var(--shadow);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     }
 
     .summary-card.memory {
@@ -376,8 +388,8 @@
     }
 
     .summary-value {
-      margin-top: 10px;
-      font-size: 28px;
+      margin-top: 8px;
+      font-size: 24px;
       font-weight: 800;
       line-height: 1;
     }
@@ -393,6 +405,11 @@
       display: grid;
       grid-template-columns: minmax(360px, 1.2fr) minmax(320px, 1fr);
       gap: 12px;
+    }
+
+    .control-grid .table-wrap {
+      min-height: 190px;
+      max-height: 260px;
     }
 
     .module-grid {
@@ -460,11 +477,11 @@
     .task-card {
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px 12px;
       background: #ffffff;
-      min-height: 116px;
+      min-height: 92px;
       display: grid;
-      gap: 8px;
+      gap: 6px;
       align-content: start;
     }
 
@@ -514,9 +531,12 @@
 
     .dashboard-compact-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: minmax(280px, 0.72fr) minmax(560px, 1.35fr);
+      grid-template-areas:
+        "next priorities"
+        "digest priorities";
       gap: 12px;
-      align-items: stretch;
+      align-items: start;
     }
 
     .dashboard-compact-grid > .panel,
@@ -538,12 +558,41 @@
     }
 
     .next-action-panel {
+      grid-area: next;
       border-top: 4px solid var(--accent);
     }
 
+    .daily-digest-panel {
+      grid-area: digest;
+    }
+
+    .dashboard-priorities {
+      grid-area: priorities;
+      align-self: stretch;
+    }
+
     .next-action-body {
-      display: block;
-      min-height: 96px;
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr);
+      align-items: center;
+      gap: 10px;
+      min-height: 0;
+      padding-top: 2px;
+    }
+
+    .next-action-body .panel-description {
+      margin: 0;
+    }
+
+    .next-action-state {
+      color: var(--accent-strong);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .next-action-state.review {
+      color: var(--danger-strong);
     }
 
     .digest-grid {
@@ -567,8 +616,23 @@
 
     .operation-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      grid-template-columns: minmax(420px, 1fr) minmax(360px, 0.9fr);
       gap: 10px;
+      align-items: start;
+    }
+
+    .operation-grid > .operation-card {
+      min-height: 0;
+      height: fit-content;
+    }
+
+    .operation-grid > .danger-operation-zone {
+      grid-column: 1 / 2;
+    }
+
+    .operation-grid > .export-operation-zone {
+      grid-column: 2 / 3;
+      grid-row: 1 / span 2;
     }
 
     .operations-console {
@@ -712,30 +776,31 @@
 
     .candidate-workspace {
       display: grid;
-      grid-template-columns: minmax(360px, 0.78fr) minmax(360px, 0.82fr) minmax(380px, 1fr);
+      grid-template-columns: minmax(560px, 1.15fr) minmax(420px, 0.95fr);
       gap: 12px;
       align-items: start;
     }
 
     .workflow-shell {
-      grid-template-columns: minmax(360px, 0.78fr) minmax(360px, 0.82fr) minmax(400px, 1fr);
+      grid-template-columns: minmax(560px, 1.15fr) minmax(420px, 0.95fr);
     }
 
     .workflow-shell[data-workflow-module="queue"] {
-      grid-template-columns: minmax(420px, 0.9fr) minmax(340px, 1fr);
+      grid-template-columns: minmax(680px, 1fr);
     }
 
     .workflow-shell[data-workflow-module="evidence"],
     .workflow-shell[data-workflow-module="approval"] {
-      grid-template-columns: minmax(360px, 0.55fr) minmax(420px, 1fr);
+      grid-template-columns: minmax(560px, 1.1fr) minmax(420px, 0.9fr);
     }
 
     .workflow-shell[data-workflow-module="approval"] {
-      grid-template-columns: minmax(420px, 0.95fr) minmax(420px, 1fr);
+      grid-template-columns: minmax(520px, 0.95fr) minmax(460px, 0.85fr);
     }
 
     .workflow-shell[data-workflow-module="queue"] #rightPanelContainer,
-    .workflow-shell[data-workflow-module="queue"] #candidateActionPanel {
+    .workflow-shell[data-workflow-module="queue"] #candidateActionPanel,
+    .workflow-shell[data-workflow-module="queue"] #mergeInlineCard {
       display: none;
     }
 
@@ -827,7 +892,8 @@
     }
 
     .workflow-shell[data-workflow-module="approval"] .manual-approval-dock {
-      position: static;
+      position: sticky;
+      top: 16px;
       max-height: none;
     }
 
@@ -879,7 +945,7 @@
     .action-card-grid {
       display: grid;
       gap: 10px;
-      max-height: calc(100vh - 166px);
+      max-height: calc(100vh - 136px);
       overflow: auto;
     }
 
@@ -923,93 +989,65 @@
     }
 
     .candidate-list-wrap {
-      max-height: calc(100vh - 338px);
-      min-height: 420px;
+      max-height: calc(100vh - 336px);
+      min-height: 0;
       overflow: auto;
       background: #fafafa;
     }
 
-    .candidate-card-list {
-      display: grid;
-      gap: 8px;
-      padding: 10px;
+    .candidate-table {
+      min-width: 100%;
+      table-layout: fixed;
     }
 
-    .candidate-card {
-      display: grid;
-      gap: 7px;
-      width: 100%;
-      min-width: 0;
-      border: 1px solid var(--line);
-      border-left: 3px solid transparent;
-      border-radius: 8px;
-      padding: 10px;
-      background: #ffffff;
-      cursor: pointer;
-      transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+    .candidate-table th,
+    .candidate-table td {
+      max-width: none;
     }
 
-    .candidate-card:hover,
-    .candidate-card:focus {
-      border-color: var(--accent-hover);
-      background: #ffffff;
-      box-shadow: var(--shadow);
+    .candidate-row {
       outline: none;
     }
 
-    .candidate-card.selected-card {
-      border-color: var(--accent);
-      border-left-color: var(--accent);
-      background: var(--accent-soft);
+    .candidate-row:focus-visible {
+      outline: 2px solid rgba(22, 119, 255, 0.20);
+      outline-offset: -2px;
     }
 
-    .candidate-card-meta {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      flex-wrap: wrap;
-      min-width: 0;
+    .candidate-col-priority {
+      width: 84px;
     }
 
-    .candidate-card-meta .tag {
-      min-width: 0;
-      max-width: 100%;
+    .candidate-col-type {
+      width: 78px;
     }
 
-    .candidate-card-meta .priority {
-      border-color: var(--accent);
-      color: var(--accent-strong);
-      background: var(--accent-soft);
+    .candidate-col-risk {
+      width: 94px;
     }
 
-    .candidate-card-title {
-      color: var(--ink);
-      font-size: 13px;
-      font-weight: 750;
+    .candidate-col-status {
+      width: 96px;
+    }
+
+    .candidate-col-time {
+      width: 84px;
+    }
+
+    .candidate-row-note {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
       line-height: 1.35;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    .candidate-card-snippet {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.45;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-
-    .candidate-card-priority {
-      min-width: 0;
-      color: rgba(0, 0, 0, 0.58);
-      font-size: 12px;
-      font-weight: 700;
-      overflow-wrap: anywhere;
+    .tag.priority {
+      border-color: var(--accent);
+      color: var(--accent-strong);
+      background: var(--accent-soft);
     }
 
     .selected-priority-panel {
@@ -1033,15 +1071,6 @@
       color: rgba(0, 0, 0, 0.7);
       font-size: 12px;
       line-height: 1.45;
-    }
-
-    .candidate-card-time {
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.3;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
 
     .skill-health-panel {
@@ -1350,6 +1379,11 @@
       min-height: 360px;
     }
 
+    .candidate-list-wrap.table-wrap {
+      min-height: 0;
+      max-height: none;
+    }
+
     table {
       width: 100%;
       min-width: 1180px;
@@ -1383,6 +1417,7 @@
       color: rgba(0, 0, 0, 0.45);
       font-size: 12px;
       font-weight: 750;
+      white-space: nowrap;
     }
 
     tbody tr {
@@ -2129,7 +2164,7 @@
     }
 
     [data-theme="dark"] .nav-button {
-      color: rgba(255, 255, 255, 0.82);
+      color: rgba(255, 255, 255, 0.88);
     }
 
     [data-theme="dark"] .nav-button:hover {
@@ -2140,6 +2175,10 @@
     [data-theme="dark"] .nav-button.active {
       background: var(--accent-soft);
       color: #9ec5ff;
+    }
+
+    [data-theme="dark"] .nav-group-label {
+      color: rgba(255, 255, 255, 0.45);
     }
 
     [data-theme="dark"] button {
@@ -2163,19 +2202,6 @@
 
     [data-theme="dark"] .panel-header {
       background: var(--surface-soft);
-    }
-
-    [data-theme="dark"] .candidate-card {
-      background: var(--surface);
-    }
-
-    [data-theme="dark"] .candidate-card:hover,
-    [data-theme="dark"] .candidate-card:focus {
-      background: var(--surface-soft);
-    }
-
-    [data-theme="dark"] .candidate-card.selected-card {
-      background: var(--accent-soft);
     }
 
     [data-theme="dark"] .candidate-list-wrap {
@@ -2549,18 +2575,19 @@
 
     .setup-checklist {
       display: grid;
+      grid-template-columns: repeat(2, minmax(260px, 1fr));
       gap: 8px;
-      margin: 12px 0;
+      margin: 10px 0;
     }
 
     .setup-check-item {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-columns: auto minmax(0, 1fr);
       align-items: center;
       gap: 10px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 10px;
+      padding: 9px 10px;
       background: #ffffff;
     }
 
@@ -2605,12 +2632,10 @@
     }
 
     .manual-approval-dock {
-      position: sticky;
-      bottom: 0;
-      top: auto;
+      position: static;
       z-index: 6;
       border-top: 4px solid var(--review-line);
-      box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.08);
+      box-shadow: var(--shadow);
     }
 
     .confirm-modal[hidden] {
