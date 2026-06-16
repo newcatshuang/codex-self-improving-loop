@@ -68,8 +68,10 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"unexpected WebUI title: {checks}")
     if checks.get("htmlLang") != "zh-CN":
         raise AssertionError(f"WebUI should default to Chinese: {checks}")
-    if int(checks.get("primaryNavCount") or 0) != 10 or checks.get("hasFunctionalNavigation") is not True:
-        raise AssertionError(f"left navigation should expose ten functional modules: {checks}")
+    if int(checks.get("primaryNavCount") or 0) != 8 or checks.get("hasFunctionalNavigation") is not True:
+        raise AssertionError(f"left navigation should expose eight non-duplicated functional modules: {checks}")
+    if checks.get("removedDuplicateWorkflowNav") is not True:
+        raise AssertionError(f"evidence and approval should be drawer tabs, not duplicate nav pages: {checks}")
     if int(checks.get("navGroupCount") or 0) < 3 or checks.get("navEnglishLabels"):
         raise AssertionError(f"left navigation should be grouped and default to Chinese labels: {checks}")
     if not checks.get("dashboardNextAction"):
@@ -86,6 +88,24 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"operations should render as one single view container: {checks}")
     if int(checks.get("candidateRows") or 0) < 1 or checks.get("candidateTableVisible") is not True:
         raise AssertionError(f"workflow should render candidates in a dense table: {checks}")
+    if int(checks.get("mergeSuggestionPanels") or 0) != 1 or checks.get("mergeSuggestionTriggerVisible") is not True:
+        raise AssertionError(f"merge suggestions should have one trigger and one rendered list: {checks}")
+    if checks.get("mergeSuggestionModuleVisible") is not True:
+        raise AssertionError(f"merge suggestions should stay discoverable as a workflow tool module: {checks}")
+    merge_module_actions = "".join(checks.get("mergeSuggestionModuleButtons") or [])
+    if "刷新" not in merge_module_actions or "查看" not in merge_module_actions:
+        raise AssertionError(f"merge suggestion module should expose refresh and review actions: {checks}")
+    if checks.get("mergeDrawerVisibleFromModuleContent") is not True:
+        raise AssertionError(f"clicking merge suggestion module content should open its drawer: {checks}")
+    if int(checks.get("mergeDrawerWidth") or 0) < 760:
+        raise AssertionError(f"merge suggestion drawer should be wide enough for grouped content: {checks}")
+    if int(checks.get("reviewDrawerInitiallyHidden") or 0) != 1:
+        raise AssertionError(f"candidate review drawer should start hidden before selecting a row: {checks}")
+    if checks.get("reviewDrawerVisibleAfterSelect") is not True:
+        raise AssertionError(f"selecting a candidate should open the unified review drawer: {checks}")
+    drawer_tabs = checks.get("reviewDrawerTabs") or []
+    if not all(label in "".join(drawer_tabs) for label in ("概览", "证据", "LLM", "Diff")):
+        raise AssertionError(f"review drawer should expose overview, evidence, proposal, and approval tabs: {checks}")
     if "diff" not in str(checks.get("workflowNextActionAfterSelect", "")).lower() and "预览" not in str(checks.get("workflowNextActionAfterSelect", "")):
         raise AssertionError(f"workflow should guide the user to preview after selection: {checks}")
     if not checks.get("previewTextHead"):
@@ -98,8 +118,8 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"manual confirmation should include the diff preview: {checks}")
     if checks.get("confirmModalHasDanger") is not True:
         raise AssertionError(f"promotion confirmation should use the high-risk button style: {checks}")
-    if checks.get("approvalDockVisible") is not True:
-        raise AssertionError(f"manual approval dock should stay visible during review: {checks}")
+    if checks.get("reviewDrawerStillVisible") is not True:
+        raise AssertionError(f"manual approval should happen inside the unified review drawer: {checks}")
     if checks.get("operationsLifecycleVisible") is not False:
         raise AssertionError(f"operations should open as a task page, not a flow-card explainer: {checks}")
     if int(checks.get("operationsVisiblePanels") or 0) != 1:
@@ -116,8 +136,17 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
             raise AssertionError(f"module navigation should show target for {module_name}: {checks}")
         if int(result.get("visibleSections") or 0) < 1:
             raise AssertionError(f"module navigation should leave visible content for {module_name}: {checks}")
-    if checks.get("workflowModuleState") != "queue" or checks.get("evidenceModuleState") != "evidence" or checks.get("approvalModuleState") != "approval":
-        raise AssertionError(f"workflow left navigation should switch real modules: {checks}")
+    if checks.get("workflowModuleState") != "queue":
+        raise AssertionError(f"candidate workflow should stay on the queue surface and open details in a drawer: {checks}")
+    if int(checks.get("skillCandidateRows") or 0) < 1:
+        raise AssertionError(f"skills page should show skill-related candidates: {checks}")
+    skill_actions = "".join(checks.get("skillCandidateActions") or [])
+    if "预览" not in skill_actions or ("应用" not in skill_actions and "晋升" not in skill_actions):
+        raise AssertionError(f"skills page should expose preview and apply actions for skill candidates: {checks}")
+    if checks.get("skillCandidateViewOpensDrawer") is not True:
+        raise AssertionError(f"skill candidate view action should open the candidate drawer: {checks}")
+    if checks.get("skillCandidatePreviewOpensDrawer") is not True or checks.get("skillCandidatePreviewLoadsDiff") is not True:
+        raise AssertionError(f"skill candidate preview action should open the drawer and load a diff: {checks}")
     if checks.get("darkThemeNoWhiteControls") is not True:
         raise AssertionError(f"dark theme should cover sampled interactive panels and controls: {checks}")
     if checks.get("noHorizontalOverflowDesktop") is not True:
@@ -127,9 +156,6 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
     workflow_action_strip = checks.get("workflowActionStripLayout") or {}
     if workflow_action_strip.get("compact") is not True:
         raise AssertionError(f"workflow status strip should not stretch sparse guidance across the full desktop width: {checks}")
-    approval_layout = checks.get("approvalDesktopLayout") or {}
-    if approval_layout.get("compact") is not True:
-        raise AssertionError(f"approval module should not reserve a large empty leading column on desktop: {checks}")
     if checks.get("darkNavTextReadable") is not True:
         raise AssertionError(f"dark theme side navigation should keep readable contrast: {checks}")
     if not screenshot.exists() or screenshot.stat().st_size < 10_000:

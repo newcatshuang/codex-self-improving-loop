@@ -33,6 +33,12 @@
         opsTabHistory: "History",
         rpTabDetail: "Detail",
         rpTabProposal: "LLM Proposal",
+        candidateReviewDrawerEyebrow: "Candidate review",
+        candidateReviewDrawerTitle: "Unified Candidate Review",
+        drawerTabOverview: "Overview",
+        drawerTabEvidence: "Evidence",
+        drawerTabProposal: "LLM Proposal",
+        drawerTabApproval: "Diff & Approval",
         dataCenter: "Data Center",
         dataCenterDesc: "Initialize, back up, rebuild, scan, or export the local SQLite learning database.",
         reviewCenter: "Review Center",
@@ -40,6 +46,12 @@
         promotionCenterDesc: "Select a candidate in Candidate Center, then use the right-side review actions to promote it into USER.md, AGENTS.md, a skill, or a skill patch.",
         skillManagement: "Skill Management",
         skillManagementDesc: "Install local skills, inspect usage telemetry, and review skill patch candidates from the candidate queue.",
+        skillCandidatePanelTitle: "Skill Candidate Actions",
+        emptySkillCandidates: "No skill candidates yet.",
+        skillActionView: "Review",
+        skillActionPreview: "Preview Diff",
+        skillActionApply: "Apply",
+        skillActionPromote: "Promote",
         homeTodoTitle: "Pending Workbench",
         homeTodoEmpty: "No open review work.",
         homeTodoCopy: "{review} review / {blocked} blocked",
@@ -488,6 +500,7 @@
         importPreviewLabel: "Import Bundle Preview Path",
         importPreviewPlaceholder: "Paste bundle .zip path for dry-run preview",
         mergeSuggestionsTitle: "Merge Suggestions",
+        mergeSuggestionsModuleCopy: "Review duplicate candidate groups without duplicating the candidate list.",
         emptyMergeSuggestions: "No merge suggestions.",
         applyMerge: "Apply Merge",
         promotionPreviewTitle: "Promotion Diff Preview",
@@ -561,6 +574,12 @@
         opsTabHistory: "历史",
         rpTabDetail: "详情",
         rpTabProposal: "LLM 建议",
+        candidateReviewDrawerEyebrow: "候选审阅",
+        candidateReviewDrawerTitle: "统一候选审阅",
+        drawerTabOverview: "概览",
+        drawerTabEvidence: "证据",
+        drawerTabProposal: "LLM 建议",
+        drawerTabApproval: "Diff 与审批",
         dataCenter: "数据中心",
         dataCenterDesc: "初始化、备份、重建、扫描或导出本地 SQLite 学习数据库。",
         reviewCenter: "审阅中心",
@@ -568,6 +587,12 @@
         promotionCenterDesc: "先在候选中心选择一条记录，再使用右侧审阅操作晋升到 USER.md、AGENTS.md、技能或技能补丁。",
         skillManagement: "Skill 管理",
         skillManagementDesc: "安装本地技能，查看技能使用遥测，并从候选队列处理技能补丁。",
+        skillCandidatePanelTitle: "技能候选待处理",
+        emptySkillCandidates: "暂无技能候选。",
+        skillActionView: "查看",
+        skillActionPreview: "预览",
+        skillActionApply: "应用",
+        skillActionPromote: "晋升",
         homeTodoTitle: "待处理工作台",
         homeTodoEmpty: "暂无待处理审阅工作。",
         homeTodoCopy: "{review} 个待审 / {blocked} 个阻断",
@@ -1016,6 +1041,7 @@
         importPreviewLabel: "导入包预览路径",
         importPreviewPlaceholder: "粘贴 bundle .zip 路径，仅做 dry-run 预览",
         mergeSuggestionsTitle: "合并建议",
+        mergeSuggestionsModuleCopy: "集中处理重复候选分组，不在候选列表外重复渲染明细。",
         emptyMergeSuggestions: "暂无合并建议。",
         applyMerge: "应用合并",
         promotionPreviewTitle: "晋升 Diff 预览",
@@ -1169,6 +1195,7 @@
       renderDashboardTopPriorities();
       renderMergeSuggestions();
       renderSkillHealth();
+      renderSkillCandidates();
       renderPromotionPreview(latestPromotionPreview);
       renderReviewProgress();
       applyTheme();
@@ -1921,9 +1948,90 @@
       renderWorkflowNextAction();
     }
 
+    function setDrawerTab(tab) {
+      document.querySelectorAll("[data-rp-tab]").forEach((button) => {
+        const active = button.dataset.rpTab === tab;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-selected", String(active));
+      });
+      document.querySelectorAll("[data-rp-content]").forEach((content) => {
+        content.classList.toggle("active", content.dataset.rpContent === tab);
+      });
+    }
+
+    function openCandidateReviewDrawer(tab = "detail") {
+      const drawer = document.getElementById("candidateReviewDrawer");
+      if (!drawer) {
+        return;
+      }
+      drawer.hidden = false;
+      document.body.classList.add("drawer-open");
+      setDrawerTab(tab);
+    }
+
+    function closeCandidateReviewDrawer() {
+      const drawer = document.getElementById("candidateReviewDrawer");
+      if (!drawer) {
+        return;
+      }
+      drawer.hidden = true;
+      document.body.classList.remove("drawer-open");
+    }
+
+    function openMergeSuggestionsDrawer() {
+      const drawer = document.getElementById("mergeSuggestionsDrawer");
+      if (!drawer) {
+        return;
+      }
+      drawer.hidden = false;
+      document.body.classList.add("drawer-open");
+      refreshMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
+    }
+
+    function closeMergeSuggestionsDrawer() {
+      const drawer = document.getElementById("mergeSuggestionsDrawer");
+      if (!drawer) {
+        return;
+      }
+      drawer.hidden = true;
+      document.body.classList.remove("drawer-open");
+    }
+
+    function shouldSkipMergeModuleOpen(target) {
+      return Boolean(target.closest("button, a, input, select, textarea, [data-skip-module-open]"));
+    }
+
+    function handleSkillCandidateAction(button) {
+      const candidateId = button.dataset.candidateId;
+      const candidate = allCandidates.find((item) => String(item.id) === String(candidateId));
+      if (!candidate) {
+        showToast(t("selectCandidateFirst"), "warn");
+        return;
+      }
+      setView("workflow");
+      selectCandidate(candidate.id);
+      if (button.dataset.skillCandidateAction === "view") {
+        setDrawerTab("detail");
+        return;
+      }
+      const target = candidate.type === "skill_patch" ? "patch" : "skill";
+      if (button.dataset.skillCandidateAction === "preview") {
+        previewPromotion(target)
+          .then(() => setDrawerTab("approval"))
+          .catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
+        return;
+      }
+      const action = target === "patch"
+        ? () => api(`/api/candidates/${window.selectedCandidateId}/promote-patch`, {method: "POST"})
+        : () => api(`/api/candidates/${window.selectedCandidateId}/promote-skill`, {method: "POST"});
+      const successKey = target === "patch" ? "toastPromotedPatch" : "toastPromotedSkill";
+      const confirmKey = target === "patch" ? "confirmPromotePatch" : "confirmPromoteSkill";
+      runAction(action, successKey, {needsSelection: true, confirmKey, previewTarget: target})
+        .catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
+    }
+
     function renderMergeSuggestions() {
       renderMergeSuggestionsList(document.getElementById("mergeSuggestionsList"), true);
-      renderMergeSuggestionsList(document.getElementById("mergeInlineList"), false);
       const countEl = document.getElementById("mergeInlineCount");
       if (countEl) {
         countEl.textContent = String(mergeSuggestions.length);
@@ -2029,6 +2137,82 @@
       }
     }
 
+    function skillCandidates() {
+      return allCandidates
+        .filter((item) => ["skill", "skill_patch"].includes(String(item.type || "").toLowerCase()))
+        .filter((item) => ["review", "blocked"].includes(String(item.status || "").toLowerCase()))
+        .sort((a, b) => candidatePriorityScore(b) - candidatePriorityScore(a))
+        .slice(0, 12);
+    }
+
+    function renderSkillCandidates() {
+      const body = document.getElementById("skillCandidateRows");
+      const count = document.getElementById("skillCandidatePanelCount");
+      if (!body) {
+        return;
+      }
+      const items = skillCandidates();
+      if (count) {
+        count.textContent = String(items.length);
+      }
+      body.innerHTML = "";
+      if (!items.length) {
+        const row = document.createElement("tr");
+        const empty = cell("empty-row");
+        empty.colSpan = 4;
+        empty.textContent = t("emptySkillCandidates");
+        row.appendChild(empty);
+        body.appendChild(row);
+        return;
+      }
+      for (const item of items) {
+        const row = document.createElement("tr");
+        row.dataset.skillCandidateId = item.id;
+
+        const titleCell = cell();
+        const title = document.createElement("strong");
+        title.className = "candidate-title";
+        title.textContent = item.title || item.text || "-";
+        const note = document.createElement("div");
+        note.className = "candidate-row-note";
+        note.textContent = candidatePriorityReasons(item).join(" / ");
+        titleCell.append(title, note);
+        row.appendChild(titleCell);
+
+        const typeCell = cell();
+        typeCell.appendChild(tag(formatType(item.type), item.type));
+        row.appendChild(typeCell);
+
+        const targetCell = cell();
+        targetCell.textContent = item.proposal_target_type || item.destination || "-";
+        row.appendChild(targetCell);
+
+        const actionCell = cell("skill-candidate-actions");
+        const view = document.createElement("button");
+        view.type = "button";
+        view.className = "secondary operation-quiet";
+        view.dataset.skillCandidateAction = "view";
+        view.dataset.candidateId = item.id;
+        view.textContent = t("skillActionView");
+        const preview = document.createElement("button");
+        preview.type = "button";
+        preview.className = "secondary operation-quiet";
+        preview.dataset.skillCandidateAction = "preview";
+        preview.dataset.candidateId = item.id;
+        preview.textContent = t("skillActionPreview");
+        const apply = document.createElement("button");
+        apply.type = "button";
+        apply.className = "operation-danger";
+        apply.dataset.skillCandidateAction = "apply";
+        apply.dataset.candidateId = item.id;
+        apply.textContent = item.type === "skill_patch" ? t("skillActionApply") : t("skillActionPromote");
+        actionCell.append(view, preview, apply);
+        row.appendChild(actionCell);
+
+        body.appendChild(row);
+      }
+    }
+
     function tag(text, className = "") {
       const element = document.createElement("span");
       element.className = `tag ${className}`.trim();
@@ -2049,9 +2233,9 @@
       home: {view: "dashboard", nav: "dashboard"},
       workflow: {view: "workflow", workflowModule: "queue", nav: "workflow"},
       candidates: {view: "workflow", workflowModule: "queue", nav: "workflow"},
-      evidence: {view: "workflow", workflowModule: "evidence", nav: "evidence"},
-      approval: {view: "workflow", workflowModule: "approval", nav: "approval"},
-      promotion: {view: "workflow", workflowModule: "approval", nav: "approval"},
+      evidence: {view: "workflow", workflowModule: "queue", nav: "workflow", drawerTab: "evidence"},
+      approval: {view: "workflow", workflowModule: "queue", nav: "workflow", drawerTab: "approval"},
+      promotion: {view: "workflow", workflowModule: "queue", nav: "workflow", drawerTab: "approval"},
       data: {view: "operations", opsModule: "data", nav: "data"},
       operations: {view: "operations", opsModule: "data", nav: "data"},
       automation: {view: "operations", opsModule: "automation", nav: "automation"},
@@ -2084,6 +2268,9 @@
       });
       if (target.view === "workflow") {
         switchWorkflowModule(target.workflowModule || "queue");
+        if (target.drawerTab) {
+          openCandidateReviewDrawer(target.drawerTab);
+        }
       }
       if (target.view === "operations") {
         switchOpsTab(target.opsModule || "data");
@@ -2810,10 +2997,11 @@
       }
       if (action.startsWith("preview:")) {
         await runPreviewOnly(action.split(":")[1] || "user");
+        openCandidateReviewDrawer("approval");
         return;
       }
       if (action === "approval") {
-        setView("approval");
+        openCandidateReviewDrawer("approval");
         return;
       }
       showToast(t("analysisLoading"), "warn");
@@ -3057,6 +3245,7 @@
       renderCandidateActionPanel();
       renderPromotionPreview(null);
       if (selectedCandidate) {
+        openCandidateReviewDrawer("detail");
         loadCandidateAnalysis(id);
       }
     }
@@ -3070,6 +3259,19 @@
         content.hidden = true;
         badge.textContent = t("noneSelected");
         badge.className = "tag status";
+        const evidenceBadge = document.getElementById("selectedEvidenceBadge");
+        if (evidenceBadge) {
+          evidenceBadge.textContent = t("noneSelected");
+          evidenceBadge.className = "tag status";
+        }
+        const drawerSourceFiles = document.getElementById("drawerSourceFiles");
+        if (drawerSourceFiles) {
+          drawerSourceFiles.innerHTML = "";
+          const item = document.createElement("li");
+          item.textContent = "-";
+          drawerSourceFiles.appendChild(item);
+        }
+        setText("drawerRiskCopy", t("selectCandidateHint"));
         return;
       }
       empty.hidden = true;
@@ -3091,17 +3293,33 @@
       const sourceFiles = document.getElementById("selectedSourceFiles");
       sourceFiles.innerHTML = "";
       const files = selectedCandidate.source_files || [];
+      const drawerSourceFiles = document.getElementById("drawerSourceFiles");
+      if (drawerSourceFiles) {
+        drawerSourceFiles.innerHTML = "";
+      }
       if (!files.length) {
         const item = document.createElement("li");
         item.textContent = "-";
         sourceFiles.appendChild(item);
+        if (drawerSourceFiles) {
+          drawerSourceFiles.appendChild(item.cloneNode(true));
+        }
       } else {
         for (const file of files) {
           const item = document.createElement("li");
           item.textContent = file;
           sourceFiles.appendChild(item);
+          if (drawerSourceFiles) {
+            drawerSourceFiles.appendChild(item.cloneNode(true));
+          }
         }
       }
+      const evidenceBadge = document.getElementById("selectedEvidenceBadge");
+      if (evidenceBadge) {
+        evidenceBadge.textContent = t("sourcesCount", {count: selectedCandidate.source_count || 0});
+        evidenceBadge.className = "tag status";
+      }
+      setText("drawerRiskCopy", candidateRisk(selectedCandidate).text);
       const priorityReasons = document.getElementById("selectedPriorityReasons");
       priorityReasons.innerHTML = "";
       for (const reason of candidatePriorityReasons(selectedCandidate)) {
@@ -3122,6 +3340,7 @@
       renderCandidateActionPanel();
       renderPromotionPreview(null);
       renderReviewProgress();
+      renderSkillCandidates();
       if (selectedCandidate) {
         await loadCandidateAnalysis(selectedCandidate.id);
       }
@@ -3257,7 +3476,11 @@
     });
 
     document.querySelectorAll("[data-nav]").forEach((button) => {
-      button.addEventListener("click", () => setView(button.dataset.nav));
+      button.addEventListener("click", () => {
+        closeCandidateReviewDrawer();
+        closeMergeSuggestionsDrawer();
+        setView(button.dataset.nav);
+      });
     });
 
     document.querySelectorAll("[data-ops-tab]").forEach((button) => {
@@ -3269,26 +3492,10 @@
       if (!workspace) {
         return;
       }
-      workspace.dataset.workflowModule = moduleName;
-      document.querySelectorAll("[data-rp-tab]").forEach((button) => {
-        const detailActive = moduleName !== "approval";
-        const active = button.dataset.rpTab === (detailActive ? "detail" : "proposal");
-        button.classList.toggle("active", active);
-      });
-      document.querySelectorAll("[data-rp-content]").forEach((content) => {
-        const detailActive = moduleName !== "approval";
-        content.classList.toggle("active", content.dataset.rpContent === (detailActive ? "detail" : "proposal"));
-      });
-      const focusTarget = {
-        queue: "workflowReviewQueue",
-        evidence: "rightPanelContainer",
-        approval: "candidateActionPanel",
-      }[moduleName];
-      if (focusTarget) {
-        const panel = document.getElementById(focusTarget);
-        if (panel) {
-          panel.setAttribute("tabindex", "-1");
-        }
+      workspace.dataset.workflowModule = "queue";
+      const panel = document.getElementById("workflowReviewQueue");
+      if (panel) {
+        panel.setAttribute("tabindex", "-1");
       }
     }
 
@@ -3309,11 +3516,7 @@
 
     document.querySelectorAll("[data-rp-tab]").forEach((button) => {
       button.addEventListener("click", () => {
-        document.querySelectorAll("[data-rp-tab]").forEach((btn) => btn.classList.toggle("active", btn === button));
-        const tab = button.dataset.rpTab;
-        document.querySelectorAll("[data-rp-content]").forEach((content) => {
-          content.classList.toggle("active", content.dataset.rpContent === tab);
-        });
+        setDrawerTab(button.dataset.rpTab || "detail");
       });
     });
 
@@ -3376,7 +3579,23 @@
     document.getElementById("doctorRefresh").addEventListener("click", () => refreshDoctor().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("doctorOpenData").addEventListener("click", () => setView("data"));
     document.getElementById("refreshMergeSuggestions").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
-    document.getElementById("refreshMergeInline").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("refreshMergeSuggestionsInline").addEventListener("click", () => regenerateMergeSuggestions().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("openMergeSuggestions").addEventListener("click", () => openMergeSuggestionsDrawer());
+    document.getElementById("mergeSuggestionsModule").addEventListener("click", (event) => {
+      if (!shouldSkipMergeModuleOpen(event.target)) {
+        openMergeSuggestionsDrawer();
+      }
+    });
+    document.getElementById("mergeSuggestionsModule").addEventListener("keydown", (event) => {
+      if ((event.key === "Enter" || event.key === " ") && !shouldSkipMergeModuleOpen(event.target)) {
+        event.preventDefault();
+        openMergeSuggestionsDrawer();
+      }
+    });
+    document.getElementById("closeMergeSuggestions").addEventListener("click", () => closeMergeSuggestionsDrawer());
+    document.getElementById("mergeSuggestionsBackdrop").addEventListener("click", () => closeMergeSuggestionsDrawer());
+    document.getElementById("closeCandidateReviewDrawer").addEventListener("click", () => closeCandidateReviewDrawer());
+    document.getElementById("candidateReviewBackdrop").addEventListener("click", () => closeCandidateReviewDrawer());
     document.getElementById("scanAndAnalyzeButton").addEventListener("click", () => runScanAndAnalyze());
 
     document.getElementById("prevPage").addEventListener("click", () => {
@@ -3393,6 +3612,14 @@
       pageSize = Number(event.target.value) || 20;
       currentPage = 1;
       renderCandidates();
+    });
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-skill-candidate-action]");
+      if (!button) {
+        return;
+      }
+      handleSkillCandidateAction(button);
     });
 
     document.getElementById("refreshButton").addEventListener("click", () => refresh(true).catch((error) => showToast(error.message, "error")));

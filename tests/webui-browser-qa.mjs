@@ -45,7 +45,8 @@ report.checks.htmlLang = await page.locator('html').getAttribute('lang');
 report.checks.primaryNavItems = await page.locator('#sideNav [data-nav]').evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
 report.checks.primaryNavKeys = await page.locator('#sideNav [data-nav]').evaluateAll((nodes) => nodes.map((node) => node.dataset.nav));
 report.checks.primaryNavCount = report.checks.primaryNavItems.length;
-report.checks.hasFunctionalNavigation = ['dashboard', 'workflow', 'evidence', 'approval', 'data', 'automation', 'skills', 'recall', 'history', 'doctor'].every((key) => report.checks.primaryNavKeys.includes(key));
+report.checks.hasFunctionalNavigation = ['dashboard', 'workflow', 'data', 'automation', 'skills', 'recall', 'history', 'doctor'].every((key) => report.checks.primaryNavKeys.includes(key));
+report.checks.removedDuplicateWorkflowNav = !report.checks.primaryNavKeys.includes('evidence') && !report.checks.primaryNavKeys.includes('approval');
 report.checks.navGroupCount = await page.locator('#sideNav .nav-group-label').count();
 report.checks.navEnglishLabels = report.checks.primaryNavItems.filter((label) => /Dashboard|Candidates|Evidence|Approval|Data|Automation|Skills|Recall|History|Doctor/.test(label));
 report.checks.dashboardNextAction = await page.locator('#dashboardNextActionCopy').innerText();
@@ -82,6 +83,17 @@ report.checks.workflowNextActionInitial = await page.locator('#workflowNextActio
 report.checks.workflowPrimaryInitial = await page.locator('#workflowPrimaryAction').innerText();
 report.checks.candidateRows = await page.locator('#candidateRows .candidate-row').count();
 report.checks.candidateTableVisible = await page.locator('#workflowReviewQueue table.candidate-table').isVisible();
+report.checks.mergeSuggestionPanels = await page.locator('#mergeInlineList, #mergeSuggestionsList').count();
+report.checks.mergeSuggestionModuleVisible = await page.locator('#mergeSuggestionsModule').isVisible().catch(() => false);
+report.checks.mergeSuggestionModuleButtons = await page.locator('#mergeSuggestionsModule button').evaluateAll((nodes) => nodes.map((node) => node.textContent.trim())).catch(() => []);
+report.checks.mergeSuggestionTriggerVisible = await page.locator('#openMergeSuggestions').isVisible();
+report.checks.reviewDrawerInitiallyHidden = await page.locator('#candidateReviewDrawer[hidden]').count();
+await page.locator('#mergeSuggestionsModule .merge-tool-copy').click();
+report.checks.mergeDrawerVisibleFromModuleContent = await page.locator('#mergeSuggestionsDrawer:not([hidden])').isVisible().catch(() => false);
+report.checks.mergeDrawerWidth = await page.locator('#mergeSuggestionsDrawer .drawer-panel').evaluate((node) => Math.round(node.getBoundingClientRect().width)).catch(() => 0);
+if (report.checks.mergeDrawerVisibleFromModuleContent) {
+  await page.locator('#closeMergeSuggestions').click();
+}
 report.checks.workflowActionStripLayout = await page.locator('#workflowActionStrip').evaluate((node) => {
   const rect = node.getBoundingClientRect();
   return {
@@ -93,6 +105,9 @@ report.checks.workflowActionStripLayout = await page.locator('#workflowActionStr
 await page.screenshot({ path: screenshotPath.replace(/\.png$/i, '.workflow.png'), fullPage: true });
 
 await page.locator('#workflowPrimaryAction').click();
+await page.waitForSelector('#candidateReviewDrawer:not([hidden])');
+report.checks.reviewDrawerVisibleAfterSelect = await page.locator('#candidateReviewDrawer:not([hidden])').isVisible();
+report.checks.reviewDrawerTabs = await page.locator('#candidateReviewDrawer [data-drawer-tab]').evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
 await page.waitForFunction(() => {
   const text = document.querySelector('#workflowNextActionCopy')?.textContent || '';
   return text.includes('预览') || text.includes('Preview') || text.includes('Diff') || text.includes('diff');
@@ -100,7 +115,16 @@ await page.waitForFunction(() => {
 report.checks.workflowNextActionAfterSelect = await page.locator('#workflowNextActionCopy').innerText();
 report.checks.workflowPrimaryAfterSelect = await page.locator('#workflowPrimaryAction').innerText();
 
-await page.locator('#workflowPrimaryAction').click();
+await page.locator('#candidateReviewDrawer [data-rp-tab="approval"]').click();
+if (report.checks.workflowPrimaryAfterSelect.includes('Patch')) {
+  await page.locator('#previewPatchDiff').click();
+} else if (report.checks.workflowPrimaryAfterSelect.includes('Skill')) {
+  await page.locator('#previewSkillDiff').click();
+} else if (report.checks.workflowPrimaryAfterSelect.includes('AGENTS')) {
+  await page.locator('#previewAgentsDiff').click();
+} else {
+  await page.locator('#previewUserDiff').click();
+}
 await page.waitForFunction(() => {
   const text = document.querySelector('#promotionPreviewText')?.textContent || '';
   return text.includes('USER.md') || text.includes('AGENTS.md') || text.includes('Skill') || text.includes('Patch') || text.includes('@@');
@@ -108,7 +132,7 @@ await page.waitForFunction(() => {
 report.checks.previewTextHead = (await page.locator('#promotionPreviewText').innerText()).slice(0, 220);
 report.checks.workflowNextActionAfterPreview = await page.locator('#workflowNextActionCopy').innerText();
 
-const previewButton = report.checks.workflowPrimaryAfterSelect || '';
+const previewButton = `${report.checks.workflowPrimaryAfterSelect || ''} ${report.checks.previewTextHead || ''}`;
 let promotionButton = '#promoteSelected';
 if (previewButton.includes('AGENTS')) {
   promotionButton = '#promoteAgents';
@@ -118,7 +142,7 @@ if (previewButton.includes('AGENTS')) {
   promotionButton = '#promoteSkill';
 }
 report.checks.promotionButtonForPreview = promotionButton;
-await page.locator('#candidateActionPanel').scrollIntoViewIfNeeded();
+await page.locator('#candidateReviewDrawer').scrollIntoViewIfNeeded();
 report.checks.promotionButtonVisible = await page.locator(promotionButton).isVisible();
 report.checks.promotionButtonEnabled = await page.locator(promotionButton).isEnabled();
 await page.locator(promotionButton).click();
@@ -128,7 +152,8 @@ report.checks.confirmModalVisible = await page.locator('#confirmModal:not([hidde
 report.checks.confirmPreviewIncluded = await page.locator('#confirmModalBody').innerText().then((text) => text.includes('Promotion Diff Preview') || text.includes('晋升 Diff 预览'));
 report.checks.confirmModalHasDanger = await page.locator('#confirmModalConfirm.operation-danger').isVisible();
 await page.locator('#confirmModalCancel').click();
-report.checks.approvalDockVisible = await page.locator('#candidateActionPanel').isVisible();
+report.checks.reviewDrawerStillVisible = await page.locator('#candidateReviewDrawer:not([hidden])').isVisible();
+await page.locator('#closeCandidateReviewDrawer').click();
 
 await page.locator('#tab-operations').click();
 await page.waitForSelector('#operationsConsole');
@@ -164,35 +189,25 @@ await page.locator('#sideNav [data-nav="workflow"]').click();
 await page.waitForSelector('[data-view="workflow"].active #candidateWorkspace');
 report.checks.workflowModuleState = await page.locator('#candidateWorkspace').evaluate((node) => node.dataset.workflowModule || '');
 
-await page.locator('#sideNav [data-nav="evidence"]').click();
-await page.waitForFunction(() => document.querySelector('#candidateWorkspace')?.dataset.workflowModule === 'evidence');
-report.checks.evidenceModuleState = await page.locator('#candidateWorkspace').evaluate((node) => node.dataset.workflowModule || '');
-
-await page.locator('#sideNav [data-nav="approval"]').click();
-await page.waitForFunction(() => document.querySelector('#candidateWorkspace')?.dataset.workflowModule === 'approval');
-report.checks.approvalModuleState = await page.locator('#candidateWorkspace').evaluate((node) => node.dataset.workflowModule || '');
-report.checks.approvalDesktopLayout = await page.evaluate(() => {
-  const workspace = document.querySelector('#candidateWorkspace');
-  const rightPanel = document.querySelector('#rightPanelContainer');
-  const dock = document.querySelector('#candidateActionPanel');
-  if (!workspace || !rightPanel || !dock) {
-    return { missing: true };
-  }
-  const workspaceRect = workspace.getBoundingClientRect();
-  const rightRect = rightPanel.getBoundingClientRect();
-  const dockRect = dock.getBoundingClientRect();
-  const leadingWhitespace = Math.max(0, rightRect.left - workspaceRect.left);
-  return {
-    workspaceWidth: Math.round(workspaceRect.width),
-    rightPanelWidth: Math.round(rightRect.width),
-    dockWidth: Math.round(dockRect.width),
-    leadingWhitespace: Math.round(leadingWhitespace),
-    leadingWhitespaceRatio: Number((leadingWhitespace / workspaceRect.width).toFixed(2)),
-    sameRow: Math.abs(rightRect.top - dockRect.top) <= 80,
-    dockRatio: Number((dockRect.width / workspaceRect.width).toFixed(2)),
-    compact: leadingWhitespace / workspaceRect.width <= 0.12 && Math.abs(rightRect.top - dockRect.top) <= 80 && dockRect.width / workspaceRect.width <= 0.62,
-  };
-});
+await page.locator('#sideNav [data-nav="skills"]').click();
+await page.waitForSelector('#skillCandidatePanel');
+report.checks.skillCandidateRows = await page.locator('#skillCandidateRows tr:not(.empty-row)').count();
+report.checks.skillCandidateActions = await page.locator('#skillCandidatePanel button[data-skill-candidate-action]').evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
+await page.locator('#skillCandidatePanel button[data-skill-candidate-action="view"]').first().click();
+report.checks.skillCandidateViewOpensDrawer = await page.locator('#candidateReviewDrawer:not([hidden])').isVisible().catch(() => false);
+if (report.checks.skillCandidateViewOpensDrawer) {
+  await page.locator('#closeCandidateReviewDrawer').click();
+}
+await page.locator('#sideNav [data-nav="skills"]').click();
+await page.waitForSelector('#skillCandidatePanel');
+await page.locator('#skillCandidatePanel button[data-skill-candidate-action="preview"]').first().click();
+await page.waitForTimeout(250);
+report.checks.skillCandidatePreviewOpensDrawer = await page.locator('#candidateReviewDrawer:not([hidden])').isVisible().catch(() => false);
+report.checks.skillCandidatePreviewLoadsDiff = await page.locator('#promotionPreviewText').innerText().then((text) => text.includes('Skill') || text.includes('Patch') || text.includes('@@')).catch(() => false);
+if (report.checks.skillCandidatePreviewOpensDrawer) {
+  await page.locator('#closeCandidateReviewDrawer').click();
+}
+await page.screenshot({ path: screenshotPath.replace(/\.png$/i, '.skills.png'), fullPage: true });
 
 await page.locator('#themeToggle [data-theme="dark"]').click();
 await page.waitForFunction(() => document.body.getAttribute('data-theme') === 'dark');
@@ -206,7 +221,8 @@ const darkSelectors = [
   '.dashboard-priorities',
   '.dashboard-priority-item',
   '.workflow-stage-rail',
-  '.right-panel-tab-bar',
+  '.candidate-review-drawer',
+  '.drawer-tab-bar',
   '.pagination',
   '.operation-card',
   '.operation-quiet',

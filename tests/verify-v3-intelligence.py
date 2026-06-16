@@ -199,7 +199,7 @@ def main() -> int:
     for marker in ("candidate-row", "candidate-title", "candidate-snippet"):
         if marker not in js:
             raise AssertionError(f"Candidate Center should render dense review table rows: missing {marker}")
-    for marker in ("setupWizard", "dailyDigestPanel", "mergeSuggestionsPanel", "promotionPreview", "skillHealthTable", "skillHealthRows", "exportBundle", "importPreview"):
+    for marker in ("setupWizard", "dailyDigestPanel", "mergeSuggestionsDrawer", "candidateReviewDrawer", "skillCandidatePanel", "promotionPreview", "skillHealthTable", "skillHealthRows", "exportBundle", "importPreview"):
         if marker not in html and marker not in js:
             raise AssertionError(f"WebUI missing v3 marker: {marker}")
     required_workflow_markers = (
@@ -214,8 +214,6 @@ def main() -> int:
         "sideNav",
         'data-nav="dashboard"',
         'data-nav="workflow"',
-        'data-nav="evidence"',
-        'data-nav="approval"',
         'data-nav="data"',
         'data-nav="automation"',
         'data-nav="skills"',
@@ -227,6 +225,8 @@ def main() -> int:
         "workflowNextActionCopy",
         "workflowPrimaryAction",
         "workflowSecondaryAction",
+        "candidateReviewDrawer",
+        "mergeSuggestionsDrawer",
         "evolutionProposalBoard",
         "manualApprovalDock",
         "operationsConsole",

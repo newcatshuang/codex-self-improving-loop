@@ -39,8 +39,6 @@
       <button class="nav-button active" id="tab-dashboard" type="button" data-nav="dashboard" data-i18n="navDashboard">总览</button>
       <div class="nav-group-label" data-i18n="navGroupReview">审阅</div>
       <button class="nav-button" id="tab-workflow" type="button" data-nav="workflow" data-i18n="navCandidates">候选审阅</button>
-      <button class="nav-button" type="button" data-nav="evidence" data-i18n="navEvidence">证据与建议</button>
-      <button class="nav-button" type="button" data-nav="approval" data-i18n="navApproval">人工审批</button>
       <div class="nav-group-label" data-i18n="navGroupOps">运维</div>
       <button class="nav-button" id="tab-operations" type="button" data-nav="data" data-i18n="navData">数据中心</button>
       <button class="nav-button" type="button" data-nav="automation" data-i18n="navAutomation">自动化</button>
@@ -299,23 +297,25 @@
           </div>
         </section>
         <section class="candidate-workspace workflow-shell" id="candidateWorkspace">
-        <section class="panel merge-inline-card" id="mergeInlineCard">
-          <div class="panel-header">
-            <h2 data-i18n="mergeSuggestionsTitle">Merge Suggestions</h2>
-            <div class="toolbar">
-              <span class="tag status" id="mergeInlineCount">0</span>
-              <button class="secondary" id="refreshMergeInline" type="button" data-i18n="refresh">Refresh</button>
-            </div>
-          </div>
-          <div class="panel-body">
-            <div class="merge-inlinelist" id="mergeInlineList"></div>
-          </div>
-        </section>
         <section class="panel workflow-queue" id="workflowReviewQueue">
           <div class="panel-header">
             <h2 data-i18n="candidateCenter">Candidate Center</h2>
-            <span class="tag status" id="visibleCount">0</span>
+            <div class="toolbar">
+              <span class="tag status" id="visibleCount">0</span>
+            </div>
           </div>
+          <section class="merge-tool-module" id="mergeSuggestionsModule" role="button" tabindex="0" aria-labelledby="mergeSuggestionsModuleTitle">
+            <div class="merge-tool-copy">
+              <span class="eyebrow" data-i18n="mergeSuggestionsTitle">Merge Suggestions</span>
+              <h3 id="mergeSuggestionsModuleTitle" data-i18n="mergeSuggestionsTitle">Merge Suggestions</h3>
+              <p class="task-copy" data-i18n="mergeSuggestionsModuleCopy">Review duplicate candidate groups without duplicating the candidate list.</p>
+            </div>
+            <div class="merge-tool-actions">
+              <span class="tag status" id="mergeInlineCount">0</span>
+              <button class="secondary operation-quiet" id="refreshMergeSuggestionsInline" type="button" data-i18n="refresh">Refresh</button>
+              <button class="secondary merge-trigger" id="openMergeSuggestions" type="button" data-i18n="skillActionView">Review</button>
+            </div>
+          </section>
           <div class="review-progress-bar" id="reviewProgressBar">
             <div class="review-progress-track">
               <div class="review-progress-fill" id="reviewProgressFill"></div>
@@ -379,11 +379,24 @@
           </div>
         </section>
 
-        <aside class="panel right-panel-tabs" id="rightPanelContainer">
-          <div class="right-panel-tab-bar" id="rightPanelTabBar">
-            <button type="button" class="rp-tab active" data-rp-tab="detail" data-i18n="rpTabDetail">Detail</button>
-            <button type="button" class="rp-tab" data-rp-tab="proposal" data-i18n="rpTabProposal">LLM Proposal</button>
-          </div>
+        <aside class="candidate-review-drawer" id="candidateReviewDrawer" hidden>
+          <div class="drawer-backdrop" id="candidateReviewBackdrop"></div>
+          <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="candidateReviewDrawerTitle">
+            <div class="drawer-header">
+              <div>
+                <div class="eyebrow" data-i18n="candidateReviewDrawerEyebrow">候选审阅</div>
+                <h2 id="candidateReviewDrawerTitle" data-i18n="candidateReviewDrawerTitle">候选审阅抽屉</h2>
+              </div>
+              <button class="secondary icon-button" id="closeCandidateReviewDrawer" type="button" aria-label="Close">×</button>
+            </div>
+            <div class="drawer-tab-bar" id="rightPanelTabBar">
+              <button type="button" class="drawer-tab active" data-drawer-tab="detail" data-rp-tab="detail" data-i18n="drawerTabOverview">概览</button>
+              <button type="button" class="drawer-tab" data-drawer-tab="evidence" data-rp-tab="evidence" data-i18n="drawerTabEvidence">证据</button>
+              <button type="button" class="drawer-tab" data-drawer-tab="proposal" data-rp-tab="proposal" data-i18n="drawerTabProposal">LLM 建议</button>
+              <button type="button" class="drawer-tab" data-drawer-tab="approval" data-rp-tab="approval" data-i18n="drawerTabApproval">Diff 与审批</button>
+            </div>
+            <div class="drawer-content">
+        <div class="right-panel-tabs" id="rightPanelContainer">
           <div class="right-panel-tab-content active" data-rp-content="detail">
         <aside class="panel detail-panel" id="candidateDetailPanel">
           <div class="panel-header">
@@ -454,6 +467,24 @@
           </div>
         </aside>
           </div>
+          <div class="right-panel-tab-content" data-rp-content="evidence">
+        <aside class="panel detail-panel" id="candidateEvidencePanel">
+          <div class="panel-header">
+            <h2 data-i18n="drawerTabEvidence">证据</h2>
+            <span class="tag status" id="selectedEvidenceBadge" data-i18n="noneSelected">None</span>
+          </div>
+          <div class="panel-body">
+            <div class="detail-block">
+              <div class="detail-label" data-i18n="sourceFilesLabel">Source Files</div>
+              <ul class="source-list" id="drawerSourceFiles"></ul>
+            </div>
+            <section class="action-card" id="drawerRiskSummary">
+              <div class="detail-label" data-i18n="riskSummaryTitle">Risk Summary</div>
+              <p class="task-copy" id="drawerRiskCopy" data-i18n="selectCandidateHint">Select a row to inspect the full candidate and promotion suggestion.</p>
+            </section>
+          </div>
+        </aside>
+          </div>
           <div class="right-panel-tab-content" data-rp-content="proposal">
         <aside class="panel proposal-board" id="evolutionProposalBoard">
           <div class="panel-header">
@@ -492,7 +523,7 @@
           </div>
         </aside>
           </div>
-        </aside>
+          <div class="right-panel-tab-content" data-rp-content="approval">
         <aside class="panel action-panel manual-approval-dock" id="candidateActionPanel" data-workflow-panel="manualApprovalDock">
           <div class="panel-header">
             <h2 data-i18n="manualApprovalDockTitle">Manual Approval Dock</h2>
@@ -532,15 +563,29 @@
             </div>
           </div>
         </aside>
-        <section class="panel merge-suggestions-panel" id="mergeSuggestionsPanel">
-          <div class="panel-header">
-            <h2 data-i18n="mergeSuggestionsTitle">Merge Suggestions</h2>
-            <button class="secondary" id="refreshMergeSuggestions" type="button" data-i18n="refresh">Refresh</button>
           </div>
-          <div class="panel-body">
-            <ul class="simple-list" id="mergeSuggestionsList"></ul>
+        </div>
+            </div>
           </div>
-        </section>
+        </aside>
+        <aside class="candidate-review-drawer merge-drawer" id="mergeSuggestionsDrawer" hidden>
+          <div class="drawer-backdrop" id="mergeSuggestionsBackdrop"></div>
+          <div class="drawer-panel merge-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="mergeSuggestionsDrawerTitle">
+            <div class="drawer-header">
+              <div>
+                <div class="eyebrow" data-i18n="mergeSuggestionsTitle">Merge Suggestions</div>
+                <h2 id="mergeSuggestionsDrawerTitle" data-i18n="mergeSuggestionsTitle">Merge Suggestions</h2>
+              </div>
+              <button class="secondary icon-button" id="closeMergeSuggestions" type="button" aria-label="Close">×</button>
+            </div>
+            <div class="drawer-content">
+              <div class="toolbar drawer-toolbar">
+                <button class="secondary" id="refreshMergeSuggestions" type="button" data-i18n="refresh">Refresh</button>
+              </div>
+              <div class="merge-inlinelist" id="mergeSuggestionsList"></div>
+            </div>
+          </div>
+        </aside>
         </section>
       </section>
 
@@ -567,6 +612,27 @@
               <button class="operation-secondary" id="installSkills" data-action data-i18n="installSkills">Install / Update Skills</button>
               <button class="secondary operation-quiet" id="installUserTemplate" data-action data-i18n="installUserTemplate">Initialize USER.md Template</button>
             </div>
+            <section class="skill-candidate-panel" id="skillCandidatePanel">
+              <div class="panel-header">
+                <h3 data-i18n="skillCandidatePanelTitle">技能候选待处理</h3>
+                <span class="tag status" id="skillCandidatePanelCount">0</span>
+              </div>
+              <div class="table-wrap skill-candidate-wrap">
+                <table class="skill-health-table" id="skillCandidateTable">
+                  <thead>
+                    <tr>
+                      <th data-i18n="candidateHeader">候选内容</th>
+                      <th data-i18n="typeHeader">类型</th>
+                      <th data-i18n="proposalTargetTitle">Proposal Target</th>
+                      <th data-i18n="skillActionHeader">Recommended Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="skillCandidateRows">
+                    <tr><td class="empty-row" colspan="4" data-i18n="emptySkillCandidates">暂无技能候选。</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
             <section class="skill-health-panel" id="skillHealthPanel">
               <h3 data-i18n="skillHealthTitle">Skill Health</h3>
               <div class="table-wrap skill-table-wrap">

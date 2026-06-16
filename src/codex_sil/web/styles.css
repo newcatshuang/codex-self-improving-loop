@@ -776,58 +776,13 @@
 
     .candidate-workspace {
       display: grid;
-      grid-template-columns: minmax(560px, 1.15fr) minmax(420px, 0.95fr);
+      grid-template-columns: minmax(760px, 1fr);
       gap: 12px;
       align-items: start;
     }
 
     .workflow-shell {
-      grid-template-columns: minmax(560px, 1.15fr) minmax(420px, 0.95fr);
-    }
-
-    .workflow-shell[data-workflow-module="queue"] {
-      grid-template-columns: minmax(680px, 1fr);
-    }
-
-    .workflow-shell[data-workflow-module="evidence"],
-    .workflow-shell[data-workflow-module="approval"] {
-      grid-template-columns: minmax(560px, 1.1fr) minmax(420px, 0.9fr);
-    }
-
-    .workflow-shell[data-workflow-module="approval"] {
-      grid-template-columns: minmax(520px, 0.95fr) minmax(460px, 0.85fr);
-    }
-
-    .workflow-shell[data-workflow-module="queue"] #rightPanelContainer,
-    .workflow-shell[data-workflow-module="queue"] #candidateActionPanel,
-    .workflow-shell[data-workflow-module="queue"] #mergeInlineCard {
-      display: none;
-    }
-
-    .workflow-shell[data-workflow-module="evidence"] #candidateActionPanel {
-      display: none;
-    }
-
-    .workflow-shell[data-workflow-module="approval"] #workflowReviewQueue,
-    .workflow-shell[data-workflow-module="approval"] #mergeInlineCard,
-    .workflow-shell[data-workflow-module="approval"] #mergeSuggestionsPanel {
-      display: none;
-    }
-
-    .workflow-shell[data-workflow-module="approval"] #rightPanelContainer {
-      grid-column: 1 / 2;
-    }
-
-    .workflow-shell[data-workflow-module="approval"] #candidateActionPanel {
-      grid-column: 2 / 3;
-      grid-row: 1 / span 2;
-    }
-
-    .workflow-shell[data-workflow-module="queue"] #mergeInlineCard,
-    .workflow-shell[data-workflow-module="queue"] #mergeSuggestionsPanel,
-    .workflow-shell[data-workflow-module="evidence"] #mergeInlineCard,
-    .workflow-shell[data-workflow-module="evidence"] #mergeSuggestionsPanel {
-      grid-column: 1 / -1;
+      grid-template-columns: minmax(760px, 1fr);
     }
 
     .workflow-action-strip {
@@ -858,19 +813,52 @@
       min-width: 0;
     }
 
-    .merge-suggestions-panel {
-      grid-column: 1 / -1;
+    .merge-tool-module {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 12px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #ffffff;
+      cursor: pointer;
+      transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+    }
+
+    .merge-tool-module:hover,
+    .merge-tool-module:focus-visible {
+      border-color: var(--accent);
+      box-shadow: var(--shadow);
+      outline: none;
+      transform: translateY(-1px);
+    }
+
+    .merge-tool-copy {
+      min-width: 0;
+    }
+
+    .merge-tool-copy h3 {
+      margin: 1px 0 3px;
+      color: var(--ink);
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    .merge-tool-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
     }
 
     .action-panel {
-      position: sticky;
-      top: 16px;
-      max-height: calc(100vh - 118px);
+      max-height: none;
     }
 
     .proposal-board {
-      position: sticky;
-      top: 16px;
       max-height: calc(100vh - 118px);
     }
 
@@ -883,18 +871,6 @@
 
     .proposal-text-card {
       min-height: 180px;
-    }
-
-    .workflow-shell:not([data-workflow-module="approval"]) .manual-approval-dock {
-      grid-column: 1 / -1;
-      position: static;
-      max-height: none;
-    }
-
-    .workflow-shell[data-workflow-module="approval"] .manual-approval-dock {
-      position: sticky;
-      top: 16px;
-      max-height: none;
     }
 
     .workflow-readiness-panel {
@@ -947,6 +923,124 @@
       gap: 10px;
       max-height: calc(100vh - 136px);
       overflow: auto;
+    }
+
+    .candidate-review-drawer[hidden] {
+      display: none;
+    }
+
+    .candidate-review-drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 28;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .drawer-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.38);
+    }
+
+    .drawer-panel {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      width: min(860px, calc(100vw - 280px));
+      min-width: 720px;
+      height: 100vh;
+      flex-direction: column;
+      border-left: 1px solid var(--line);
+      background: var(--surface);
+      box-shadow: -18px 0 44px rgba(15, 23, 42, 0.18);
+    }
+
+    .compact-drawer {
+      width: min(560px, calc(100vw - 320px));
+      min-width: 520px;
+    }
+
+    .merge-drawer-panel {
+      width: min(920px, calc(100vw - 260px));
+      min-width: 760px;
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding: 16px 18px;
+      background: var(--surface);
+    }
+
+    .drawer-header h2 {
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    .icon-button {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .drawer-tab-bar {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 14px 0;
+      background: var(--surface-soft);
+    }
+
+    .drawer-tab {
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      padding: 8px 12px;
+      background: transparent;
+      color: var(--muted);
+      box-shadow: none;
+      font-size: 13px;
+    }
+
+    .drawer-tab.active {
+      border-color: var(--line);
+      background: var(--surface);
+      color: var(--accent);
+    }
+
+    .drawer-content {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 14px;
+      background: var(--page-bg);
+    }
+
+    .drawer-content .right-panel-tabs {
+      display: block;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .drawer-content .panel {
+      box-shadow: none;
+    }
+
+    .drawer-toolbar {
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    body.drawer-open {
+      overflow: hidden;
     }
 
     .action-card {
@@ -1079,6 +1173,40 @@
       margin-top: 10px;
     }
 
+    .skill-candidate-panel {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      border: 1px solid var(--skill-line);
+      border-radius: 8px;
+      background: var(--skill-bg);
+      overflow: hidden;
+    }
+
+    .skill-candidate-panel > .panel-header {
+      background: rgba(22, 119, 255, 0.06);
+    }
+
+    .skill-candidate-wrap.table-wrap {
+      margin: 0 12px 12px;
+      min-height: 0;
+      max-height: 260px;
+      background: var(--surface);
+    }
+
+    .skill-candidate-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-width: 220px;
+    }
+
+    .skill-candidate-actions button {
+      min-height: 30px;
+      padding: 6px 10px;
+      font-size: 12px;
+    }
+
     .audit-recovery-panel,
     .recall-workbench {
       border-top: 4px solid var(--patch-line);
@@ -1086,6 +1214,8 @@
 
     .skill-table-wrap {
       margin-top: 2px;
+      min-height: 0;
+      max-height: 220px;
     }
 
     .skill-health-table {
@@ -1704,13 +1834,12 @@
     @media (max-width: 1500px) {
       .candidate-workspace,
       .workflow-shell {
-        grid-template-columns: minmax(390px, 1fr) minmax(330px, 0.82fr);
+        grid-template-columns: minmax(680px, 1fr);
       }
 
       .proposal-board,
       .action-panel {
         position: static;
-        grid-column: 1 / -1;
         max-height: none;
       }
 
@@ -1749,9 +1878,6 @@
       .workspace-grid,
       .candidate-workspace,
       .workflow-shell,
-      .workflow-shell[data-workflow-module="queue"],
-      .workflow-shell[data-workflow-module="evidence"],
-      .workflow-shell[data-workflow-module="approval"],
       .run-workspace,
       .operation-grid,
       .workflow-map,
@@ -1763,15 +1889,6 @@
       .proposal-board,
       .action-panel {
         position: static;
-      }
-
-      .workflow-shell #rightPanelContainer,
-      .workflow-shell #candidateActionPanel,
-      .workflow-shell[data-workflow-module="queue"] #mergeInlineCard,
-      .workflow-shell[data-workflow-module="queue"] #mergeSuggestionsPanel,
-      .workflow-shell[data-workflow-module="evidence"] #mergeInlineCard,
-      .workflow-shell[data-workflow-module="evidence"] #mergeSuggestionsPanel {
-        grid-column: 1 / -1;
       }
 
       .right-panel-tabs {
@@ -2323,6 +2440,12 @@
       background: #2a2d3a;
     }
 
+    [data-theme="dark"] .merge-tool-module {
+      background: var(--surface);
+      border-color: var(--line);
+      border-left-color: var(--accent);
+    }
+
     [data-theme="dark"] .merge-inline-item {
       background: var(--surface);
       border-color: var(--line);
@@ -2785,9 +2908,20 @@
     }
 
     /* Merge suggestions panel */
-    [data-theme="dark"] .merge-suggestions-panel {
+    [data-theme="dark"] .merge-suggestions-panel,
+    [data-theme="dark"] .candidate-review-drawer .drawer-panel,
+    [data-theme="dark"] .candidate-review-drawer .drawer-header,
+    [data-theme="dark"] .candidate-review-drawer .drawer-tab-bar,
+    [data-theme="dark"] .candidate-review-drawer .drawer-content,
+    [data-theme="dark"] .skill-candidate-panel {
       background: var(--surface);
       border-color: var(--accent);
+    }
+
+    [data-theme="dark"] .drawer-tab.active {
+      background: var(--surface);
+      border-color: var(--line);
+      color: var(--accent);
     }
 
     /* Priority panel */
