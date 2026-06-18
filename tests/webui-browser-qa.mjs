@@ -58,6 +58,29 @@ report.checks.dashboardPriorities = await page.locator('#dashboardPriorityList .
 report.checks.setupChecklistItems = await page.locator('#setupChecklist .setup-check-item').count();
 report.checks.operationsViewContainers = await page.locator('[data-view="operations"]').count();
 report.checks.noHorizontalOverflowDesktop = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
+report.checks.dashboardCommandCenterPanels = await page.locator('#dailyCommandCenter > section, #dailyCommandCenter > div').count();
+report.checks.dashboardPaletteClasses = await page.locator('[data-view="dashboard"] .summary-card, [data-view="dashboard"] .task-card').evaluateAll((nodes) => {
+  const classes = new Set();
+  for (const node of nodes) {
+    for (const cls of node.className.split(/\s+/)) {
+      if (['memory', 'skill', 'patch', 'review', 'data', 'status'].includes(cls)) {
+        classes.add(cls);
+      }
+    }
+  }
+  return Array.from(classes).sort();
+});
+report.checks.dashboardHasOpsStrip = await page.locator('#dashboardOpsStrip').isVisible().catch(() => false);
+report.checks.dashboardOpsStripTextFits = await page.locator('#dashboardOpsStrip .ops-strip-item').evaluateAll((nodes) => nodes.every((node) => {
+  const value = node.querySelector('.task-value');
+  const copy = node.querySelector('.task-copy');
+  if (!value || !copy) {
+    return true;
+  }
+  const valueRect = value.getBoundingClientRect();
+  const copyRect = copy.getBoundingClientRect();
+  return valueRect.right <= copyRect.left || valueRect.bottom <= copyRect.top || copyRect.bottom <= valueRect.top;
+})).catch(() => false);
 report.checks.dashboardCompactPanels = await page.evaluate(() => {
   const selectors = ['#dailyDigestPanel', '#dashboardNextActionPanel'];
   return selectors.map((selector) => {
@@ -85,9 +108,28 @@ report.checks.candidateRows = await page.locator('#candidateRows .candidate-row'
 report.checks.candidateTableVisible = await page.locator('#workflowReviewQueue table.candidate-table').isVisible();
 report.checks.mergeSuggestionPanels = await page.locator('#mergeInlineList, #mergeSuggestionsList').count();
 report.checks.mergeSuggestionModuleVisible = await page.locator('#mergeSuggestionsModule').isVisible().catch(() => false);
+report.checks.mergeSuggestionToolbarVisible = await page.locator('#candidateQueueToolbar #mergeSuggestionsModule').isVisible().catch(() => false);
+report.checks.mergeSuggestionCardHeight = await page.locator('#mergeSuggestionsModule').evaluate((node) => Math.round(node.getBoundingClientRect().height)).catch(() => 0);
 report.checks.mergeSuggestionModuleButtons = await page.locator('#mergeSuggestionsModule button').evaluateAll((nodes) => nodes.map((node) => node.textContent.trim())).catch(() => []);
 report.checks.mergeSuggestionTriggerVisible = await page.locator('#openMergeSuggestions').isVisible();
 report.checks.reviewDrawerInitiallyHidden = await page.locator('#candidateReviewDrawer[hidden]').count();
+report.checks.workflowContextPanelVisible = await page.locator('#workflowContextPanel').isVisible().catch(() => false);
+report.checks.workflowLayoutColumns = await page.locator('#candidateWorkspace').evaluate(() => {
+  const queue = document.querySelector('#workflowReviewQueue');
+  const context = document.querySelector('#workflowContextPanel');
+  if (!queue || !context) {
+    return { hasQueue: Boolean(queue), hasContext: Boolean(context), sameRow: false, contextWidth: 0 };
+  }
+  const queueRect = queue.getBoundingClientRect();
+  const contextRect = context.getBoundingClientRect();
+  return {
+    hasQueue: true,
+    hasContext: true,
+    sameRow: Math.abs(queueRect.top - contextRect.top) <= 24,
+    queueWidth: Math.round(queueRect.width),
+    contextWidth: Math.round(contextRect.width),
+  };
+}).catch(() => ({ hasQueue: false, hasContext: false, sameRow: false, contextWidth: 0 }));
 await page.locator('#mergeSuggestionsModule .merge-tool-copy').click();
 report.checks.mergeDrawerVisibleFromModuleContent = await page.locator('#mergeSuggestionsDrawer:not([hidden])').isVisible().catch(() => false);
 report.checks.mergeDrawerWidth = await page.locator('#mergeSuggestionsDrawer .drawer-panel').evaluate((node) => Math.round(node.getBoundingClientRect().width)).catch(() => 0);
@@ -104,9 +146,17 @@ report.checks.workflowActionStripLayout = await page.locator('#workflowActionStr
 });
 await page.screenshot({ path: screenshotPath.replace(/\.png$/i, '.workflow.png'), fullPage: true });
 
-await page.locator('#workflowPrimaryAction').click();
+await page.locator('#candidateRows .candidate-row').first().click();
+await page.waitForFunction(() => {
+  const title = document.querySelector('#workflowContextCandidateTitle')?.textContent || '';
+  return title.trim() && title.trim() !== '-';
+}, null, { timeout: 10000 });
+report.checks.reviewDrawerHiddenAfterRowClick = await page.locator('#candidateReviewDrawer[hidden]').count();
+report.checks.workflowContextSelectedTitle = await page.locator('#workflowContextCandidateTitle').innerText().catch(() => '');
+report.checks.workflowContextActions = await page.locator('#workflowContextPanel button').evaluateAll((nodes) => nodes.map((node) => node.textContent.trim())).catch(() => []);
+await page.locator('#workflowContextOpenDetail').click();
 await page.waitForSelector('#candidateReviewDrawer:not([hidden])');
-report.checks.reviewDrawerVisibleAfterSelect = await page.locator('#candidateReviewDrawer:not([hidden])').isVisible();
+report.checks.reviewDrawerVisibleAfterContextDetail = await page.locator('#candidateReviewDrawer:not([hidden])').isVisible();
 report.checks.reviewDrawerTabs = await page.locator('#candidateReviewDrawer [data-drawer-tab]').evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
 await page.waitForFunction(() => {
   const text = document.querySelector('#workflowNextActionCopy')?.textContent || '';
@@ -160,6 +210,20 @@ await page.waitForSelector('#operationsConsole');
 report.checks.operationsLifecycleVisible = await page.locator('#operationsLifecycleMap').isVisible().catch(() => false);
 report.checks.recoveryQueueItems = await page.locator('#recoveryQueueList .recovery-queue-item').count();
 report.checks.operationsVisiblePanels = await page.locator('[data-view="operations"].active').count();
+report.checks.dataWorkbenchLayout = await page.locator('#dataWorkbench').evaluate((node) => {
+  const rect = node.getBoundingClientRect();
+  const left = document.querySelector('#dataOperationColumn')?.getBoundingClientRect();
+  const right = document.querySelector('#dataInsightColumn')?.getBoundingClientRect();
+  return {
+    visible: rect.width > 0 && rect.height > 0,
+    sameRow: Boolean(left && right && Math.abs(left.top - right.top) <= 24),
+    leftWidth: left ? Math.round(left.width) : 0,
+    rightWidth: right ? Math.round(right.width) : 0,
+  };
+}).catch(() => ({ visible: false, sameRow: false, leftWidth: 0, rightWidth: 0 }));
+report.checks.dataOperationColumnOrder = await page.locator('#dataOperationColumn .operation-card').evaluateAll((nodes) => nodes.map((node) => node.id)).catch(() => []);
+report.checks.dataInsightPanels = await page.locator('#dataInsightColumn #operationsRecoveryQueue, #dataInsightColumn #rollbackPreviewCard').count();
+report.checks.dataStandaloneRollbackVisible = await page.locator('#operationsDynamicSections #rollbackPreview').isVisible().catch(() => false);
 await page.screenshot({ path: screenshotPath.replace(/\.png$/i, '.data.png'), fullPage: true });
 
 const moduleExpectations = [
@@ -195,10 +259,19 @@ report.checks.skillCandidateRows = await page.locator('#skillCandidateRows tr:no
 report.checks.skillCandidateActions = await page.locator('#skillCandidatePanel button[data-skill-candidate-action]').evaluateAll((nodes) => nodes.map((node) => node.textContent.trim()));
 await page.locator('#skillCandidatePanel button[data-skill-candidate-action="view"]').first().click();
 report.checks.skillCandidateViewOpensDrawer = await page.locator('#candidateReviewDrawer:not([hidden])').isVisible().catch(() => false);
+report.checks.skillCandidateSourceContextVisible = await page.locator('#workflowSourceContext:not([hidden])').isVisible().catch(() => false);
+report.checks.skillCandidateReturnVisible = await page.locator('#returnToSkillCandidates').isVisible().catch(() => false);
 if (report.checks.skillCandidateViewOpensDrawer) {
   await page.locator('#closeCandidateReviewDrawer').click();
 }
-await page.locator('#sideNav [data-nav="skills"]').click();
+if (report.checks.skillCandidateReturnVisible) {
+  await page.locator('#returnToSkillCandidates').click();
+  await page.waitForSelector('[data-view="operations"].active #skillCandidatePanel');
+}
+report.checks.skillCandidateReturnToSkills = await page.locator('#appShell').evaluate((node) => node.dataset.currentNav || '').catch(() => '');
+if (report.checks.skillCandidateReturnToSkills !== 'skills') {
+  await page.locator('#sideNav [data-nav="skills"]').click();
+}
 await page.waitForSelector('#skillCandidatePanel');
 await page.locator('#skillCandidatePanel button[data-skill-candidate-action="preview"]').first().click();
 await page.waitForTimeout(250);
@@ -253,15 +326,29 @@ const darkScreenshotPath = screenshotPath.replace(/\.png$/i, '.dark.png');
 await page.screenshot({ path: darkScreenshotPath, fullPage: true });
 report.checks.darkScreenshotPath = darkScreenshotPath;
 
-report.checks.darkNavTextReadable = await page.locator('#sideNav [data-nav="history"]').evaluate((node) => {
-  const color = getComputedStyle(node).color;
-  const match = color.match(/rgba?\(([^)]+)\)/);
-  if (!match) {
-    return true;
-  }
-  const parts = match[1].split(',').map((part) => part.trim());
-  return parts.length < 4 || Number(parts[3]) >= 0.78;
-});
+report.checks.darkNavTextSamples = await page.locator('#sideNav [data-nav]:not(.active)').evaluateAll((nodes) => nodes.map((node) => {
+  const styles = getComputedStyle(node);
+  const color = styles.color;
+  const textFillColor = styles.webkitTextFillColor || color;
+  const renderedColor = textFillColor && textFillColor !== 'currentcolor' ? textFillColor : color;
+  const match = renderedColor.match(/rgba?\(([^)]+)\)/);
+  const parts = match ? match[1].split(',').map((part) => Number(part.trim())) : [];
+  const alpha = parts.length >= 4 ? parts[3] : 1;
+  const luminance = parts.length >= 3
+    ? (0.2126 * parts[0] + 0.7152 * parts[1] + 0.0722 * parts[2])
+    : 255;
+  return {
+    label: node.textContent.trim(),
+    color,
+    textFillColor,
+    disabled: Boolean(node.disabled),
+    alpha,
+    luminance: Math.round(luminance),
+    opacity: Number(styles.opacity),
+    readable: alpha >= 0.68 && luminance >= 165,
+  };
+}));
+report.checks.darkNavTextReadable = report.checks.darkNavTextSamples.every((sample) => sample.readable);
 
 await page.locator('#themeToggle [data-theme="light"]').click();
 await page.waitForFunction(() => document.body.getAttribute('data-theme') === 'light');

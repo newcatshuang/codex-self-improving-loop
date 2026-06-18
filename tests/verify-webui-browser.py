@@ -19,6 +19,7 @@ PLAYWRIGHT_CORE = Path(
     r"C:\Users\Newcats\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\node_modules\.pnpm\playwright-core@1.60.0\node_modules\playwright-core\index.mjs"
 )
 EDGE = Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
+QA_SCRIPT = Path(__file__).resolve().with_name("webui-browser-qa.mjs")
 
 
 def skip(reason: str) -> int:
@@ -82,6 +83,15 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"dashboard should not expose action or same-page jump controls: {checks}")
     if checks.get("dashboardWorkflowMapVisible") is not False:
         raise AssertionError(f"dashboard should not include workflow teaching cards: {checks}")
+    if int(checks.get("dashboardCommandCenterPanels") or 0) > 3:
+        raise AssertionError(f"dashboard command center should stay compact instead of stacking many panels: {checks}")
+    dashboard_palette = set(checks.get("dashboardPaletteClasses") or [])
+    if len(dashboard_palette) > 4:
+        raise AssertionError(f"dashboard should use a restrained status palette, not a six-color summary wall: {checks}")
+    if checks.get("dashboardHasOpsStrip") is not True:
+        raise AssertionError(f"dashboard should expose key system facts as one compact ops strip: {checks}")
+    if checks.get("dashboardOpsStripTextFits") is not True:
+        raise AssertionError(f"dashboard ops strip text should not overlap in compact facts: {checks}")
     if int(checks.get("setupChecklistItems") or 0) < 4:
         raise AssertionError(f"first-run wizard should render status checklist items: {checks}")
     if int(checks.get("operationsViewContainers") or 0) != 1:
@@ -92,6 +102,8 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"merge suggestions should have one trigger and one rendered list: {checks}")
     if checks.get("mergeSuggestionModuleVisible") is not True:
         raise AssertionError(f"merge suggestions should stay discoverable as a workflow tool module: {checks}")
+    if checks.get("mergeSuggestionToolbarVisible") is not True or int(checks.get("mergeSuggestionCardHeight") or 0) > 72:
+        raise AssertionError(f"merge suggestions should live in the candidate toolbar, not as a large content card: {checks}")
     merge_module_actions = "".join(checks.get("mergeSuggestionModuleButtons") or [])
     if "刷新" not in merge_module_actions or "查看" not in merge_module_actions:
         raise AssertionError(f"merge suggestion module should expose refresh and review actions: {checks}")
@@ -101,8 +113,10 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"merge suggestion drawer should be wide enough for grouped content: {checks}")
     if int(checks.get("reviewDrawerInitiallyHidden") or 0) != 1:
         raise AssertionError(f"candidate review drawer should start hidden before selecting a row: {checks}")
-    if checks.get("reviewDrawerVisibleAfterSelect") is not True:
-        raise AssertionError(f"selecting a candidate should open the unified review drawer: {checks}")
+    if int(checks.get("reviewDrawerHiddenAfterRowClick") or 0) != 1:
+        raise AssertionError(f"clicking a candidate row should update context without opening the review drawer: {checks}")
+    if checks.get("reviewDrawerVisibleAfterContextDetail") is not True:
+        raise AssertionError(f"context detail action should open the unified review drawer: {checks}")
     drawer_tabs = checks.get("reviewDrawerTabs") or []
     if not all(label in "".join(drawer_tabs) for label in ("概览", "证据", "LLM", "Diff")):
         raise AssertionError(f"review drawer should expose overview, evidence, proposal, and approval tabs: {checks}")
@@ -124,6 +138,16 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"operations should open as a task page, not a flow-card explainer: {checks}")
     if int(checks.get("operationsVisiblePanels") or 0) != 1:
         raise AssertionError(f"operations navigation should activate one operations view: {checks}")
+    data_layout = checks.get("dataWorkbenchLayout") or {}
+    if data_layout.get("visible") is not True or data_layout.get("sameRow") is not True or int(data_layout.get("rightWidth") or 0) < 320:
+        raise AssertionError(f"data center should use a left operations / right insight workbench layout: {checks}")
+    data_order = checks.get("dataOperationColumnOrder") or []
+    if data_order[:3] != ["safeOperationZone", "exportOperationZone", "dangerOperationZone"]:
+        raise AssertionError(f"data operations should be grouped as safe, export, then dangerous actions: {checks}")
+    if int(checks.get("dataInsightPanels") or 0) < 2:
+        raise AssertionError(f"data insight column should keep recovery and rollback context beside actions: {checks}")
+    if checks.get("dataStandaloneRollbackVisible") is True:
+        raise AssertionError(f"data page should not duplicate rollback preview below the workbench: {checks}")
     module_navigation = checks.get("moduleNavigation") or {}
     for module_name, result in module_navigation.items():
         if result.get("currentNav") != module_name or result.get("activeNav") is not True:
@@ -138,6 +162,16 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
             raise AssertionError(f"module navigation should leave visible content for {module_name}: {checks}")
     if checks.get("workflowModuleState") != "queue":
         raise AssertionError(f"candidate workflow should stay on the queue surface and open details in a drawer: {checks}")
+    if checks.get("workflowContextPanelVisible") is not True:
+        raise AssertionError(f"candidate workflow should expose a persistent context panel beside the queue: {checks}")
+    workflow_layout = checks.get("workflowLayoutColumns") or {}
+    if workflow_layout.get("sameRow") is not True or int(workflow_layout.get("contextWidth") or 0) < 300:
+        raise AssertionError(f"candidate workflow should use a useful desktop side context instead of leaving blank space: {checks}")
+    if not str(checks.get("workflowContextSelectedTitle") or "").strip():
+        raise AssertionError(f"candidate context panel should reflect the selected candidate: {checks}")
+    workflow_context_actions = "".join(checks.get("workflowContextActions") or [])
+    if "详情" not in workflow_context_actions and "Detail" not in workflow_context_actions:
+        raise AssertionError(f"candidate context panel should offer drawer detail access: {checks}")
     if int(checks.get("skillCandidateRows") or 0) < 1:
         raise AssertionError(f"skills page should show skill-related candidates: {checks}")
     skill_actions = "".join(checks.get("skillCandidateActions") or [])
@@ -145,6 +179,10 @@ def assert_report(payload: dict[str, object], screenshot: Path) -> None:
         raise AssertionError(f"skills page should expose preview and apply actions for skill candidates: {checks}")
     if checks.get("skillCandidateViewOpensDrawer") is not True:
         raise AssertionError(f"skill candidate view action should open the candidate drawer: {checks}")
+    if checks.get("skillCandidateSourceContextVisible") is not True or checks.get("skillCandidateReturnVisible") is not True:
+        raise AssertionError(f"skill candidate jumps should leave visible source context and a return action: {checks}")
+    if checks.get("skillCandidateReturnToSkills") != "skills":
+        raise AssertionError(f"skill candidate return action should restore the skills page nav state: {checks}")
     if checks.get("skillCandidatePreviewOpensDrawer") is not True or checks.get("skillCandidatePreviewLoadsDiff") is not True:
         raise AssertionError(f"skill candidate preview action should open the drawer and load a diff: {checks}")
     if checks.get("darkThemeNoWhiteControls") is not True:
@@ -184,7 +222,7 @@ def main() -> int:
     with TestServer(repo, root) as server:
         url = f"http://127.0.0.1:{server.port}/?token={server.token}"
         completed = subprocess.run(
-            [str(NODE), str(repo / "tests" / "webui-browser-qa.mjs"), url, str(screenshot), str(EDGE)],
+            [str(NODE), str(QA_SCRIPT), url, str(screenshot), str(EDGE)],
             cwd=repo,
             check=False,
             text=True,

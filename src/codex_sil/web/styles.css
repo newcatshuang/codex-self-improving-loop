@@ -351,34 +351,9 @@
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
     }
 
-    .summary-card.memory {
-      background: var(--memory-bg);
-      border-color: var(--memory-line);
-    }
-
-    .summary-card.skill {
-      background: var(--skill-bg);
-      border-color: var(--skill-line);
-    }
-
-    .summary-card.patch {
-      background: var(--patch-bg);
-      border-color: var(--patch-line);
-    }
-
-    .summary-card.review {
-      background: var(--review-bg);
-      border-color: var(--review-line);
-    }
-
-    .summary-card.data {
-      background: var(--data-bg);
-      border-color: var(--data-line);
-    }
-
-    .summary-card.status {
-      background: #f9f0ff;
-      border-color: #d3adf7;
+    .summary-card.metric {
+      background: #ffffff;
+      border-color: var(--line-soft);
     }
 
     .summary-label {
@@ -422,6 +397,49 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(180px, 1fr));
       gap: 10px;
+    }
+
+    .dashboard-ops-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: var(--shadow);
+    }
+
+    .ops-strip-item {
+      min-width: 0;
+      border-right: 1px solid var(--line-soft);
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr);
+      gap: 4px 10px;
+      align-items: center;
+    }
+
+    .ops-strip-item:last-child {
+      border-right: 0;
+    }
+
+    .ops-strip-item h3 {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .ops-strip-item .task-value {
+      font-size: 22px;
+      min-width: max-content;
+    }
+
+    .ops-strip-item .task-copy {
+      margin: 0;
+      min-width: 0;
+      text-align: left;
+      overflow-wrap: anywhere;
     }
 
     .dashboard-priorities {
@@ -759,6 +777,29 @@
       background: #ffffff;
     }
 
+    .data-workbench {
+      display: grid;
+      grid-template-columns: minmax(560px, 1fr) minmax(320px, 420px);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .data-operation-column,
+    .data-insight-column {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .data-insight-column {
+      position: sticky;
+      top: 14px;
+    }
+
+    .data-insight-column > .panel {
+      min-width: 0;
+    }
+
     .safe-operation-zone {
       background: var(--memory-bg);
       border-color: var(--memory-line);
@@ -782,7 +823,7 @@
     }
 
     .workflow-shell {
-      grid-template-columns: minmax(760px, 1fr);
+      grid-template-columns: minmax(720px, 1fr) minmax(320px, 392px);
     }
 
     .workflow-action-strip {
@@ -813,17 +854,125 @@
       min-width: 0;
     }
 
+    .candidate-queue-toolbar {
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .workflow-context-panel {
+      position: sticky;
+      top: 14px;
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+      padding: 12px;
+    }
+
+    .workflow-source-context {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      border: 1px solid var(--skill-line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--skill-bg);
+    }
+
+    .workflow-source-context[hidden] {
+      display: none;
+    }
+
+    .workflow-source-context strong {
+      display: block;
+      margin: 2px 0 3px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .workflow-context-empty {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      color: var(--muted);
+      line-height: 1.5;
+      background: var(--surface-soft);
+    }
+
+    .workflow-context-content {
+      display: grid;
+      gap: 12px;
+    }
+
+    .workflow-context-content[hidden] {
+      display: none;
+    }
+
+    .workflow-context-content h3 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .workflow-context-tags,
+    .workflow-context-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .workflow-context-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0;
+    }
+
+    .workflow-context-metrics div {
+      min-width: 0;
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      padding: 9px;
+      background: var(--surface-soft);
+    }
+
+    .workflow-context-metrics dt {
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .workflow-context-metrics dd {
+      margin: 0;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
+    .workflow-context-next {
+      border-left: 3px solid var(--accent);
+      padding: 2px 0 2px 10px;
+    }
+
+    .workflow-context-next p {
+      margin: 4px 0 0;
+      color: var(--ink);
+      line-height: 1.5;
+    }
+
     .merge-tool-module {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      margin: 12px;
+      gap: 10px;
+      margin: 0;
       border: 1px solid var(--line);
-      border-left: 4px solid var(--accent);
       border-radius: 8px;
-      padding: 10px 12px;
-      background: #ffffff;
+      padding: 6px 8px;
+      background: var(--surface-soft);
       cursor: pointer;
       transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
     }
@@ -841,10 +990,14 @@
     }
 
     .merge-tool-copy h3 {
-      margin: 1px 0 3px;
+      margin: 0;
       color: var(--ink);
-      font-size: 15px;
+      font-size: 13px;
       line-height: 1.25;
+    }
+
+    .merge-tool-copy .eyebrow {
+      display: none;
     }
 
     .merge-tool-actions {
@@ -1832,9 +1985,16 @@
     }
 
     @media (max-width: 1500px) {
-      .candidate-workspace,
-      .workflow-shell {
+      .candidate-workspace:not(.workflow-shell) {
         grid-template-columns: minmax(680px, 1fr);
+      }
+
+      .workflow-shell {
+        grid-template-columns: minmax(700px, 1fr) minmax(300px, 360px);
+      }
+
+      .data-workbench {
+        grid-template-columns: minmax(560px, 1fr) minmax(300px, 360px);
       }
 
       .proposal-board,
@@ -2280,22 +2440,23 @@
       background: var(--surface);
     }
 
-    [data-theme="dark"] .nav-button {
-      color: rgba(255, 255, 255, 0.88);
+    [data-theme="dark"] .side-nav .nav-button {
+      color: #e2e8f0;
+      opacity: 1;
     }
 
-    [data-theme="dark"] .nav-button:hover {
+    [data-theme="dark"] .side-nav .nav-button:hover {
       background: #252836;
-      color: var(--ink);
+      color: #ffffff;
     }
 
-    [data-theme="dark"] .nav-button.active {
-      background: var(--accent-soft);
-      color: #9ec5ff;
+    [data-theme="dark"] .side-nav .nav-button.active {
+      background: rgba(22, 119, 255, 0.22);
+      color: #69b1ff;
     }
 
-    [data-theme="dark"] .nav-group-label {
-      color: rgba(255, 255, 255, 0.45);
+    [data-theme="dark"] .side-nav .nav-group-label {
+      color: #aeb8c9;
     }
 
     [data-theme="dark"] button {
@@ -2510,6 +2671,12 @@
       background: var(--surface);
       border-color: var(--line);
     }
+    [data-theme="dark"] .summary-card.metric,
+    [data-theme="dark"] .dashboard-ops-strip,
+    [data-theme="dark"] .ops-strip-item {
+      background: var(--surface);
+      border-color: var(--line);
+    }
     [data-theme="dark"] .summary-card.memory {
       background: rgba(34, 197, 94, 0.06);
       border-color: rgba(34, 197, 94, 0.3);
@@ -2533,6 +2700,14 @@
     [data-theme="dark"] .summary-card.status {
       background: rgba(168, 85, 247, 0.06);
       border-color: rgba(168, 85, 247, 0.3);
+    }
+    [data-theme="dark"] .ops-strip-item h3 {
+      color: rgba(255, 255, 255, 0.62);
+    }
+    [data-theme="dark"] .data-insight-column > .panel,
+    [data-theme="dark"] .data-rollback-card {
+      background: var(--surface);
+      border-color: var(--line);
     }
     [data-theme="dark"] .control-grid .panel {
       background: var(--surface);
@@ -3083,4 +3258,28 @@
     /* Empty row text */
     [data-theme="dark"] .empty-row {
       color: var(--muted);
+    }
+
+    [data-theme="dark"] #sideNav .nav-button {
+      background: transparent;
+      color: #e2e8f0;
+      -webkit-text-fill-color: #e2e8f0;
+      opacity: 1;
+    }
+
+    [data-theme="dark"] #sideNav .nav-button:hover {
+      background: rgba(148, 163, 184, 0.12);
+      color: #ffffff;
+      -webkit-text-fill-color: #ffffff;
+    }
+
+    [data-theme="dark"] #sideNav .nav-button.active {
+      background: rgba(22, 119, 255, 0.22);
+      color: #69b1ff;
+      -webkit-text-fill-color: #69b1ff;
+    }
+
+    [data-theme="dark"] #sideNav .nav-group-label {
+      color: #aeb8c9;
+      -webkit-text-fill-color: #aeb8c9;
     }

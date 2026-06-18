@@ -117,6 +117,15 @@
         workflowStagePreview: "Diff Preview",
         workflowStageApproval: "Manual Approval",
         workflowStageHistory: "History",
+        workflowContextTitle: "Review Context",
+        workflowContextEmpty: "Select a candidate to see the current review context.",
+        workflowContextNextLabel: "Next step",
+        workflowContextDetailAction: "Open detail",
+        workflowContextApprovalAction: "Open approval",
+        workflowSourceEyebrow: "Source",
+        workflowSourceSkillsTitle: "From skill candidates",
+        workflowSourceSkillsCopy: "This review was opened from Skill Management.",
+        returnToSkills: "Return to Skills",
         workflowReadinessTitle: "Review Readiness",
         workflowReadinessSelected: "Candidate selected",
         workflowReadinessEvidence: "Evidence available",
@@ -658,6 +667,15 @@
         workflowStagePreview: "Diff 预览",
         workflowStageApproval: "人工审批",
         workflowStageHistory: "历史",
+        workflowContextTitle: "审阅上下文",
+        workflowContextEmpty: "选择候选后在这里查看当前处理上下文。",
+        workflowContextNextLabel: "下一步",
+        workflowContextDetailAction: "打开详情",
+        workflowContextApprovalAction: "打开审批",
+        workflowSourceEyebrow: "来源",
+        workflowSourceSkillsTitle: "来自技能候选",
+        workflowSourceSkillsCopy: "这条候选从技能管理页打开，处理完成后可直接返回。",
+        returnToSkills: "返回技能",
         workflowReadinessTitle: "审阅就绪度",
         workflowReadinessSelected: "已选择候选",
         workflowReadinessEvidence: "已有证据",
@@ -1122,6 +1140,7 @@
     let latestPromotionPreview = null;
     let selectedAnalysisPayload = null;
     let selectedAnalysisLoading = false;
+    let workflowSourceContext = null;
     let pendingConfirmResolve = null;
     window.selectedCandidateId = null;
 
@@ -1198,6 +1217,7 @@
       renderSkillCandidates();
       renderPromotionPreview(latestPromotionPreview);
       renderReviewProgress();
+      renderWorkflowContextPanel();
       applyTheme();
       refreshScheduleStatus().catch((error) => console.warn(error));
     }
@@ -1238,7 +1258,9 @@
 
     function setBusy(isBusy) {
       document.querySelectorAll("[data-action]").forEach((button) => {
-        button.disabled = isBusy;
+        if (!button.closest("#sideNav, #themeToggle, #languageToggle")) {
+          button.disabled = isBusy;
+        }
       });
     }
 
@@ -1918,6 +1940,59 @@
       secondary.dataset.workflowAction = "review";
     }
 
+    function workflowContextNextText() {
+      if (!selectedCandidate) {
+        return t("workflowNextSelectCandidate");
+      }
+      const steps = workflowReadinessSteps();
+      const previewLoaded = steps.find((step) => step.stage === "preview").done;
+      if (selectedAnalysisLoading || !selectedAnalysisPayload) {
+        return t("workflowNextLoadAnalysis");
+      }
+      return previewLoaded ? t("workflowNextManualApproval") : t("workflowNextPreviewDiff");
+    }
+
+    function renderWorkflowContextPanel() {
+      const panel = document.getElementById("workflowContextPanel");
+      if (!panel) {
+        return;
+      }
+      const source = document.getElementById("workflowSourceContext");
+      const empty = document.getElementById("workflowContextEmpty");
+      const content = document.getElementById("workflowContextContent");
+      const badge = document.getElementById("workflowContextBadge");
+      if (source) {
+        source.hidden = !(workflowSourceContext && workflowSourceContext.type === "skills");
+      }
+      if (!selectedCandidate) {
+        if (empty) empty.hidden = false;
+        if (content) content.hidden = true;
+        if (badge) {
+          badge.textContent = t("noneSelected");
+          badge.className = "tag status";
+        }
+        return;
+      }
+      if (empty) empty.hidden = true;
+      if (content) content.hidden = false;
+      if (badge) {
+        badge.textContent = selectedCandidate.status || t("noneSelected");
+        badge.className = `tag ${selectedCandidate.status === "blocked" ? "review" : "status"}`;
+      }
+      setText("workflowContextCandidateTitle", selectedCandidate.title || selectedCandidate.text || "-");
+      setText("workflowContextType", formatType(selectedCandidate.type));
+      const type = document.getElementById("workflowContextType");
+      if (type) {
+        type.className = `tag ${selectedCandidate.type || "status"}`;
+      }
+      const priorityLabel = candidatePriorityLabel(selectedCandidate);
+      setText("workflowContextPriority", `${priorityLabel} · ${candidatePriorityScore(selectedCandidate)}`);
+      setText("workflowContextStatus", selectedCandidate.status || "-");
+      setText("workflowContextSources", t("sourcesCount", {count: selectedCandidate.source_count || 0}));
+      setText("workflowContextDestination", selectedCandidate.destination || "-");
+      setText("workflowContextNextAction", workflowContextNextText());
+    }
+
     function renderWorkflowReadiness() {
       const list = document.getElementById("workflowReadinessList");
       const summary = document.getElementById("approvalReadiness");
@@ -1946,6 +2021,7 @@
         stage.classList.toggle("workflow-stage-current", current);
       });
       renderWorkflowNextAction();
+      renderWorkflowContextPanel();
     }
 
     function setDrawerTab(tab) {
@@ -2009,15 +2085,15 @@
         return;
       }
       setView("workflow");
-      selectCandidate(candidate.id);
+      selectCandidate(candidate.id, {sourceContext: {type: "skills"}, openDrawer: true});
       if (button.dataset.skillCandidateAction === "view") {
-        setDrawerTab("detail");
+        openCandidateReviewDrawer("detail");
         return;
       }
       const target = candidate.type === "skill_patch" ? "patch" : "skill";
       if (button.dataset.skillCandidateAction === "preview") {
         previewPromotion(target)
-          .then(() => setDrawerTab("approval"))
+          .then(() => openCandidateReviewDrawer("approval"))
           .catch((error) => showToast(error.message || t("toastLoadFailed"), "error"));
         return;
       }
@@ -3234,7 +3310,12 @@
       selectedAnalysisLoading = false;
     }
 
-    function selectCandidate(id) {
+    function selectCandidate(id, options = {}) {
+      if (options.sourceContext) {
+        workflowSourceContext = options.sourceContext;
+      } else if (!options.keepSourceContext) {
+        workflowSourceContext = null;
+      }
       window.selectedCandidateId = id;
       selectedCandidate = allCandidates.find((item) => String(item.id) === String(id)) || null;
       selectedAnalysisPayload = null;
@@ -3244,8 +3325,11 @@
       renderSelected();
       renderCandidateActionPanel();
       renderPromotionPreview(null);
+      renderWorkflowContextPanel();
       if (selectedCandidate) {
-        openCandidateReviewDrawer("detail");
+        if (options.openDrawer) {
+          openCandidateReviewDrawer(options.drawerTab || "detail");
+        }
         loadCandidateAnalysis(id);
       }
     }
@@ -3341,6 +3425,7 @@
       renderPromotionPreview(null);
       renderReviewProgress();
       renderSkillCandidates();
+      renderWorkflowContextPanel();
       if (selectedCandidate) {
         await loadCandidateAnalysis(selectedCandidate.id);
       }
@@ -3477,14 +3562,20 @@
 
     document.querySelectorAll("[data-nav]").forEach((button) => {
       button.addEventListener("click", () => {
+        workflowSourceContext = null;
         closeCandidateReviewDrawer();
         closeMergeSuggestionsDrawer();
+        renderWorkflowContextPanel();
         setView(button.dataset.nav);
       });
     });
 
     document.querySelectorAll("[data-ops-tab]").forEach((button) => {
-      button.addEventListener("click", () => setView(button.dataset.opsTab));
+      button.addEventListener("click", () => {
+        workflowSourceContext = null;
+        renderWorkflowContextPanel();
+        setView(button.dataset.opsTab);
+      });
     });
 
     function switchWorkflowModule(moduleName) {
@@ -3522,6 +3613,27 @@
 
     document.getElementById("workflowPrimaryAction").addEventListener("click", () => runWorkflowPrimaryAction().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
     document.getElementById("workflowSecondaryAction").addEventListener("click", () => runWorkflowSecondaryAction().catch((error) => showToast(error.message || t("toastLoadFailed"), "error")));
+    document.getElementById("workflowContextOpenDetail").addEventListener("click", () => {
+      if (!selectedCandidate) {
+        showToast(t("selectCandidateFirst"), "warn");
+        return;
+      }
+      openCandidateReviewDrawer("detail");
+    });
+    document.getElementById("workflowContextOpenApproval").addEventListener("click", () => {
+      if (!selectedCandidate) {
+        showToast(t("selectCandidateFirst"), "warn");
+        return;
+      }
+      openCandidateReviewDrawer("approval");
+    });
+    document.getElementById("returnToSkillCandidates").addEventListener("click", () => {
+      workflowSourceContext = null;
+      closeCandidateReviewDrawer();
+      closeMergeSuggestionsDrawer();
+      setView("skills");
+      renderWorkflowContextPanel();
+    });
 
     document.querySelectorAll("[data-filter]").forEach((button) => {
       button.addEventListener("click", () => {

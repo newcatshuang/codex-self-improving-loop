@@ -91,29 +91,29 @@
         </section>
 
         <section class="summary-grid" aria-label="Summary">
-          <div class="summary-card memory">
+          <div class="summary-card metric">
             <div class="summary-label" data-i18n="memoryCandidates">Memory Candidates</div>
             <div class="summary-value" id="memoryCount">0</div>
           </div>
-          <div class="summary-card skill">
+          <div class="summary-card metric">
             <div class="summary-label" data-i18n="skillCandidates">Skill Candidates</div>
             <div class="summary-value" id="skillCount">0</div>
           </div>
-          <div class="summary-card patch">
+          <div class="summary-card metric">
             <div class="summary-label" data-i18n="skillPatchCandidates">Skill Patch Candidates</div>
             <div class="summary-value" id="patchCount">0</div>
           </div>
-          <div class="summary-card review">
+          <div class="summary-card metric">
             <div class="summary-label" data-i18n="openReviewItems">Open Review Items</div>
             <div class="summary-value" id="reviewCount">0</div>
           </div>
-          <div class="summary-card data">
+          <div class="summary-card metric">
             <div class="summary-label" data-i18n="skillUsage">Skill Usage</div>
             <div class="summary-value" id="skillUsageCount">0</div>
             <div class="summary-subvalue" id="skillUsageBreakdown">0 success / 0 failed</div>
             <ol class="skill-usage-list" id="skillUsageList"></ol>
           </div>
-          <div class="summary-card status">
+          <div class="summary-card metric">
             <div class="summary-label" data-i18n="statusSummary">Status Summary</div>
             <div class="summary-value" id="promotedCount">0</div>
             <div class="summary-subvalue" id="statusBreakdown">0 promoted / 0 rejected / 0 archived</div>
@@ -121,6 +121,28 @@
         </section>
 
         <section class="home-workbench command-center" id="dailyCommandCenter">
+          <section class="dashboard-ops-strip" id="dashboardOpsStrip" aria-label="Dashboard system facts">
+            <article class="ops-strip-item">
+              <h3 data-i18n="homeTodoTitle">Pending Workbench</h3>
+              <div class="task-value" id="homeTodoCount">0</div>
+              <p class="task-copy" id="homeTodoList" data-i18n="homeTodoEmpty">No open review work.</p>
+            </article>
+            <article class="ops-strip-item" id="homeRiskPanel">
+              <h3 data-i18n="homeRiskTitle">Risk Watch</h3>
+              <div class="task-value" id="homeRiskCount">0</div>
+              <p class="task-copy" id="homeRiskCopy" data-i18n="homeRiskEmpty">No failed runs detected.</p>
+            </article>
+            <article class="ops-strip-item" id="homeRecentPromotions">
+              <h3 data-i18n="homePromotionTitle">Recent Promotions</h3>
+              <div class="task-value" id="homePromotionCount">0</div>
+              <p class="task-copy" id="homePromotionCopy" data-i18n="homePromotionEmpty">No promotions yet.</p>
+            </article>
+            <article class="ops-strip-item" id="homeQuickActions">
+              <h3 data-i18n="homeNextRunTitle">Next Scheduled Run</h3>
+              <div class="task-value">03:00</div>
+              <p class="task-copy" id="nextActionList" data-i18n="homeNextRunCopy">Daily local scan. Use Schedule Center to install or remove it.</p>
+            </article>
+          </section>
           <div class="dashboard-compact-grid">
             <section class="panel next-action-panel" id="dashboardNextActionPanel">
               <div class="panel-header">
@@ -149,29 +171,6 @@
               <div class="dashboard-priority-list" id="dashboardPriorityList"></div>
             </section>
           </div>
-
-          <section class="task-grid">
-            <article class="task-card review">
-              <h3 data-i18n="homeTodoTitle">Pending Workbench</h3>
-              <div class="task-value" id="homeTodoCount">0</div>
-              <p class="task-copy" id="homeTodoList" data-i18n="homeTodoEmpty">No open review work.</p>
-            </article>
-            <article class="task-card data" id="homeRiskPanel">
-              <h3 data-i18n="homeRiskTitle">Risk Watch</h3>
-              <div class="task-value" id="homeRiskCount">0</div>
-              <p class="task-copy" id="homeRiskCopy" data-i18n="homeRiskEmpty">No failed runs detected.</p>
-            </article>
-            <article class="task-card memory" id="homeRecentPromotions">
-              <h3 data-i18n="homePromotionTitle">Recent Promotions</h3>
-              <div class="task-value" id="homePromotionCount">0</div>
-              <p class="task-copy" id="homePromotionCopy" data-i18n="homePromotionEmpty">No promotions yet.</p>
-            </article>
-            <article class="task-card skill" id="homeQuickActions">
-              <h3 data-i18n="homeNextRunTitle">Next Scheduled Run</h3>
-              <div class="task-value">03:00</div>
-              <p class="task-copy" id="nextActionList" data-i18n="homeNextRunCopy">Daily local scan. Use Schedule Center to install or remove it.</p>
-            </article>
-          </section>
         </section>
 
         <section class="control-grid">
@@ -211,19 +210,6 @@
       </section>
 
       <section class="operations-template-fragment" hidden>
-        <section class="panel recovery-queue operations-section" id="operationsRecoveryQueue" data-ops-section="data,recovery">
-          <div class="panel-header">
-            <h2 data-i18n="operationsRecoveryTitle">Recovery Queue</h2>
-            <span class="tag review" id="recoveryQueueCount">0</span>
-          </div>
-          <div class="panel-body">
-            <p class="panel-description" data-i18n="operationsRecoveryDesc">Review failed runs, audit signals, and rollback previews before taking manual recovery action.</p>
-            <div class="recovery-queue-list" id="recoveryQueueList"></div>
-          </div>
-        </section>
-      </section>
-
-      <section class="operations-template-fragment" hidden>
         <section class="panel data-panel operations-console operations-section" id="operationsConsole" data-ops-section="data">
           <div class="operations-anchor" id="operationsData"></div>
           <div class="panel-header">
@@ -231,40 +217,63 @@
           </div>
           <div class="panel-body">
             <p class="panel-description" data-i18n="dataCenterDesc">Initialize, back up, rebuild, scan, or export the local SQLite learning database.</p>
-            <div class="operation-grid">
-              <section class="operation-card safe-operation-zone" id="safeOperationZone">
-                <h3 data-i18n="safeOperationsTitle">Safe Operations</h3>
-                <p class="task-copy" data-i18n="safeOperationsDesc">Refresh, initialize, back up, or scan without clearing existing review queues.</p>
-                <div class="toolbar">
-                  <button class="secondary operation-quiet" id="refreshButton" data-action data-i18n="refresh">Refresh</button>
-                  <button class="operation-secondary" id="initializeData" data-action data-i18n="initializeData">Initialize Database</button>
-                  <button class="secondary operation-quiet" id="backupDatabase" data-action data-i18n="backupDatabase">Backup Database</button>
-                  <button class="operation-secondary" id="scanButton" data-action data-i18n="scanOnce">Scan Once</button>
-                  <button id="scanAndAnalyzeButton" data-action data-i18n="scanAndAnalyze">Scan &amp; Analyze</button>
-                </div>
-              </section>
-              <section class="operation-card danger-operation-zone" id="dangerOperationZone">
-                <h3 data-i18n="dangerOperationsTitle">Dangerous Operations</h3>
-                <p class="task-copy" data-i18n="dangerOperationsDesc">Rebuild clears active SQLite tables after creating a backup, then rescans history.</p>
-                <div class="toolbar">
-                  <button class="operation-danger" id="rebuildButton" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
-                </div>
-              </section>
-              <section class="operation-card export-operation-zone" id="exportOperationZone">
-                <h3 data-i18n="exportOperationsTitle">Export Operations</h3>
-                <p class="task-copy" data-i18n="exportOperationsDesc">Create review files or a migration bundle from current data without changing candidate status.</p>
-                <div class="toolbar">
-                  <button class="secondary operation-quiet" id="exportDigest" data-action data-i18n="exportDigest">Export Digest</button>
-                  <button class="secondary operation-quiet" id="exportCandidates" data-action data-i18n="exportCandidates">Export Candidates</button>
-                  <button class="secondary operation-quiet" id="exportBundle" data-action data-i18n="exportBundle">Export Bundle</button>
-                </div>
-                <label class="detail-label" for="importPreviewPath" data-i18n="importPreviewLabel">Import Bundle Preview Path</label>
-                <input class="search-input" id="importPreviewPath" type="text" data-i18n-placeholder="importPreviewPlaceholder" placeholder="Paste bundle .zip path for dry-run preview">
-                <div class="toolbar">
-                  <button class="secondary operation-quiet" id="importPreview" data-action data-i18n="importPreview">Import Preview</button>
-                </div>
-                <pre class="diff-preview" id="importPreviewResult"></pre>
-              </section>
+            <div class="data-workbench" id="dataWorkbench">
+              <div class="data-operation-column" id="dataOperationColumn">
+                <section class="operation-card safe-operation-zone" id="safeOperationZone">
+                  <h3 data-i18n="safeOperationsTitle">Safe Operations</h3>
+                  <p class="task-copy" data-i18n="safeOperationsDesc">Refresh, initialize, back up, or scan without clearing existing review queues.</p>
+                  <div class="toolbar">
+                    <button class="secondary operation-quiet" id="refreshButton" data-action data-i18n="refresh">Refresh</button>
+                    <button class="operation-secondary" id="initializeData" data-action data-i18n="initializeData">Initialize Database</button>
+                    <button class="secondary operation-quiet" id="backupDatabase" data-action data-i18n="backupDatabase">Backup Database</button>
+                    <button class="operation-secondary" id="scanButton" data-action data-i18n="scanOnce">Scan Once</button>
+                    <button id="scanAndAnalyzeButton" data-action data-i18n="scanAndAnalyze">Scan &amp; Analyze</button>
+                  </div>
+                </section>
+                <section class="operation-card export-operation-zone" id="exportOperationZone">
+                  <h3 data-i18n="exportOperationsTitle">Export Operations</h3>
+                  <p class="task-copy" data-i18n="exportOperationsDesc">Create review files or a migration bundle from current data without changing candidate status.</p>
+                  <div class="toolbar">
+                    <button class="secondary operation-quiet" id="exportDigest" data-action data-i18n="exportDigest">Export Digest</button>
+                    <button class="secondary operation-quiet" id="exportCandidates" data-action data-i18n="exportCandidates">Export Candidates</button>
+                    <button class="secondary operation-quiet" id="exportBundle" data-action data-i18n="exportBundle">Export Bundle</button>
+                  </div>
+                  <label class="detail-label" for="importPreviewPath" data-i18n="importPreviewLabel">Import Bundle Preview Path</label>
+                  <input class="search-input" id="importPreviewPath" type="text" data-i18n-placeholder="importPreviewPlaceholder" placeholder="Paste bundle .zip path for dry-run preview">
+                  <div class="toolbar">
+                    <button class="secondary operation-quiet" id="importPreview" data-action data-i18n="importPreview">Import Preview</button>
+                  </div>
+                  <pre class="diff-preview" id="importPreviewResult"></pre>
+                </section>
+                <section class="operation-card danger-operation-zone" id="dangerOperationZone">
+                  <h3 data-i18n="dangerOperationsTitle">Dangerous Operations</h3>
+                  <p class="task-copy" data-i18n="dangerOperationsDesc">Rebuild clears active SQLite tables after creating a backup, then rescans history.</p>
+                  <div class="toolbar">
+                    <button class="operation-danger" id="rebuildButton" data-action data-i18n="rebuildDatabase">Rebuild Database</button>
+                  </div>
+                </section>
+              </div>
+              <aside class="data-insight-column" id="dataInsightColumn">
+                <section class="panel recovery-queue" id="operationsRecoveryQueue" data-ops-section="data,recovery">
+                  <div class="panel-header">
+                    <h2 data-i18n="operationsRecoveryTitle">Recovery Queue</h2>
+                    <span class="tag review" id="recoveryQueueCount">0</span>
+                  </div>
+                  <div class="panel-body">
+                    <p class="panel-description" data-i18n="operationsRecoveryDesc">Review failed runs, audit signals, and rollback previews before taking manual recovery action.</p>
+                    <div class="recovery-queue-list" id="recoveryQueueList"></div>
+                  </div>
+                </section>
+                <section class="panel data-rollback-card" id="rollbackPreviewCard">
+                  <div class="panel-header">
+                    <h2 data-i18n="rollbackPreview">Rollback Preview</h2>
+                    <span class="tag status" data-i18n="noneSelected">None</span>
+                  </div>
+                  <div class="panel-body">
+                    <p class="panel-description" data-i18n="rollbackHint">Select a promotion to view the backup path and a copy-only restore command. The WebUI does not run rollback automatically.</p>
+                  </div>
+                </section>
+              </aside>
             </div>
             <div class="progress-panel" id="progressPanel" aria-live="polite">
               <div class="progress-head">
@@ -300,22 +309,21 @@
         <section class="panel workflow-queue" id="workflowReviewQueue">
           <div class="panel-header">
             <h2 data-i18n="candidateCenter">Candidate Center</h2>
-            <div class="toolbar">
+            <div class="toolbar candidate-queue-toolbar" id="candidateQueueToolbar">
               <span class="tag status" id="visibleCount">0</span>
+              <section class="merge-tool-module" id="mergeSuggestionsModule" role="button" tabindex="0" aria-labelledby="mergeSuggestionsModuleTitle">
+                <div class="merge-tool-copy">
+                  <span class="eyebrow" data-i18n="mergeSuggestionsTitle">Merge Suggestions</span>
+                  <h3 id="mergeSuggestionsModuleTitle" data-i18n="mergeSuggestionsTitle">Merge Suggestions</h3>
+                </div>
+                <div class="merge-tool-actions">
+                  <span class="tag status" id="mergeInlineCount">0</span>
+                  <button class="secondary operation-quiet" id="refreshMergeSuggestionsInline" type="button" data-i18n="refresh">Refresh</button>
+                  <button class="secondary merge-trigger" id="openMergeSuggestions" type="button" data-i18n="skillActionView">Review</button>
+                </div>
+              </section>
             </div>
           </div>
-          <section class="merge-tool-module" id="mergeSuggestionsModule" role="button" tabindex="0" aria-labelledby="mergeSuggestionsModuleTitle">
-            <div class="merge-tool-copy">
-              <span class="eyebrow" data-i18n="mergeSuggestionsTitle">Merge Suggestions</span>
-              <h3 id="mergeSuggestionsModuleTitle" data-i18n="mergeSuggestionsTitle">Merge Suggestions</h3>
-              <p class="task-copy" data-i18n="mergeSuggestionsModuleCopy">Review duplicate candidate groups without duplicating the candidate list.</p>
-            </div>
-            <div class="merge-tool-actions">
-              <span class="tag status" id="mergeInlineCount">0</span>
-              <button class="secondary operation-quiet" id="refreshMergeSuggestionsInline" type="button" data-i18n="refresh">Refresh</button>
-              <button class="secondary merge-trigger" id="openMergeSuggestions" type="button" data-i18n="skillActionView">Review</button>
-            </div>
-          </section>
           <div class="review-progress-bar" id="reviewProgressBar">
             <div class="review-progress-track">
               <div class="review-progress-fill" id="reviewProgressFill"></div>
@@ -378,6 +386,51 @@
             </div>
           </div>
         </section>
+
+        <aside class="panel workflow-context-panel" id="workflowContextPanel" aria-live="polite">
+          <div class="workflow-source-context" id="workflowSourceContext" hidden>
+            <div>
+              <span class="eyebrow" data-i18n="workflowSourceEyebrow">Source</span>
+              <strong data-i18n="workflowSourceSkillsTitle">From skill candidates</strong>
+              <p class="task-copy" data-i18n="workflowSourceSkillsCopy">This review was opened from Skill Management.</p>
+            </div>
+            <button class="secondary operation-quiet" id="returnToSkillCandidates" type="button" data-i18n="returnToSkills">Return to Skills</button>
+          </div>
+          <div class="panel-header">
+            <h2 data-i18n="workflowContextTitle">Review Context</h2>
+            <span class="tag status" id="workflowContextBadge" data-i18n="noneSelected">None</span>
+          </div>
+          <div class="workflow-context-empty" id="workflowContextEmpty" data-i18n="workflowContextEmpty">Select a candidate to see the current review context.</div>
+          <div class="workflow-context-content" id="workflowContextContent" hidden>
+            <h3 id="workflowContextCandidateTitle">-</h3>
+            <div class="workflow-context-tags">
+              <span class="tag status" id="workflowContextType">-</span>
+              <span class="tag priority" id="workflowContextPriority">-</span>
+            </div>
+            <dl class="workflow-context-metrics">
+              <div>
+                <dt data-i18n="statusHeader">Status</dt>
+                <dd id="workflowContextStatus">-</dd>
+              </div>
+              <div>
+                <dt data-i18n="sourceFilesLabel">Sources</dt>
+                <dd id="workflowContextSources">-</dd>
+              </div>
+              <div>
+                <dt data-i18n="destinationLabel">Destination</dt>
+                <dd id="workflowContextDestination">-</dd>
+              </div>
+            </dl>
+            <div class="workflow-context-next">
+              <span class="eyebrow" data-i18n="workflowContextNextLabel">Next step</span>
+              <p id="workflowContextNextAction">-</p>
+            </div>
+            <div class="toolbar workflow-context-actions">
+              <button class="secondary" id="workflowContextOpenDetail" type="button" data-i18n="workflowContextDetailAction">Open detail</button>
+              <button id="workflowContextOpenApproval" type="button" data-i18n="workflowContextApprovalAction">Open approval</button>
+            </div>
+          </div>
+        </aside>
 
         <aside class="candidate-review-drawer" id="candidateReviewDrawer" hidden>
           <div class="drawer-backdrop" id="candidateReviewBackdrop"></div>
@@ -799,7 +852,7 @@
       </section>
 
       <section class="operations-template-fragment" hidden>
-        <section class="module-grid">
+        <section class="module-grid" data-ops-section="history">
           <section class="panel" id="promotionHistoryPanel" data-ops-section="history">
             <div class="panel-header">
               <h2 data-i18n="promotionHistory">Promotion History</h2>
