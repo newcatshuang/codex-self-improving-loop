@@ -1178,6 +1178,30 @@
       return text;
     }
 
+    function localizedField(item, baseName, fallback = "") {
+      if (!item) {
+        return fallback;
+      }
+      const languageField = `${baseName}_${currentLanguage === "zh" ? "zh" : "en"}`;
+      const alternateField = `${baseName}_${currentLanguage === "zh" ? "en" : "zh"}`;
+      return item[languageField] || item[baseName] || item[alternateField] || fallback;
+    }
+
+    function localizedAnalysisText(analysis) {
+      if (!analysis) {
+        return "";
+      }
+      return [
+        localizedField(analysis, "evidence_assessment"),
+        localizedField(analysis, "conflicts"),
+        localizedField(analysis, "rewrite_quality"),
+      ].filter(Boolean).join("\n").trim();
+    }
+
+    function localizedProposalText(proposal, baseName) {
+      return localizedField(proposal, baseName, "");
+    }
+
     function applyLanguage() {
       document.documentElement.lang = currentLanguage === "zh" ? "zh-CN" : "en";
       document.querySelectorAll("[data-i18n]").forEach((element) => {
@@ -1688,11 +1712,12 @@
       if (candidate.analysis_risk_level || candidate.analysis_next_step) {
         const riskLevel = String(candidate.analysis_risk_level || "review");
         const className = riskLevel === "high" ? "danger" : riskLevel === "low" ? "safe" : "warning";
+        const nextStep = localizedField(candidate, "analysis_next_step", t("riskReview"));
         return {
           className,
           text: t("analysisSummary", {
             risk: riskLevel,
-            step: candidate.analysis_next_step || t("riskReview"),
+            step: nextStep,
           }),
         };
       }
@@ -1712,9 +1737,10 @@
         return t("selectCandidateHint");
       }
       if (candidate.suggested_action || candidate.recommendation_reason) {
+        const reason = localizedField(candidate, "recommendation_reason") || localizedField(candidate, "recommendation");
         const recommendation = t("recommendationFromBackend", {
           action: candidate.suggested_action || "needs_review",
-          reason: candidate.recommendation_reason || candidate.recommendation || "",
+          reason,
         });
         if (candidate.proposal_target_type) {
           return `${recommendation}\n${t("proposalSummary", {target: candidate.proposal_target_type})}`;
@@ -1799,14 +1825,14 @@
         ? `${proposal.target_type || "-"} · ${proposal.target_path || "-"}`
         : selectedCandidate.proposal_target_type || t("analysisUnavailable"));
       setText("proposalEvidence", analysis
-        ? `${analysis.evidence_assessment || "-"}\n${analysis.conflicts || ""}\n${analysis.rewrite_quality || ""}`.trim()
-        : selectedCandidate.analysis_next_step || t("analysisUnavailable"));
-      setText("proposalRationale", proposal ? proposal.rationale || "-" : t("analysisUnavailable"));
-      setText("proposalVerification", proposal ? proposal.verification || "-" : t("analysisUnavailable"));
+        ? localizedAnalysisText(analysis) || "-"
+        : localizedField(selectedCandidate, "analysis_next_step", t("analysisUnavailable")));
+      setText("proposalRationale", proposal ? localizedProposalText(proposal, "rationale") || "-" : t("analysisUnavailable"));
+      setText("proposalVerification", proposal ? localizedProposalText(proposal, "verification") || "-" : t("analysisUnavailable"));
       const proposalText = document.getElementById("proposalText");
       if (proposalText) {
         if (proposal && proposal.proposed_text) {
-          proposalText.innerHTML = renderDiff(proposal.proposed_text);
+          proposalText.innerHTML = renderDiff(localizedProposalText(proposal, "proposed_text") || proposal.proposed_text);
           proposalText.className = "diff-view";
         } else {
           proposalText.textContent = t("proposalTextEmpty");
@@ -3115,7 +3141,18 @@
         if (!normalized) {
           return true;
         }
-        const text = [item.type, item.title, item.destination, item.text, item.rewrite_suggestion, item.status, item.safety]
+        const text = [
+          item.type,
+          item.title,
+          item.destination,
+          item.text,
+          item.rewrite_suggestion,
+          item.status,
+          item.safety,
+          localizedField(item, "recommendation"),
+          localizedField(item, "recommendation_reason"),
+          localizedField(item, "analysis_next_step"),
+        ]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();

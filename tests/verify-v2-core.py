@@ -33,6 +33,10 @@ def write_session(path: Path) -> None:
                 '{"type":"message","role":"user","content":"$entry=@\\"code\\" 是脚本变量赋值，不是 skill。"}',
                 '{"type":"message","role":"user","content":"$imagegen 生成一张项目配图。"}',
                 '{"type":"message","role":"assistant","content":"Using `using-superpowers / brainstorming` to clarify the workflow before implementation."}',
+                '{"type":"message","role":"assistant","content":"Using `using-superpowers` to load the next process skill."}',
+                '{"type":"message","role":"assistant","content":"Using `using-superpowers` to check another applicable skill."}',
+                '{"type":"message","role":"assistant","content":"Using `gitnexus-debugging` to trace the suspicious scanner path."}',
+                '{"type":"message","role":"assistant","content":"Using `gitnexus-debugging` to inspect the persistence boundary."}',
                 '{"type":"message","role":"assistant","content":"我会用 `verification-before-completion` 来做完成前校验。"}',
                 '{"type":"message","role":"assistant","content":"Using `python` to run the verifier should not be counted as skill usage."}',
                 '{"type":"message","role":"user","content":"这个流程可以做成 skill：先跑 doctor，再 rebuild，再 scan --once。"}',
@@ -52,6 +56,11 @@ def table_count(db_path: Path, table: str) -> int:
 def skill_usage_names(db_path: Path) -> set[str]:
     with sqlite3.connect(db_path) as conn:
         return {str(row[0]) for row in conn.execute("select skill_name from skill_usage")}
+
+
+def skill_usage_counts(db_path: Path) -> dict[str, int]:
+    with sqlite3.connect(db_path) as conn:
+        return {str(row[0]): int(row[1]) for row in conn.execute("select skill_name, count(*) from skill_usage group by skill_name")}
 
 
 def main() -> int:
@@ -95,6 +104,11 @@ def main() -> int:
     actual_skill_usage = skill_usage_names(db_path)
     if not expected_skill_usage.issubset(actual_skill_usage):
         raise AssertionError(f"rebuild should record explicit skill usage: {actual_skill_usage}")
+    actual_skill_usage_counts = skill_usage_counts(db_path)
+    if actual_skill_usage_counts.get("using-superpowers") != 3:
+        raise AssertionError(f"rebuild should count repeated using-superpowers triggers: {actual_skill_usage_counts}")
+    if actual_skill_usage_counts.get("gitnexus-debugging") != 2:
+        raise AssertionError(f"rebuild should count repeated gitnexus-debugging triggers: {actual_skill_usage_counts}")
     if "home" in actual_skill_usage:
         raise AssertionError("$HOME should be treated as environment text, not skill usage")
     if {"i", "entry"} & actual_skill_usage:

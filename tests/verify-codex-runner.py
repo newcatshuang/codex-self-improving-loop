@@ -19,8 +19,8 @@ def make_fake_codex(path: Path) -> None:
     if count_file.exists():
         count_file.unlink()
     extraction = "{\"memory_candidates\":[{\"title\":\"Model preference\",\"text\":\"Remember this model preference from the transcript.\",\"destination\":\"global_user_memory\",\"rewrite_suggestion\":\"Remember this model preference from the transcript.\",\"confidence\":0.91}],\"skill_candidates\":[],\"skill_patch_candidates\":[],\"summary\":\"ok\",\"risks\":[],\"confidence\":0.91}"
-    recommendation = "{\"recommendation\":\"Promote after human review.\",\"recommendation_reason\":\"The candidate is directly supported by the transcript.\",\"suggested_action\":\"promote\"}"
-    analysis = "{\"analysis\":{\"evidence_assessment\":\"The transcript directly supports the candidate.\",\"stability\":\"stable\",\"scope\":\"global\",\"risk_level\":\"low\",\"conflicts\":\"No conflict found.\",\"rewrite_quality\":\"The rewrite is concise.\",\"recommended_next_step\":\"Review the proposal in the WebUI.\"},\"proposal\":{\"target_type\":\"USER.md\",\"target_path\":\"$CODEX_ROOT/memories/USER.md\",\"proposed_text\":\"Remember this model preference from the transcript.\",\"rationale\":\"This is a stable user preference candidate.\",\"verification\":\"Preview the diff before manual promotion.\",\"requires_manual_approval\":true}}"
+    recommendation = "{\"recommendation_en\":\"Promote after human review.\",\"recommendation_zh\":\"人工复核后可以晋升。\",\"recommendation_reason_en\":\"The candidate is directly supported by the transcript.\",\"recommendation_reason_zh\":\"该候选有会话记录直接支撑。\",\"suggested_action\":\"promote\"}"
+    analysis = "{\"analysis\":{\"evidence_assessment_en\":\"The transcript directly supports the candidate.\",\"evidence_assessment_zh\":\"会话记录直接支撑该候选。\",\"stability\":\"stable\",\"scope\":\"global\",\"risk_level\":\"low\",\"conflicts_en\":\"No conflict found.\",\"conflicts_zh\":\"未发现冲突。\",\"rewrite_quality_en\":\"The rewrite is concise.\",\"rewrite_quality_zh\":\"改写内容较简洁。\",\"recommended_next_step_en\":\"Review the proposal in the WebUI.\",\"recommended_next_step_zh\":\"在 WebUI 中复核该建议。\"},\"proposal\":{\"target_type\":\"USER.md\",\"target_path\":\"$CODEX_ROOT/memories/USER.md\",\"proposed_text_en\":\"Remember this model preference from the transcript.\",\"proposed_text_zh\":\"记住会话中的模型偏好。\",\"rationale_en\":\"This is a stable user preference candidate.\",\"rationale_zh\":\"这是稳定的用户偏好候选。\",\"verification_en\":\"Preview the diff before manual promotion.\",\"verification_zh\":\"人工晋升前先预览 diff。\",\"requires_manual_approval\":true}}"
     helper = path / "fake_codex.py"
     helper.write_text(
         "\n".join(
@@ -95,10 +95,18 @@ def main() -> int:
     with sqlite3.connect(db_path) as conn:
         analysis_engines = {row[0] for row in conn.execute("select engine from candidate_analyses")}
         proposal_flags = {row[0] for row in conn.execute("select requires_manual_approval from evolution_proposals")}
+        bilingual_recommendations = conn.execute(
+            "select count(*) from recommendations where recommendation_en<>'' and recommendation_zh<>''"
+        ).fetchone()[0]
+        bilingual_analyses = conn.execute(
+            "select count(*) from candidate_analyses where evidence_assessment_en<>'' and evidence_assessment_zh<>''"
+        ).fetchone()[0]
     if analysis_engines != {"codex"}:
         raise AssertionError(f"Codex analysis should be preferred, got {analysis_engines}")
     if proposal_flags != {1}:
         raise AssertionError(f"Codex evolution proposals must require manual approval, got {proposal_flags}")
+    if int(bilingual_recommendations) < 1 or int(bilingual_analyses) < 1:
+        raise AssertionError("Codex guidance should be persisted in both English and Chinese")
 
     no_codex_root = root / "fallback"
     write_session(no_codex_root / "sessions" / "fallback.jsonl", "请记住 SQL 查询要确认字段，避免 SELECT *，这个流程也可以做成 skill。")

@@ -7,22 +7,30 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "evidence_assessment",
+        "evidence_assessment_en",
+        "evidence_assessment_zh",
         "stability",
         "scope",
         "risk_level",
-        "conflicts",
-        "rewrite_quality",
-        "recommended_next_step"
+        "conflicts_en",
+        "conflicts_zh",
+        "rewrite_quality_en",
+        "rewrite_quality_zh",
+        "recommended_next_step_en",
+        "recommended_next_step_zh"
       ],
       "properties": {
-        "evidence_assessment": {"type": "string"},
+        "evidence_assessment_en": {"type": "string"},
+        "evidence_assessment_zh": {"type": "string"},
         "stability": {"type": "string"},
         "scope": {"type": "string"},
         "risk_level": {"type": "string", "enum": ["low", "medium", "high"]},
-        "conflicts": {"type": "string"},
-        "rewrite_quality": {"type": "string"},
-        "recommended_next_step": {"type": "string"}
+        "conflicts_en": {"type": "string"},
+        "conflicts_zh": {"type": "string"},
+        "rewrite_quality_en": {"type": "string"},
+        "rewrite_quality_zh": {"type": "string"},
+        "recommended_next_step_en": {"type": "string"},
+        "recommended_next_step_zh": {"type": "string"}
       }
     },
     "proposal": {
@@ -31,9 +39,12 @@
       "required": [
         "target_type",
         "target_path",
-        "proposed_text",
-        "rationale",
-        "verification",
+        "proposed_text_en",
+        "proposed_text_zh",
+        "rationale_en",
+        "rationale_zh",
+        "verification_en",
+        "verification_zh",
         "requires_manual_approval"
       ],
       "properties": {
@@ -42,9 +53,12 @@
           "enum": ["USER.md", "AGENTS.md", "skill", "skill_patch", "manual_review"]
         },
         "target_path": {"type": "string"},
-        "proposed_text": {"type": "string"},
-        "rationale": {"type": "string"},
-        "verification": {"type": "string"},
+        "proposed_text_en": {"type": "string"},
+        "proposed_text_zh": {"type": "string"},
+        "rationale_en": {"type": "string"},
+        "rationale_zh": {"type": "string"},
+        "verification_en": {"type": "string"},
+        "verification_zh": {"type": "string"},
         "requires_manual_approval": {"type": "boolean", "const": true}
       }
     }

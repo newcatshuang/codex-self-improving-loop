@@ -13,6 +13,11 @@ from pathlib import Path
 from helpers import TestServer, fetch_json, run_sil, table_count, write_jsonl_session
 
 
+def table_columns(db_path: Path, table: str) -> set[str]:
+    with sqlite3.connect(db_path) as conn:
+        return {str(row[1]) for row in conn.execute(f"pragma table_info({table})")}
+
+
 def main() -> int:
     os.environ["CODEX_SIL_DISABLE_CODEX"] = "1"
     parser = argparse.ArgumentParser(description=__doc__)
@@ -44,6 +49,36 @@ def main() -> int:
     (root / "AGENTS.md").write_text("# AGENTS.md\n\n## Project Learned Facts\n", encoding="utf-8")
 
     run_sil(repo, root, "rebuild", "--backup")
+    expected_bilingual_columns = {
+        "recommendations": {
+            "recommendation_en",
+            "recommendation_zh",
+            "recommendation_reason_en",
+            "recommendation_reason_zh",
+        },
+        "candidate_analyses": {
+            "evidence_assessment_en",
+            "evidence_assessment_zh",
+            "conflicts_en",
+            "conflicts_zh",
+            "rewrite_quality_en",
+            "rewrite_quality_zh",
+            "recommended_next_step_en",
+            "recommended_next_step_zh",
+        },
+        "evolution_proposals": {
+            "proposed_text_en",
+            "proposed_text_zh",
+            "rationale_en",
+            "rationale_zh",
+            "verification_en",
+            "verification_zh",
+        },
+    }
+    for table, columns in expected_bilingual_columns.items():
+        missing = columns - table_columns(db, table)
+        if missing:
+            raise AssertionError(f"{table} should store bilingual AI guidance columns: {missing}")
     if table_count(db, "recommendations") < table_count(db, "candidates"):
         raise AssertionError("rebuild should generate a recommendation row for each candidate")
     if table_count(db, "candidate_analyses") < table_count(db, "candidates"):
@@ -56,6 +91,16 @@ def main() -> int:
         auto_promoted = conn.execute("select count(*) from candidates where status='promoted'").fetchone()[0]
         if int(auto_promoted) != 0:
             raise AssertionError("scan must not auto-promote candidates; all promotion stays manual")
+        bilingual_recommendations = conn.execute(
+            """
+            select count(*)
+            from recommendations
+            where recommendation_en<>'' and recommendation_zh<>''
+              and recommendation_reason_en<>'' and recommendation_reason_zh<>''
+            """
+        ).fetchone()[0]
+        if int(bilingual_recommendations) < table_count(db, "recommendations"):
+            raise AssertionError("scan should persist bilingual recommendation text for every recommendation")
 
     with sqlite3.connect(db) as conn:
         conn.execute(
@@ -80,12 +125,20 @@ def main() -> int:
             raise AssertionError(f"recommendations should use fixed actions: {recommendations}")
         if not all(item.get("recommendation_reason") for item in recommendations["recommendations"]):
             raise AssertionError(f"recommendations should include reasons: {recommendations}")
+        if not all(item.get("recommendation_reason_en") and item.get("recommendation_reason_zh") for item in recommendations["recommendations"]):
+            raise AssertionError(f"recommendations API should expose bilingual reasons: {recommendations}")
         regenerated = fetch_json(server.port, server.token, f"/api/candidates/{first}/recommend", method="POST")
         if regenerated.get("suggested_action") not in {"promote", "merge", "archive", "reject", "needs_review"}:
             raise AssertionError(f"single candidate recommendation should be regenerated: {regenerated}")
+        if not regenerated.get("recommendation_en") or not regenerated.get("recommendation_zh"):
+            raise AssertionError(f"single candidate recommendation should return bilingual text: {regenerated}")
         analysis = fetch_json(server.port, server.token, f"/api/candidates/{first}/analysis")
         if not analysis.get("analysis") or not analysis.get("proposal"):
             raise AssertionError(f"candidate analysis endpoint should expose analysis and proposal: {analysis}")
+        if not analysis["analysis"].get("evidence_assessment_en") or not analysis["analysis"].get("evidence_assessment_zh"):
+            raise AssertionError(f"analysis endpoint should expose bilingual analysis text: {analysis}")
+        if not analysis["proposal"].get("rationale_en") or not analysis["proposal"].get("rationale_zh"):
+            raise AssertionError(f"analysis endpoint should expose bilingual proposal text: {analysis}")
         if analysis["analysis"].get("engine") not in {"codex", "fallback_rules"}:
             raise AssertionError(f"candidate analysis should identify its engine: {analysis}")
         if analysis["proposal"].get("requires_manual_approval") is not True:
@@ -100,6 +153,8 @@ def main() -> int:
         summary_payload = fetch_json(server.port, server.token, "/api/summary")
         if not summary_payload.get("summary"):
             raise AssertionError(f"summary should return current counters: {summary_payload}")
+        if summary_payload.get("candidates") and not {"recommendation_reason_en", "recommendation_reason_zh", "analysis_next_step_en", "analysis_next_step_zh"}.issubset(summary_payload["candidates"][0]):
+            raise AssertionError(f"summary candidate rows should include bilingual guidance fields: {summary_payload['candidates'][0]}")
         with sqlite3.connect(db) as conn:
             after_summary_read = int(conn.execute("select count(*) from merge_suggestions").fetchone()[0])
         if before_summary_read != after_summary_read:
@@ -199,6 +254,9 @@ def main() -> int:
     for marker in ("candidate-row", "candidate-title", "candidate-snippet"):
         if marker not in js:
             raise AssertionError(f"Candidate Center should render dense review table rows: missing {marker}")
+    for marker in ("localizedField", "localizedAnalysisText", "localizedProposalText"):
+        if marker not in js:
+            raise AssertionError(f"WebUI should switch backend AI guidance by language: missing {marker}")
     for marker in ("setupWizard", "dailyDigestPanel", "mergeSuggestionsDrawer", "candidateReviewDrawer", "skillCandidatePanel", "promotionPreview", "skillHealthTable", "skillHealthRows", "exportBundle", "importPreview"):
         if marker not in html and marker not in js:
             raise AssertionError(f"WebUI missing v3 marker: {marker}")

@@ -17,6 +17,7 @@ from .digest import generate_digest
 from .fallback_extractor import ExtractedCandidate, extract_candidates, normalize
 from .merge import generate_merge_suggestions
 from .paths import backups_dir, db_path
+from .recommendations import generate_missing as generate_missing_recommendations
 from .recommendations import recommend_candidate
 from .search_index import clear as clear_fts
 from .search_index import sync_candidate, sync_session
@@ -42,7 +43,6 @@ IGNORED_DOLLAR_NAMES = {
     "username",
     "userprofile",
 }
-SOURCE_RANK = {"assistant_declared": 1, "user_explicit": 2}
 SECRET_VALUE_PATTERN = re.compile(
     r"(?i)(api[_-]?key|token|secret|password|passwd)\s*[:=]\s*['\"]?[^'\"\s]+"
 )
@@ -55,6 +55,7 @@ class SkillUsageEvent:
     source: str
     confidence: float
     evidence: str
+    event_index: int
 
 
 def now_stamp() -> str:
@@ -210,14 +211,14 @@ def redact_detail(text: str) -> str:
 
 
 def extract_skill_usage_events(messages: list[tuple[str, str]]) -> list[SkillUsageEvent]:
-    by_skill: dict[str, SkillUsageEvent] = {}
+    events: list[tuple[str, str, float, str]] = []
     for role, text in messages:
         if role == "user":
             for match in USER_EXPLICIT_SKILL_PATTERN.finditer(text):
                 skill = normalize_skill_name(match.group(1))
                 if not skill or not is_likely_user_explicit_skill(skill, text, match.start(), match.end()):
                     continue
-                by_skill[skill] = SkillUsageEvent(skill, "user_explicit", 1.0, match.group(0))
+                events.append((skill, "user_explicit", 1.0, match.group(0)))
             continue
         if role != "assistant":
             continue
@@ -226,11 +227,11 @@ def extract_skill_usage_events(messages: list[tuple[str, str]]) -> list[SkillUsa
                 for skill in split_skill_names(match.group(1)):
                     if not is_likely_skill_declaration_skill(skill, match.group(0)):
                         continue
-                    event = SkillUsageEvent(skill, "assistant_declared", 0.85, match.group(0))
-                    existing = by_skill.get(skill)
-                    if not existing or SOURCE_RANK[event.source] > SOURCE_RANK[existing.source]:
-                        by_skill[skill] = event
-    return sorted(by_skill.values(), key=lambda event: event.skill_name)
+                    events.append((skill, "assistant_declared", 0.85, match.group(0)))
+    return [
+        SkillUsageEvent(skill, source, confidence, evidence, index)
+        for index, (skill, source, confidence, evidence) in enumerate(events, start=1)
+    ]
 
 
 def start_run(root: Path, kind: str, detail: str | None = None) -> int:
@@ -328,27 +329,20 @@ def persist_session_index(root: Path, session_id: int, text: str) -> None:
 
 def persist_skill_usage(root: Path, session_id: int, event: SkillUsageEvent) -> int:
     detail = (
-        f"session_id={session_id};source={event.source};confidence={event.confidence:.2f};"
+        f"session_id={session_id};event_index={event.event_index};source={event.source};confidence={event.confidence:.2f};"
         f"evidence={redact_detail(event.evidence)}"
     )
     with connect(root) as conn:
-        existing = conn.execute(
-            "select id, detail from skill_usage where skill_name=? and detail like ?",
-            (event.skill_name, f"session_id={session_id};%"),
-        ).fetchone()
-        if existing:
-            existing_detail = str(existing["detail"] or "")
-            if "source=assistant_declared" in existing_detail and event.source == "user_explicit":
-                conn.execute(
-                    "update skill_usage set status='success', used_at=current_timestamp, detail=? where id=?",
-                    (detail, int(existing["id"])),
-                )
-            return int(existing["id"])
         cur = conn.execute(
             "insert into skill_usage(skill_name, status, detail) values(?, 'success', ?)",
             (event.skill_name, detail),
         )
         return int(cur.lastrowid)
+
+
+def clear_skill_usage_for_session(root: Path, session_id: int) -> None:
+    with connect(root) as conn:
+        conn.execute("delete from skill_usage where detail like ?", (f"session_id={session_id};%",))
 
 
 def process_session(root: Path, run_id: int, path: Path) -> int:
@@ -360,6 +354,8 @@ def process_session(root: Path, run_id: int, path: Path) -> int:
     text = messages_to_text(messages)
     persist_session_index(root, session_id, text)
     skill_usage_events = extract_skill_usage_events(messages)
+    # 变更后的 session 会重新处理；先清掉旧遥测，避免同一次触发在重扫后被重复累计。
+    clear_skill_usage_for_session(root, session_id)
     for event in skill_usage_events:
         persist_skill_usage(root, session_id, event)
     codex_candidates = extract_with_codex(text, root)
@@ -433,6 +429,7 @@ def scan_into_run(root: Path, run_id: int, sessions: list[Path]) -> dict[str, in
 
 
 def finalize_scan(root: Path, run_id: int) -> dict[str, object]:
+    generate_missing_recommendations(root)
     generate_missing_analyses(root)
     generate_merge_suggestions(root)
     digest = generate_digest(root, run_id=run_id)

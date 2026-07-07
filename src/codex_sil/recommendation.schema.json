@@ -1,12 +1,24 @@
 {
   "type": "object",
   "additionalProperties": false,
-  "required": ["recommendation", "recommendation_reason", "suggested_action"],
+  "required": [
+    "recommendation_en",
+    "recommendation_zh",
+    "recommendation_reason_en",
+    "recommendation_reason_zh",
+    "suggested_action"
+  ],
   "properties": {
-    "recommendation": {
+    "recommendation_en": {
       "type": "string"
     },
-    "recommendation_reason": {
+    "recommendation_zh": {
+      "type": "string"
+    },
+    "recommendation_reason_en": {
+      "type": "string"
+    },
+    "recommendation_reason_zh": {
       "type": "string"
     },
     "suggested_action": {

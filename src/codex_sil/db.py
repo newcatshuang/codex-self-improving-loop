@@ -96,6 +96,29 @@ MIGRATIONS: tuple[tuple[str, str], ...] = (
         alter table candidate_analyses add column error text not null default '';
         """,
     ),
+    (
+        "0005_bilingual_ai_guidance",
+        """
+        alter table recommendations add column recommendation_en text not null default '';
+        alter table recommendations add column recommendation_zh text not null default '';
+        alter table recommendations add column recommendation_reason_en text not null default '';
+        alter table recommendations add column recommendation_reason_zh text not null default '';
+        alter table candidate_analyses add column evidence_assessment_en text not null default '';
+        alter table candidate_analyses add column evidence_assessment_zh text not null default '';
+        alter table candidate_analyses add column conflicts_en text not null default '';
+        alter table candidate_analyses add column conflicts_zh text not null default '';
+        alter table candidate_analyses add column rewrite_quality_en text not null default '';
+        alter table candidate_analyses add column rewrite_quality_zh text not null default '';
+        alter table candidate_analyses add column recommended_next_step_en text not null default '';
+        alter table candidate_analyses add column recommended_next_step_zh text not null default '';
+        alter table evolution_proposals add column proposed_text_en text not null default '';
+        alter table evolution_proposals add column proposed_text_zh text not null default '';
+        alter table evolution_proposals add column rationale_en text not null default '';
+        alter table evolution_proposals add column rationale_zh text not null default '';
+        alter table evolution_proposals add column verification_en text not null default '';
+        alter table evolution_proposals add column verification_zh text not null default '';
+        """,
+    ),
 )
 
 
@@ -120,11 +143,14 @@ def apply_migrations(conn: sqlite3.Connection) -> None:
         existing = conn.execute("select 1 from schema_migrations where name=?", (name,)).fetchone()
         if existing:
             continue
-        try:
-            conn.executescript(sql)
-        except sqlite3.OperationalError as exc:
-            if "duplicate column name" not in str(exc).lower():
-                raise
+        for statement in (part.strip() for part in sql.split(";")):
+            if not statement:
+                continue
+            try:
+                conn.execute(statement)
+            except sqlite3.OperationalError as exc:
+                if "duplicate column name" not in str(exc).lower():
+                    raise
         conn.execute("insert into schema_migrations(name) values(?)", (name,))
     ensure_fts_tables(conn)
     conn.execute(
