@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEDULE_HOUR = 3
-SCHEDULE_TIME = "03:00"
+SCHEDULE_HOUR = 1
+SCHEDULE_TIME = "01:00"
 
 
 def sil_command(repo_root: Path, *args: str) -> list[str]:

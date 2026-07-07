@@ -131,7 +131,7 @@ python "$HOME/.agents/codex-self-improving-loop/sil.py" serve --open
 python "$HOME/.agents/codex-self-improving-loop/sil.py" schedule install
 ```
 
-调度器默认每天 `03:00` 执行一次：
+调度器默认每天 `01:00` 执行一次：
 
 ```text
 sil.py scan --once
@@ -268,7 +268,7 @@ Skill 管理页关注两件事：
 | 跨会话检索   | `sil.py recall` 使用 SQLite FTS 搜索 session 和候选，返回脱敏片段。      |
 | Daily Digest | 每次扫描或重建后保存摘要，便于每日复盘。                                 |
 | 导出与迁移   | 支持 digest、候选和 bundle 导出；导入前支持 dry-run 预览。               |
-| 调度器       | 跨平台安装每日 `03:00` 的本机扫描任务。                                  |
+| 调度器       | 跨平台安装每日 `01:00` 的本机扫描任务。                                  |
 | 桌面快捷方式 | 创建本机 WebUI 一键启动入口。                                            |
 | 诊断         | WebUI 和 `doctor` 命令都能查看运行目录、数据库、服务绑定和最近运行状态。 |
 

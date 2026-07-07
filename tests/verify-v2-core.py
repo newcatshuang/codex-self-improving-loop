@@ -304,7 +304,7 @@ def main() -> int:
         )
         with urllib.request.urlopen(request, timeout=5) as response:
             schedule_api = json.loads(response.read().decode("utf-8"))
-        if schedule_api.get("schedule_time") != "03:00" or "scan --once" not in schedule_api.get("command", ""):
+        if schedule_api.get("schedule_time") != "01:00" or "scan --once" not in schedule_api.get("command", ""):
             raise AssertionError(f"schedule status API should expose the daily scan target: {schedule_api}")
         request = urllib.request.Request(
             f"http://{LOCAL_HOST}:{server.server_port}/api/doctor",
@@ -602,8 +602,8 @@ def main() -> int:
     schedule = run([sys.executable, str(sil), "schedule", "install", "--codex-root", str(root), "--dry-run"], repo)
     if "sil.py scan --once" not in schedule.stdout:
         raise AssertionError("schedule dry-run should invoke sil.py scan --once")
-    if "03:00" not in schedule.stdout:
-        raise AssertionError("schedule dry-run should install a 03:00 run")
+    if "01:00" not in schedule.stdout:
+        raise AssertionError("schedule dry-run should install a 01:00 run")
 
     shortcut = run([sys.executable, str(sil), "shortcut", "install", "--codex-root", str(root), "--dry-run"], repo)
     if "sil.py serve --open" not in shortcut.stdout:

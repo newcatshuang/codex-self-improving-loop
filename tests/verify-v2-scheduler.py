@@ -32,7 +32,7 @@ def main() -> int:
         text = scheduler.install_schedule(repo, root)
     if not calls or calls[0][:3] != ["schtasks.exe", "/Create", "/TN"]:
         raise AssertionError(f"Windows install should call schtasks: {calls}")
-    if "/SC" not in calls[0] or "DAILY" not in calls[0] or "03:00" not in calls[0]:
+    if "/SC" not in calls[0] or "DAILY" not in calls[0] or "01:00" not in calls[0]:
         raise AssertionError(calls[0])
     if "schtasks.exe /Create" not in text:
         raise AssertionError(text)
@@ -46,7 +46,7 @@ def main() -> int:
     if not plist.exists():
         raise FileNotFoundError(plist)
     plist_text = plist.read_text(encoding="utf-8")
-    if "StartCalendarInterval" not in plist_text or "<integer>3</integer>" not in plist_text:
+    if "StartCalendarInterval" not in plist_text or "<integer>1</integer>" not in plist_text:
         raise AssertionError(plist_text)
     if not any(call[:2] == ["launchctl", "load"] for call in calls):
         raise AssertionError(f"Darwin install should call launchctl load: {calls}")
@@ -62,7 +62,7 @@ def main() -> int:
     timer = systemd / "codex-self-improving-loop.timer"
     if not service.exists() or not timer.exists():
         raise FileNotFoundError(f"{service} / {timer}")
-    if "OnCalendar=*-*-* 03:00:00" not in timer.read_text(encoding="utf-8"):
+    if "OnCalendar=*-*-* 01:00:00" not in timer.read_text(encoding="utf-8"):
         raise AssertionError(timer.read_text(encoding="utf-8"))
     if not any(call[:3] == ["systemctl", "--user", "enable"] for call in calls):
         raise AssertionError(f"Linux install should enable timer: {calls}")

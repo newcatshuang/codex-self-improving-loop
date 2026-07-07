@@ -33,7 +33,7 @@ python "$HOME/.agents/codex-self-improving-loop/sil.py" scan --once
 # Backup the SQLite database and rebuild it from all historical sessions.
 python "$HOME/.agents/codex-self-improving-loop/sil.py" rebuild --backup
 
-# Install the daily 03:00 scan schedule or the desktop launcher.
+# Install the daily 01:00 scan schedule or the desktop launcher.
 python "$HOME/.agents/codex-self-improving-loop/sil.py" schedule install
 python "$HOME/.agents/codex-self-improving-loop/sil.py" shortcut install
 ```
